@@ -26,7 +26,7 @@
 
 <complextype> -> TK_VERTEX | TK_EDGE | TK_GRAPH | TK_TREE
 
-<equatable> -> <assignable> | <literal> | <funcstmt> | TK_OPENPAREN <assignable> TK_COMMA <assignable> TK_CLOSEPAREN | <exp> | TK_DEPTH
+<equatable> -> TK_OPENPAREN <assignable> TK_COMMA <assignable> TK_CLOSEPAREN | <exp>
 
 <fndefines> -> TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> | e
 
@@ -58,7 +58,7 @@
 
 <ifblock> -> <ifstmt> TK_COLON <block>
 
-<elseifblock> -> TK_ELSE <elseifblock1>
+<elseifblock> -> TK_ELSE <elseifblock1> | e
 
 <elseifblock1> -> <validconditional> | TK_COLON <block> TK_NEWLINE
 
@@ -108,7 +108,7 @@
 
 <printable> -> <assignable> | <literal>
 
-<iterations> -> TK_FOR <loop> TK_COLON <block>
+<iteration> -> TK_FOR <loop> TK_COLON <block>
 
 <loop> -> <identifier> <loop1> | <literal> TK_ITERATIONS
 
