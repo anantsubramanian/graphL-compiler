@@ -12,9 +12,7 @@
 
 <assignable> -> <identifier> <assignable1>
 
-<assignable1> -> TK_MEMBEROP <assignable2> | e
-
-<assignable2> -> <assignable> | <endassignable>
+<assignable1> -> TK_MEMBEROP <endassignable> | e
 
 <endassignable> -> <primitivetype> | TK_ROOT <primitiveval> | TK_SOURCE <primitiveval> | TK_DEST <primitiveval> | TK_WEIGHT
 
@@ -120,7 +118,7 @@
 
 <operatorparams> -> TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN
 
-<iterable1> -> TK_ADJACENT TK_TO <identifier> | e
+<iterable1> -> TK_ADJACENT TK_TO <assignable> | e
 
 <literal> -> TK_INTLIT | TK_FLOATLIT | TK_STRINGLIT
 
