@@ -1,12 +1,10 @@
 <program> -> <globaldefines> <fndefines> <statements>
 
-<globaldefines> -> <globaldefine> TK_NEWLINE <globaldefines> | e 
+<globaldefines> -> <defineorassign> TK_NEWLINE <globaldefines> | e 
 
-<globaldefine> -> TK_GLOBAL <defineargs>
+<defineorassign> -> <definestmt> | <letstmt>
 
-<definestmt> -> TK_DEFINE <defineargs>
-
-<defineargs> -> <datatype> <identifier> <moreidens>
+<definestmt> -> TK_DEFINE <datatype> <identifier> <moreidens>
 
 <moreidens> -> TK_COMMA <identifier> <moreidens> | e
 
