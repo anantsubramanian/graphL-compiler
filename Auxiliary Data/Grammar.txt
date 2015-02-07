@@ -60,7 +60,7 @@
 
 <elseifblock> -> TK_ELSE <elseifblock1>
 
-<elseifblock1> -> <conditional> | TK_COLON <block> TK_NEWLINE
+<elseifblock1> -> <validconditional> | TK_COLON <block> TK_NEWLINE
 
 <block> -> TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 
