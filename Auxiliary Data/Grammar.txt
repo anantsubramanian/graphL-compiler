@@ -104,7 +104,9 @@
 
 <input> -> TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN
 
-<output> -> TK_PRINT TK_OPENPAREN <assignable> TK_CLOSEPAREN
+<output> -> TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN
+
+<printable> -> <assignable> | <literal>
 
 <iterations> -> TK_FOR <loop> TK_COLON <block>
 
