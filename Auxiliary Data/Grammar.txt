@@ -40,7 +40,7 @@
 
 <returntype> -> <datatype> | TK_NOTHING
 
-<fnbody> -> TK_BEGIN TK_NEWLINE <statements> TK_NEWLINE <returnstmt> TK_NEWLINE TK_END
+<fnbody> -> TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END
 
 <returnable> -> <equatable> | TK_NOTHING
 
@@ -48,7 +48,7 @@
 
 <possiblestmts> -> <validstatement> TK_NEWLINE | <validconditional>
 
-<validstatement> -> <definestmt> | <letstmt> | <iteration> | <input> | <output> | <funcstmt> | <breakstmt> | <returnstmt>
+<validstatement> -> <definestmt> | <letstmt> | <iteration> | <input> | <output> | <funcstmt> | <breakstmt>
 
 <breakstmt> -> TK_BREAK
 
@@ -98,9 +98,11 @@
 
 <assignorfunc> -> <identifier> <assignorfunc1>
 
-<assignorfunc1> -> <assignable1> | <funcstmt>
+<assignorfunc1> -> <assignable1> | <funcstmt1>
 
-<funcstmt> -> TK_OPENPAREN <passedparams> TK_CLOSEPAREN
+<funcstmt> -> <identifier> <funcstmt1> 
+
+<funcstmt1> -> TK_OPENPAREN <passedparams> TK_CLOSEPAREN
 
 <passedparams> -> <assignable> <morepassed> | e
 
