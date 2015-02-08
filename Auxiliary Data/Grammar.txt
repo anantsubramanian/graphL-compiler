@@ -26,7 +26,7 @@
 
 <complextype> -> TK_VERTEX | TK_EDGE | TK_GRAPH | TK_TREE
 
-<equatable> -> TK_OPENPAREN <assignable> TK_COMMA <assignable> TK_CLOSEPAREN | <exp>
+<equatable> -> TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN | <exp>
 
 <fndefines> -> TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> | e
 
@@ -76,7 +76,7 @@
 
 <expand> -> TK_NOT <expand> | <expnot>
 
-<expnot> -> <boolresult> | TK_OPENPAREN <boolexp> TK_CLOSEPAREN
+<expnot> -> <boolresult> | TK_CURLYOPENPAREN <boolexp> TK_CURLYCLOSEPAREN
 
 <boolresult> -> <exp> <relop> <exp>
 
@@ -94,9 +94,13 @@
 
 <modexp1> -> TK_MODULO <modexp> | e
 
-<baseexp> -> <assignable> | <literal> | <funcstmt> | TK_DEPTH
+<baseexp> -> <assignorfunc> | <literal> | TK_DEPTH
 
-<funcstmt> -> <identifier> TK_OPENPAREN <passedparams> TK_CLOSEPAREN
+<assignorfunc> -> <identifier> <assignorfunc1>
+
+<assignorfunc1> -> <assignable1> | <funcstmt>
+
+<funcstmt> -> TK_OPENPAREN <passedparams> TK_CLOSEPAREN
 
 <passedparams> -> <assignable> <morepassed> | e
 
