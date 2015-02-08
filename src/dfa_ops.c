@@ -142,8 +142,8 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
 
   if ( state1->next_state[ input ] != NULL )
   {
-    fprintf ( stderr, "The supplied transition already exists\n" );
-    return NULL;
+    fprintf ( stderr, "A transition for this state and symbol already exists\n" );
+    fprintf ( stderr, "Overwriting transition..\n" );
   }
 
   state1->next_state[ input ] = state2;
@@ -201,6 +201,12 @@ DFA* gotoNextState ( DFA *dfa, char input )
   if ( dfa == NULL )
   {
     fprintf ( stderr, "Cannot traverse non-existent DFA\n" );
+    return NULL;
+  }
+  
+  if ( dfa->current_state < 0 || dfa->current_state >= dfa->num_states )
+  {
+    fprintf ( stderr, "DFA is in an inconsistent state\n" );
     return NULL;
   }
 
@@ -349,13 +355,41 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     {
       int asciival;
       fscanf ( file, "%d", &asciival );
-      if ( asciival < 0 || asciival > 32 )
+      if ( asciival == -1 )
+      {
+        // Transition valid for any ASCII character
+        int p;
+        for ( p = 0; p < 128; p++ )
+          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      }
+      else if ( asciival == -2 )
+      {
+        // Transition valid for any lower case character
+        int p;
+        for ( p = 97; p < 123; p++ )
+          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      }
+      else if ( asciival == -3 )
+      {
+        // Transition valid for any upper case character
+        int p;
+        for ( p = 65; p < 91; p++ )
+          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      }
+      else if ( asciival == -4 )
+      {
+        // Transition valid for any digit
+        int p;
+        for ( p = 48; p < 58; p++ )
+          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      }
+      else if ( asciival < 0 || asciival > 32 )
       {
         fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
         return NULL;
       }
-
-      addTransition ( (char) asciival, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      else
+        addTransition ( (char) asciival, getState ( dfa, state1 ), getState ( dfa, state2 ) );
     }
   }
 

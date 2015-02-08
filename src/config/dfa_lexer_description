@@ -1,0 +1,45 @@
+$Numstates:          17
+$Numdescriptions:    14
+
+$Descriptions:
+
+$Statenum        $Name               $FinalOrNormal
+
+1                TK_NEWLINE          F
+3                TK_EQ               F
+4                TK_PLUS             F
+5                TK_SQOPENPAREN      F
+6                TK_SQCLOSEPAREN     F
+7                TK_CROPENPAREN      F
+8                TK_CRCLOSEPAREN     F
+9                TK_OPENPAREN        F
+10               TK_CLOSEPAREN       F
+11               TK_COLON            F
+12               TK_MUL              F
+13               TK_DIV              F
+14               TK_COMMA            F
+15               TK_MODULO           F
+
+$Numtransitions      19
+
+$From          $To            $Printable?    $Char/ASCII
+
+0              1              N              10
+1              2              N              10
+2              2              N              10
+0              3              Y              =
+0              4              Y              +
+0              5              Y              [
+0              6              Y              ]
+0              7              Y              {
+0              8              Y              }
+0              9              Y              (
+0              10             Y              )
+0              11             Y              :
+0              12             Y              *
+0              13             Y              /
+0              14             Y              ,
+0              15             Y              %
+0              16             Y              #
+16             16             N              -1
+16             0              N              10
