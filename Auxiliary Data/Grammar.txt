@@ -76,7 +76,7 @@
 
 <expand> -> TK_NOT <expand> | <expnot>
 
-<expnot> -> <boolresult> | TK_CURLYOPENPAREN <boolexp> TK_CURLYCLOSEPAREN
+<expnot> -> <boolresult> | TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 
 <boolresult> -> <exp> <relop> <exp>
 
