@@ -1,23 +1,23 @@
-$Numstates:				5
-$Numdescriptions:	1
+$Numstates:          5
+$Numdescriptions:    1
 
 $Descriptions:
 
-$Statenum 	$Name					$FinalOrNormal
+$Statenum        $Name        $FinalOrNormal
 
-4 					0000_Found 		F
+4                0000_Found   F
 
-$Numtransitions		10
+$Numtransitions      10
 
-$From				$To						$Printable?			$Char/ASCII
+$From          $To            $Printable?    $Char/ASCII
 
-0 					1 						Y 							0
-1 					2 						Y 							0
-2 					3 						Y	 							0
-3 					4 						Y 							0
-4 					4 						Y 							0
-0 					0 						Y 							1
-1 					0 						Y 							1
-2 					0 						Y 							1
-3 					0 						Y 							1
-4 					0 						Y 							1
+0              1              Y              0
+1              2              Y              0
+2              3              Y              0
+3              4              Y              0
+4              4              Y              0
+0              0              Y              1
+1              0              Y              1
+2              0              Y              1
+3              0              Y              1
+4              0              Y              1

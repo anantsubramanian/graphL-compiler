@@ -4,17 +4,17 @@
 
 typedef struct state_struct
 {
-	char *name;
-	int state_number;
-	int is_final;
-	struct state_struct *next_state[TRANSITION_LIMIT];
+  char *name;
+  int state_number;
+  int is_final;
+  struct state_struct *next_state[TRANSITION_LIMIT];
 } STATE;
 
 typedef struct dfa_struct
 {
-	int num_states;
-	int current_state;
-	STATE *all_states;
+  int num_states;
+  int current_state;
+  STATE *all_states;
 } DFA;
 
 extern DFA* getNewDFA ( );
