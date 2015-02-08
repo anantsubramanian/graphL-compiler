@@ -4,6 +4,7 @@
 #include "headers/dfa.h"
 
 #define MAX_NAME_LEN 100
+#define BUFFERLENGTH 50
 
 DFA* getNewDFA () 
 {
@@ -222,6 +223,8 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 {
 	FILE *file = NULL;
 
+	char heading [BUFFERLENGTH];
+
 	file = fopen ( filename, "r" );
 	if ( file == NULL )
 	{
@@ -250,6 +253,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 	int num_states = 0;
 	int state_descriptions = 0;
 
+	fscanf ( file, "%s", heading );
 	fscanf ( file, "%d", &num_states );
 	if ( num_states <= 0 )
 	{
@@ -259,15 +263,24 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 	
 	dfa = setNumStates ( dfa, num_states );
 
+	fscanf ( file, "%s", heading );
 	fscanf ( file, "%d", &state_descriptions );
 	if ( state_descriptions < 0 )
 	{
 		fprintf ( stderr, "Malformed file, incorrect number of state descriptions\n" );
 		return NULL;
 	}
+	
+	int i = 0;
+	
+	// Start of descriptions
+	fscanf ( file, "%s", heading );
+	
+	// Read 3 column headings
+	for ( i = 0; i < 3; i++ )
+		fscanf ( file, "%s", heading );
 
 	// Read state descriptions
-	int i = 0;
 	for ( i = 0; i < state_descriptions; i++ )
 	{
 		int statenum;
@@ -292,6 +305,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 	}
 
 	int num_transitions;
+	fscanf ( file, "%s", heading );
 	fscanf ( file, "%d", &num_transitions );
 
 	if ( num_transitions < 0 )
@@ -299,6 +313,11 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 		fprintf ( stderr, "Malformed file, incorrent number of transitions specified\n" );
 		return NULL;
 	}
+	
+	// Transitions start
+	// Read four headings
+	for ( i = 0; i < 4; i++ )
+		fscanf ( file, "%s", heading );
 
 	for ( i = 0; i < num_transitions; i++ )
 	{
@@ -343,6 +362,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 	if ( fclose ( file ) != 0 )
 		fprintf ( stderr, "Failed to close file used to initialize DFA\n" );
 
+	dfa = gotoInitialState (dfa);
 	return dfa;
 }
 
