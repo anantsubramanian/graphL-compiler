@@ -3,6 +3,8 @@
 #include <string.h>
 #include "headers/dfa.h"
 
+#define MAX_NAME_LEN 100
+
 DFA* getNewDFA () 
 {
 	DFA *dfa = NULL;
@@ -13,6 +15,7 @@ DFA* getNewDFA ()
 		return dfa;
 	}
 
+	// Initially the DFA has no states and current state is undefined
 	dfa->num_states = 0;
 	dfa->all_states = NULL;
 	dfa->current_state = -1;
@@ -28,6 +31,7 @@ DFA* resetDFA ( DFA *dfa )
 		return dfa;
 	}
 
+	// Free memory reserved for states of DFA if they exist
 	if ( dfa->all_states != NULL )
 	{
 		free ( dfa->all_states );
@@ -61,7 +65,8 @@ DFA* setNumStates ( DFA *dfa, int numStates )
 		fprintf ( stderr, "Failed to allocate memory for those many states\n" );
 		return NULL;
 	}
-	
+
+	// Initialize the newly added states if any
 	int i;
 	for (i = dfa->num_states; i < numStates; i++)
 	{
@@ -83,6 +88,7 @@ DFA* gotoInitialState ( DFA *dfa )
 		return NULL;
 	}
 	
+	// The initial state is always 0
 	dfa->current_state = 0;
 	return dfa;
 }
@@ -209,6 +215,134 @@ DFA* gotoNextState ( DFA *dfa, char input )
 	{
 		dfa = setCurrentState ( dfa, next );
 	}
+	return dfa;
+}
+
+DFA* initializeFromFile ( DFA *dfa, const char *filename )
+{
+	FILE *file = NULL;
+
+	file = fopen ( filename, "r" );
+	if ( file == NULL )
+	{
+		fprintf ( stderr, "Unable to open file to initialize DFA\n" );
+		return NULL;
+	}
+
+	if ( file == NULL )
+	{
+		fprintf ( stderr, "Cannot initialize from a non-existent file\n" );
+		return NULL;
+	}
+
+	if ( dfa == NULL )
+	{
+		fprintf ( stderr, "Cannot initialize a non-existent DFA from a file\n" );
+		return NULL;
+	}
+
+	if ( dfa->num_states != 0 )
+	{
+		fprintf ( stderr, "DFA being initialized from file already has states\n" );
+		return NULL;
+	}
+
+	int num_states = 0;
+	int state_descriptions = 0;
+
+	fscanf ( file, "%d", &num_states );
+	if ( num_states <= 0 )
+	{
+		fprintf ( stderr, "Malformed file, incorrect number of states\n" );
+		return NULL;
+	}
+	
+	dfa = setNumStates ( dfa, num_states );
+
+	fscanf ( file, "%d", &state_descriptions );
+	if ( state_descriptions < 0 )
+	{
+		fprintf ( stderr, "Malformed file, incorrect number of state descriptions\n" );
+		return NULL;
+	}
+
+	// Read state descriptions
+	int i = 0;
+	for ( i = 0; i < state_descriptions; i++ )
+	{
+		int statenum;
+		char name [MAX_NAME_LEN];
+		char finalornot;
+		fscanf ( file, "%d %s", &statenum, name );
+		do
+		{
+			fscanf ( file, "%c", &finalornot );
+		} while ( finalornot != 'F' && finalornot != 'N' );
+
+		if ( statenum >= num_states )
+		{
+			fprintf ( stderr, "Malformed file, incorrect state number in description\n" );
+			return NULL;
+		}
+
+		if ( finalornot == 'F' )
+			setFinal ( getState ( dfa, statenum ) );
+
+		setName ( getState ( dfa, statenum ) , name );
+	}
+
+	int num_transitions;
+	fscanf ( file, "%d", &num_transitions );
+
+	if ( num_transitions < 0 )
+	{
+		fprintf ( stderr, "Malformed file, incorrent number of transitions specified\n" );
+		return NULL;
+	}
+
+	for ( i = 0; i < num_transitions; i++ )
+	{
+		int state1, state2;
+		char printable;
+		fscanf ( file, "%d %d", &state1, &state2 );
+		
+		if ( state1 >= num_states || state2 >= num_states )
+		{
+			fprintf ( stderr, "Malformed file, Incorrect state number in transition\n" );
+			return NULL;
+		}
+		do
+		{
+			fscanf ( file, "%c", &printable );
+		} while ( printable != 'Y' && printable != 'N' );
+
+		if ( printable == 'Y' )
+		{
+			char a;
+			do
+			{
+				fscanf ( file, "%c", &a );
+			} while ( a <= 32 );
+			
+			addTransition ( a, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+		}
+		else if ( printable == 'N' )
+		{
+			int asciival;
+			fscanf ( file, "%d", &asciival );
+			if ( asciival < 0 || asciival > 32 )
+			{
+				fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
+				return NULL;
+			}
+			
+			addTransition ( (char) asciival, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+		}
+	}
+	
+	if ( fclose ( file ) != 0 )
+		fprintf ( stderr, "Failed to close file used to initialize DFA\n" );
+
 	return dfa;
 }
 

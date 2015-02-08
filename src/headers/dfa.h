@@ -41,3 +41,5 @@ extern int isFinal ( STATE *st );
 
 extern DFA* gotoNextState ( DFA *dfa, char input );
 
+extern DFA* initializeFromFile ( DFA *dfa, const char *filename );
+
