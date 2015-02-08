@@ -35,6 +35,8 @@ extern STATE* setFinal ( STATE *state );
 
 extern STATE* getCurrentState ( DFA *dfa );
 
+extern STATE* peek ( DFA *dfa, char nextinp );
+
 extern DFA* setCurrentState ( DFA *dfa, STATE *state );
 
 extern int isFinal ( STATE *st );

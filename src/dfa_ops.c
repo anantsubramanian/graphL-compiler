@@ -400,3 +400,20 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   return dfa;
 }
 
+STATE* peek ( DFA *dfa, char nextinp )
+{
+  if ( dfa == NULL )
+  {
+    fprintf ( stderr, "Cannot peek a non-existent DFA\n" );
+    return NULL;
+  }
+
+  if ( dfa->current_state == -1 )
+  {
+    fprintf ( stderr, "Cannot peek an uninitialized DFA\n" );
+    return NULL;
+  }
+
+  return dfa->all_states[ dfa->current_state ].next_state[ nextinp ];
+}
+
