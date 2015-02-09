@@ -222,7 +222,7 @@ DFA* gotoNextState ( DFA *dfa, char input )
     fprintf ( stderr, "Cannot traverse non-existent DFA\n" );
     return NULL;
   }
-  
+
   if ( dfa->current_state < 0 || dfa->current_state >= dfa->num_states )
   {
     fprintf ( stderr, "DFA is in an inconsistent state\n" );
@@ -311,7 +311,22 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     int statenum;
     char name [MAX_NAME_LEN];
     char finalornot, property;
-    fscanf ( file, "%d %s", &statenum, name );
+    fscanf ( file, "%d", &statenum );
+
+    // Read name field
+    int index = 0;
+    do
+    {
+      fscanf ( file, "%c", &name[ index ] );
+    } while ( name[ index ] != '"' );
+
+    do
+    {
+      fscanf ( file, "%c", &name[ index ] );
+    } while ( name[ index++ ] != '"' );
+
+    name[ index-1 ] = '\0';
+
     do
     {
       fscanf ( file, "%c", &finalornot );
@@ -327,7 +342,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
       setFinal ( getState ( dfa, statenum ) );
     do
     {
-      fscanf ( file, "%c", &property );   
+      fscanf ( file, "%c", &property );
     } while ( property != 'N' && property != 'T' && property != 'E' );
 
     if ( property == 'T' )

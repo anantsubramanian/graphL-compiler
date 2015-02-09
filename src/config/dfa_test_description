@@ -3,9 +3,9 @@ $Numdescriptions:    1
 
 $Descriptions:
 
-$Statenum        $Name        $FinalOrNormal    $SpecialProperty
+$Statenum        $Name          $FinalOrNormal    $SpecialProperty
 
-4                0000_Found   F                 N  
+4                "0000 Found"   F                 N  
 
 $Numtransitions      10
 

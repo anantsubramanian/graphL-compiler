@@ -5,21 +5,21 @@ $Descriptions:
 
 $Statenum        $Name               $FinalOrNormal    $SpecialProperty
 
-1                TK_NEWLINE          F                 N
-2                TWO_NEWLS           N                 T
-3                TK_EQ               F                 N
-4                TK_PLUS             F                 N
-5                TK_SQOPENPAREN      F                 N
-6                TK_SQCLOSEPAREN     F                 N
-7                TK_CROPENPAREN      F                 N
-8                TK_CRCLOSEPAREN     F                 N
-9                TK_OPENPAREN        F                 N
-10               TK_CLOSEPAREN       F                 N
-11               TK_COLON            F                 N
-12               TK_MUL              F                 N
-13               TK_DIV              F                 N
-14               TK_COMMA            F                 N
-15               TK_MODULO           F                 N
+1                "TK_NEWLINE"        F                 N
+2                "TWO_NEWLS"         N                 T
+3                "TK_EQ"             F                 N
+4                "TK_PLUS"           F                 N
+5                "TK_SQOPENPAREN"    F                 N
+6                "TK_SQCLOSEPAREN"   F                 N
+7                "TK_CROPENPAREN"    F                 N
+8                "TK_CRCLOSEPAREN"   F                 N
+9                "TK_OPENPAREN"      F                 N
+10               "TK_CLOSEPAREN"     F                 N
+11               "TK_COLON"          F                 N
+12               "TK_MUL"            F                 N
+13               "TK_DIV"            F                 N
+14               "TK_COMMA"          F                 N
+15               "TK_MODULO"         F                 N
 
 $Numtransitions      19
 
