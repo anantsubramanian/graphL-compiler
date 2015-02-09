@@ -187,7 +187,7 @@ $Statenum        $Name               $FinalOrNormal    $SpecialProperty
 150              "Started Quote"     N                 N
 182              "Error!"            F                 E
 
-$Numtransitions:     798
+$Numtransitions:     797
 
 $From          $To            $Printable?    $Char/ASCII
 
