@@ -1,5 +1,8 @@
 #define TRUE 1
 #define FALSE 0
+#define NONE 0
+#define TRAP 1
+#define ERROR 2
 #define TRANSITION_LIMIT 128
 
 typedef struct state_struct
@@ -7,6 +10,7 @@ typedef struct state_struct
   char *name;
   int state_number;
   int is_final;
+  int special_property;
   struct state_struct *next_state[TRANSITION_LIMIT];
 } STATE;
 
@@ -37,6 +41,8 @@ extern STATE* getCurrentState ( DFA *dfa );
 
 extern STATE* peek ( DFA *dfa, char nextinp );
 
+extern STATE* setSpecialProperty ( STATE *state , int property );
+
 extern DFA* setCurrentState ( DFA *dfa, STATE *state );
 
 extern int isFinal ( STATE *st );
@@ -44,4 +50,6 @@ extern int isFinal ( STATE *st );
 extern DFA* gotoNextState ( DFA *dfa, char input );
 
 extern DFA* initializeFromFile ( DFA *dfa, const char *filename );
+
+extern int getSpecialProperty ( STATE *state );
 

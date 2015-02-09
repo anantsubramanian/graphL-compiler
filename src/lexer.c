@@ -12,21 +12,18 @@ int main()
   char c;
   while (1)
   {
-    if ( shouldread == TRUE )
+    c = getchar();
+    if ( c == 'x' )
+      break;
+    if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
     {
-      c = getchar();
-      if ( c == 'x' )
-        break;
+      if ( isFinal ( getCurrentState (dfa) ) == TRUE )
+        printf ( "%s\n", getCurrentState (dfa) -> name );
+      else
+        printf ( "Error in Lexer\n" );
+      dfa = gotoInitialState ( dfa );
     }
-    int prevstate = getCurrentState (dfa) -> state_number;
     gotoNextState ( dfa, c );
-    if ( isFinal ( getCurrentState (dfa) ) == TRUE )
-      printf ( "%s\n", getCurrentState (dfa) -> name );
-    int newstate = getCurrentState (dfa) -> state_number;
-    if ( newstate == 0 && shouldread == TRUE )
-      shouldread = FALSE;
-    else
-      shouldread = TRUE;
   }
   return 0;
 }

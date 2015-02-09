@@ -1,24 +1,25 @@
 $Numstates:          17
-$Numdescriptions:    14
+$Numdescriptions:    15
 
 $Descriptions:
 
-$Statenum        $Name               $FinalOrNormal
+$Statenum        $Name               $FinalOrNormal    $SpecialProperty
 
-1                TK_NEWLINE          F
-3                TK_EQ               F
-4                TK_PLUS             F
-5                TK_SQOPENPAREN      F
-6                TK_SQCLOSEPAREN     F
-7                TK_CROPENPAREN      F
-8                TK_CRCLOSEPAREN     F
-9                TK_OPENPAREN        F
-10               TK_CLOSEPAREN       F
-11               TK_COLON            F
-12               TK_MUL              F
-13               TK_DIV              F
-14               TK_COMMA            F
-15               TK_MODULO           F
+1                TK_NEWLINE          F                 N
+2                TWO_NEWLS           N                 T
+3                TK_EQ               F                 N
+4                TK_PLUS             F                 N
+5                TK_SQOPENPAREN      F                 N
+6                TK_SQCLOSEPAREN     F                 N
+7                TK_CROPENPAREN      F                 N
+8                TK_CRCLOSEPAREN     F                 N
+9                TK_OPENPAREN        F                 N
+10               TK_CLOSEPAREN       F                 N
+11               TK_COLON            F                 N
+12               TK_MUL              F                 N
+13               TK_DIV              F                 N
+14               TK_COMMA            F                 N
+15               TK_MODULO           F                 N
 
 $Numtransitions      19
 

@@ -74,6 +74,7 @@ DFA* setNumStates ( DFA *dfa, int numStates )
     dfa->all_states[i].name = NULL;
     dfa->all_states[i].state_number = i;
     dfa->all_states[i].is_final = FALSE;
+    dfa->all_states[i].special_property = NONE;
     int j;
     for (j = 0; j < TRANSITION_LIMIT; j++)
       dfa->all_states[i].next_state[j] = NULL;
@@ -142,7 +143,7 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
 
   if ( state1->next_state[ input ] != NULL )
   {
-    fprintf ( stderr, "A transition for this state and symbol already exists\n" );
+    fprintf ( stderr, "A transition for state %d and ASCII %d already exists\n", state1->state_number, (int) input );
     fprintf ( stderr, "Overwriting transition..\n" );
   }
 
@@ -171,6 +172,24 @@ STATE *getCurrentState ( DFA *dfa )
   }
 
   return &( dfa->all_states[ dfa->current_state ] );
+}
+
+STATE *setSpecialProperty ( STATE *state, int property )
+{
+  if ( state == NULL )
+  {
+    fprintf ( stderr, "Cannot set special property for non-existent state" );
+    return NULL;
+  }
+
+  if ( property < 0 || property > 2 )
+  {
+    fprintf ( stderr, "Invalid property value for state\n" );
+    return NULL;
+  }
+
+  state->special_property = property;
+  return state;
 }
 
 DFA* setCurrentState ( DFA *dfa, STATE *state )
@@ -282,8 +301,8 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   // Start of descriptions
   fscanf ( file, "%s", heading );
 
-  // Read 3 column headings
-  for ( i = 0; i < 3; i++ )
+  // Read 4 column headings
+  for ( i = 0; i < 4; i++ )
     fscanf ( file, "%s", heading );
 
   // Read state descriptions
@@ -291,7 +310,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   {
     int statenum;
     char name [MAX_NAME_LEN];
-    char finalornot;
+    char finalornot, property;
     fscanf ( file, "%d %s", &statenum, name );
     do
     {
@@ -306,6 +325,15 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 
     if ( finalornot == 'F' )
       setFinal ( getState ( dfa, statenum ) );
+    do
+    {
+      fscanf ( file, "%c", &property );   
+    } while ( property != 'N' && property != 'T' && property != 'E' );
+
+    if ( property == 'T' )
+      setSpecialProperty ( getState ( dfa, statenum ), TRAP );
+    else if ( property == 'E' )
+      setSpecialProperty ( getState ( dfa, statenum ), ERROR );
 
     setName ( getState ( dfa, statenum ) , name );
   }
@@ -415,5 +443,16 @@ STATE* peek ( DFA *dfa, char nextinp )
   }
 
   return dfa->all_states[ dfa->current_state ].next_state[ nextinp ];
+}
+
+int getSpecialProperty ( STATE *state )
+{
+  if ( state == NULL )
+  {
+    fprintf ( stderr, "No property for non-existent state\n" );
+    return -1;
+  }
+
+  return state->special_property;
 }
 
