@@ -426,6 +426,13 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
         for ( p = 48; p < 58; p++ )
           addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
       }
+      else if ( asciival == -5 )
+      {
+        // Transition valid for any whitespace character
+        int p;
+        for ( p = 0; p <= 32; p++ )
+          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      }
       else if ( asciival < 0 || asciival > 32 )
       {
         fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
