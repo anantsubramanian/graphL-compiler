@@ -43,9 +43,9 @@ int main()
         else
           printf ( "%s\n", getCurrentState (dfa) -> name );
       }
-      else
-        printf ( "Error in Lexer\n" );
-      dfa = gotoInitialState ( dfa );
+      
+      if ( peek ( dfa, c ) == NULL )
+        dfa = gotoInitialState ( dfa );
     }
 
     gotoNextState ( dfa, c );

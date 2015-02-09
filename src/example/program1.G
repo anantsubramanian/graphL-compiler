@@ -1,5 +1,4 @@
 # Assumes that the Graph is populated
-
 Function shortestPath (Graph G, Vertex v, Vertex u) -> Int :
 Begin
   Define Vertex w

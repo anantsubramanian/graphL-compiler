@@ -7,13 +7,13 @@ Read(c)
 
 If c < 0 :
 Begin
-  Print(“ End Program ”)
+  Print(" End Program ")
 End
 Else If c >= 0 and a < b:
 Begin
-  Print(“ Precedence Works”)
+  Print(" Precedence Works")
 End
 Else :
 Begin
-  Print(“ Precedence Fails” )
+  Print(" Precedence Fails" )
 End
