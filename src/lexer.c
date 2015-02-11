@@ -6,6 +6,7 @@
 
 // TODO: Deal with errors in input program
 // TODO: Print Token pairs stream
+// TODO: Read from file using two buffers
 
 int main()
 {
