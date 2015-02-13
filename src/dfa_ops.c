@@ -251,6 +251,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   char heading [BUFFERLENGTH];
 
   file = fopen ( filename, "r" );
+
   if ( file == NULL )
   {
     fprintf ( stderr, "Unable to open file to initialize DFA\n" );
@@ -276,10 +277,11 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   }
 
   int num_states = 0;
-  int state_descriptions = 0;
 
+  // Read the number of states
   fscanf ( file, "%s", heading );
   fscanf ( file, "%d", &num_states );
+
   if ( num_states <= 0 )
   {
     fprintf ( stderr, "Malformed file, incorrect number of states\n" );
@@ -288,9 +290,12 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 
   dfa = setNumStates ( dfa, num_states );
 
+  int final_states = 0;
+
   fscanf ( file, "%s", heading );
-  fscanf ( file, "%d", &state_descriptions );
-  if ( state_descriptions < 0 )
+  fscanf ( file, "%d", &final_states );
+
+  if ( final_states < 0 )
   {
     fprintf ( stderr, "Malformed file, incorrect number of state descriptions\n" );
     return NULL;
@@ -298,20 +303,69 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 
   int i = 0;
 
-  // Start of descriptions
+  // Final states heading
   fscanf ( file, "%s", heading );
 
-  // Read 4 column headings
-  for ( i = 0; i < 4; i++ )
-    fscanf ( file, "%s", heading );
+  // Read list of final states
+  for ( i = 0; i < final_states; i++ )
+  {
+    int finalstate;
+    fscanf ( file, "%d", &finalstate );
+    setFinal ( getState ( dfa, finalstate ) );
+  }
 
-  // Read state descriptions
-  for ( i = 0; i < state_descriptions; i++ )
+  fscanf ( file, "%s", heading );
+
+  int special_states = 0;
+  fscanf ( file, "%d", &special_states );
+
+  if ( special_states < 0 )
+  {
+    fprintf ( stderr, "Incorrect number of special states in file\n" );
+    return NULL;
+  }
+
+  // Read 2 headings for special states
+  fscanf ( file, "%s", heading );
+  fscanf ( file, "%s", heading );
+
+  // Read special states details
+  for ( i = 0; i < special_states; i++ )
   {
     int statenum;
-    char name [MAX_NAME_LEN];
-    char finalornot, property;
+    char property;
     fscanf ( file, "%d", &statenum );
+    if ( statenum < 0 || statenum > num_states )
+    {
+      fprintf ( stderr, "Incorrect special state number\n" );
+      return NULL;
+    }
+
+    do
+    {
+      fscanf ( file, "%c", &property );
+    } while ( property != 'T' && property != 'E' && property != 'N' );
+
+    if ( property == 'T' )
+      setSpecialProperty ( getState ( dfa, statenum ), TRAP );
+    else if ( property == 'E' )
+      setSpecialProperty ( getState ( dfa, statenum ), ERROR );
+  }
+
+  fscanf ( file, "%s", heading );
+
+  int named_states = 0;
+  fscanf ( file, "%d", &named_states );
+
+  for ( i = 0; i < 3; i++)
+    fscanf ( file, "%s", heading );
+
+  // Read state names
+  for ( i = 0; i < named_states; i++ )
+  {
+    int countstates = 1;
+    int statenum;
+    char name [MAX_NAME_LEN];
 
     // Read name field
     int index = 0;
@@ -327,30 +381,25 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 
     name[ index-1 ] = '\0';
 
-    do
+    fscanf ( file, "%d", &countstates );
+    if ( countstates <= 0 )
     {
-      fscanf ( file, "%c", &finalornot );
-    } while ( finalornot != 'F' && finalornot != 'N' );
-
-    if ( statenum >= num_states )
-    {
-      fprintf ( stderr, "Malformed file, incorrect state number in description\n" );
+      fprintf ( stderr, "Incorrect number of states while setting names\n" );
       return NULL;
     }
 
-    if ( finalornot == 'F' )
-      setFinal ( getState ( dfa, statenum ) );
-    do
+    // For each of the counstates states, set the same name
+    for ( i = 0; i < countstates; i++ )
     {
-      fscanf ( file, "%c", &property );
-    } while ( property != 'N' && property != 'T' && property != 'E' );
+      fscanf ( file, "%d", &statenum );
+      if ( statenum >= num_states || statenum < 0 )
+      {
+        fprintf ( stderr, "Malformed file, incorrect state number in description\n" );
+        return NULL;
+      }
 
-    if ( property == 'T' )
-      setSpecialProperty ( getState ( dfa, statenum ), TRAP );
-    else if ( property == 'E' )
-      setSpecialProperty ( getState ( dfa, statenum ), ERROR );
-
-    setName ( getState ( dfa, statenum ) , name );
+      setName ( getState ( dfa, statenum ) , name );
+    }
   }
 
   int num_transitions;
@@ -364,21 +413,50 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   }
 
   // Transitions start
-  // Read four headings
-  for ( i = 0; i < 4; i++ )
+  // Read seven headings
+  for ( i = 0; i < 7; i++ )
     fscanf ( file, "%s", heading );
 
+  // Read the transitions
   for ( i = 0; i < num_transitions; i++ )
   {
+    int numfrom, numto;
     int state1, state2;
     char printable;
+    fscanf ( file, "%d", &numfrom );
+
+    int fromlist [ numfrom ];
+    int fromlistindex = 0;
+
+    // Populate the 'from' states list
+    for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
+    {
+      fscanf ( file, "%d", fromlist + fromlistindex );
+      if ( fromlist [ fromlistindex ] < 0 || fromlist [ fromlistindex ] > num_states )
+      {
+        fprintf ( stderr, "Incorrect state number in transitions\n" );
+        return NULL;
+      }
+    }
+
+    fscanf ( file, "%d", &numto );
+
+    int tolist [ numto ];
+    int tolistindex = 0;
+
+    // Populate the 'to' states list
+    for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
+    {
+      fscanf ( file, "%d", tolist + tolistindex );
+      if ( tolist [ tolistindex ] < 0 || tolist [ tolistindex ] > num_states )
+      {
+        fprintf ( stderr, "Incorrect state number in transitions\n" );
+        return NULL;
+      }
+    }
+
     fscanf ( file, "%d %d", &state1, &state2 );
 
-    if ( state1 >= num_states || state2 >= num_states )
-    {
-      fprintf ( stderr, "Malformed file, Incorrect state number in transition\n" );
-      return NULL;
-    }
     do
     {
       fscanf ( file, "%c", &printable );
@@ -386,60 +464,103 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
 
     if ( printable == 'Y' )
     {
-      char a;
-      do
-      {
-        fscanf ( file, "%c", &a );
-      } while ( a <= 32 );
+      // If the ASCII character is printable, read it as a CHAR
+      int numchars = 0;
 
-      addTransition ( a, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+      fscanf ( file, "%d", &numchars );
+      if ( numchars <= 0 )
+      {
+        fprintf ( stderr, "Incorrect number of characters in transitions\n" );
+        return NULL;
+      }
+
+      int j;
+
+      // For each of the numchars characters, add the transitions
+      for ( j = 0; j < numchars; j++ )
+      {
+        char a;
+        do
+        {
+          fscanf ( file, "%c", &a );
+        } while ( a <= 32 );
+
+        // Add a transition from every state in fromlist to every state in tolist
+        for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
+          for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
+            addTransition ( a, getState ( dfa, fromlist [ fromlistindex ] ), getState ( dfa, tolist [ tolistindex ] ) );
+      }
     }
     else if ( printable == 'N' )
     {
-      int asciival;
-      fscanf ( file, "%d", &asciival );
-      if ( asciival == -1 )
+      // If the ASCII character is entered as a number representing its ASCII value
+      int numvals = 0;
+
+      fscanf ( file, "%d", &numvals );
+      if ( numvals <= 0 )
       {
-        // Transition valid for any ASCII character
-        int p;
-        for ( p = 0; p < 128; p++ )
-          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
-      }
-      else if ( asciival == -2 )
-      {
-        // Transition valid for any lower case character
-        int p;
-        for ( p = 97; p < 123; p++ )
-          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
-      }
-      else if ( asciival == -3 )
-      {
-        // Transition valid for any upper case character
-        int p;
-        for ( p = 65; p < 91; p++ )
-          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
-      }
-      else if ( asciival == -4 )
-      {
-        // Transition valid for any digit
-        int p;
-        for ( p = 48; p < 58; p++ )
-          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
-      }
-      else if ( asciival == -5 )
-      {
-        // Transition valid for any whitespace character
-        int p;
-        for ( p = 0; p <= 32; p++ )
-          addTransition ( (char) p, getState ( dfa, state1 ), getState ( dfa, state2 ) );
-      }
-      else if ( asciival < 0 || asciival > 32 )
-      {
-        fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
+        fprintf ( stderr, "Incorrect number of ASCII values in transitions\n" );
         return NULL;
       }
-      else
-        addTransition ( (char) asciival, getState ( dfa, state1 ), getState ( dfa, state2 ) );
+
+      int j;
+
+      // For each of the numvals ASCII values given
+      for ( j = 0; j < numvals; j++ )
+      {
+        int asciival;
+        int lowerlimit = 0, upperlimit = 0;
+        fscanf ( file, "%d", &asciival );
+
+        if ( asciival == -1 )
+        {
+          // Transition valid for any ASCII character
+          lowerlimit = 0;
+          upperlimit = 128;
+        }
+        else if ( asciival == -2 )
+        {
+          // Transition valid for any lower case character
+          lowerlimit = 97;
+          upperlimit = 123;
+        }
+        else if ( asciival == -3 )
+        {
+          // Transition valid for any upper case character
+          lowerlimit = 65;
+          upperlimit = 91;
+        }
+        else if ( asciival == -4 )
+        {
+          // Transition valid for any digit
+          lowerlimit = 48;
+          upperlimit = 58;
+        }
+        else if ( asciival == -5 )
+        {
+          // Transition valid for any whitespace character
+          lowerlimit = 0;
+          upperlimit = 33;
+        }
+        else if ( asciival < 0 || asciival > 32 )
+        {
+          fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
+          return NULL;
+        }
+        else
+        {
+          // Transition valid only for that ASCII character
+          lowerlimit = asciival;
+          upperlimit = asciival + 1;
+        }
+
+        // For each char 'p', add a transition from every stater in fromlist to every stater in tolist
+        int p;
+        for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
+          for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
+            for ( p = lowerlimit; p < upperlimit; p++ )
+              addTransition ( (char) p, getState ( dfa, fromlist [ fromlistindex ] ), getState ( dfa, tolist [ tolistindex ] ) );
+      }
     }
   }
 
