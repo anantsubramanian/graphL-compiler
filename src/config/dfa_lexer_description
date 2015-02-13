@@ -6,7 +6,7 @@ $Descriptions:
 $Statenum        $Name               $FinalOrNormal    $SpecialProperty
 
 1                "TK_NEWLINE"        F                 N
-2                "TWO_NEWLS"         N                 T
+2                "WHITESPACE_TRAP"   N                 T
 3                "TK_EQ"             F                 N
 4                "TK_PLUS"           F                 N
 5                "TK_SQOPENPAREN"    F                 N
@@ -193,7 +193,7 @@ $Numtransitions:     798
 $From          $To            $Printable?    $Char/ASCII
 
 0              182            N              -1
-0              0              N              -5
+0              2              N              -5
 27             26             N              -2
 28             26             N              -2
 29             26             N              -2
