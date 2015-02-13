@@ -4,9 +4,14 @@
 #define FILEPATH "config/dfa_lexer_description"
 #define BUFFERLEN 200
 
-// TODO: Deal with errors in input program
-// TODO: Print Token pairs stream
-// TODO: Read from file using two buffers
+// TODO (Aditya) : Output tokens in correct format, with spaces
+// TODO (Aditya) : Add error states, names and transitions
+// TODO (Aditya) : Output errors and tokens to files instead of stdout
+// TODO (Aditya) : Output line numbers with errors
+// TODO (Aditya) : Count number of errors and stop at #define amount
+// TODO (Aditya) : Only display tokens if number of errors == 0
+// TODO (Aditya) : Read from file using two buffers
+// TODO (Anant)  : Fix comment problem
 
 int main()
 {
