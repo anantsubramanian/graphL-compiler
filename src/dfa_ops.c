@@ -426,13 +426,13 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     fscanf ( file, "%d", &numfrom );
 
     int fromlist [ numfrom ];
-    int fromlistindex = 0;
+    int fromindx = 0;
 
     // Populate the 'from' states list
-    for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
+    for ( fromindx = 0; fromindx < numfrom; fromindx++ )
     {
-      fscanf ( file, "%d", fromlist + fromlistindex );
-      if ( fromlist [ fromlistindex ] < 0 || fromlist [ fromlistindex ] > num_states )
+      fscanf ( file, "%d", fromlist + fromindx );
+      if ( fromlist [ fromindx ] < 0 || fromlist [ fromindx ] > num_states )
       {
         fprintf ( stderr, "Incorrect state number in transitions\n" );
         return NULL;
@@ -442,13 +442,13 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     fscanf ( file, "%d", &numto );
 
     int tolist [ numto ];
-    int tolistindex = 0;
+    int toindx = 0;
 
     // Populate the 'to' states list
-    for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
+    for ( toindx = 0; toindx < numto; toindx++ )
     {
-      fscanf ( file, "%d", tolist + tolistindex );
-      if ( tolist [ tolistindex ] < 0 || tolist [ tolistindex ] > num_states )
+      fscanf ( file, "%d", tolist + toindx );
+      if ( tolist [ toindx ] < 0 || tolist [ toindx ] > num_states )
       {
         fprintf ( stderr, "Incorrect state number in transitions\n" );
         return NULL;
@@ -486,9 +486,10 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
         } while ( a <= 32 );
 
         // Add a transition from every state in fromlist to every state in tolist
-        for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
-          for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
-            addTransition ( a, getState ( dfa, fromlist [ fromlistindex ] ), getState ( dfa, tolist [ tolistindex ] ) );
+        for ( fromindx = 0; fromindx < numfrom; fromindx++ )
+          for ( toindx = 0; toindx < numto; toindx++ )
+            addTransition ( a, getState ( dfa, fromlist [ fromindx ] ),
+                               getState ( dfa, tolist [ toindx ] ) );
       }
     }
     else if ( printable == 'N' )
@@ -542,9 +543,9 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
           lowerlimit = 0;
           upperlimit = 33;
         }
-        else if ( asciival < 0 || asciival > 32 )
+        else if ( asciival < 0 || asciival > 127 )
         {
-          fprintf ( stderr, "Malformed file, incorrent non-printable char\n" );
+          fprintf ( stderr, "Malformed file, incorrent ASCII value provided\n" );
           return NULL;
         }
         else
@@ -554,12 +555,13 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
           upperlimit = asciival + 1;
         }
 
-        // For each char 'p', add a transition from every stater in fromlist to every stater in tolist
+        // For each char 'p', add a transition from every state in fromlist to every state in tolist
         int p;
-        for ( fromlistindex = 0; fromlistindex < numfrom; fromlistindex++ )
-          for ( tolistindex = 0; tolistindex < numto; tolistindex++ )
+        for ( fromindx = 0; fromindx < numfrom; fromindx++ )
+          for ( toindx = 0; toindx < numto; toindx++ )
             for ( p = lowerlimit; p < upperlimit; p++ )
-              addTransition ( (char) p, getState ( dfa, fromlist [ fromlistindex ] ), getState ( dfa, tolist [ tolistindex ] ) );
+              addTransition ( (char) p, getState ( dfa, fromlist [ fromindx ] ),
+                                        getState ( dfa, tolist [ toindx ] ) );
       }
     }
   }
