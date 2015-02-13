@@ -1,5 +1,5 @@
-$Numstates:          183
-$Numdescriptions:    181
+$Numstates:          184
+$Numdescriptions:    182
 
 $Descriptions:
 
@@ -186,8 +186,9 @@ $Statenum        $Name               $FinalOrNormal    $SpecialProperty
 96               "Started Quote"     N                 N
 150              "Started Quote"     N                 N
 182              "Error!"            F                 E
+183              "Comment Newls"     N                 T
 
-$Numtransitions:     797
+$Numtransitions:     798
 
 $From          $To            $Printable?    $Char/ASCII
 
@@ -807,7 +808,8 @@ $From          $To            $Printable?    $Char/ASCII
 0              15             Y              %
 0              16             Y              #
 16             16             N              -1
-16             0              N              10
+16             183            N              10
+183            183            N              10
 0              17             Y              <
 17             18             Y              =
 0              19             Y              >

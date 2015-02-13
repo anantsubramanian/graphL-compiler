@@ -11,7 +11,6 @@
 // TODO (Aditya) : Count number of errors and stop at #define amount
 // TODO (Aditya) : Only display tokens if number of errors == 0
 // TODO (Aditya) : Read from file using two buffers
-// TODO (Anant)  : Fix comment problem
 
 int main()
 {
