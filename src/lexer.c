@@ -4,7 +4,6 @@
 #define FILEPATH "config/dfa_lexer_description"
 #define BUFFERLEN 200
 
-// TODO (Aditya) : Output tokens in correct format, with spaces
 // TODO (Aditya) : Add error states, names and transitions
 // TODO (Aditya) : Output errors and tokens to files instead of stdout
 // TODO (Aditya) : Output line numbers with errors
@@ -38,15 +37,15 @@ int main()
       if ( isFinal ( getCurrentState (dfa) ) == TRUE )
       {
         if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
-          printf ( "%d\n", intliteral );
+          printf ( "<TK_INTLIT,%d>\n", intliteral );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
-          printf ( "%f\n", floatliteral + floatliteral2 );
+          printf ( "<TK_FLOATLIT,%f>\n", floatliteral + floatliteral2 );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
-          printf ( "%s\n", stringliteral );
+          printf ( "<TK_STRINGLIT,%s>\n", stringliteral );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
-          printf ( "%s\n", identifier );
+          printf ( "<TK_IDEN,%s>\n", identifier );
         else
-          printf ( "%s\n", getCurrentState (dfa) -> name );
+          printf ( "<%s>\n", getCurrentState (dfa) -> name );
       }
       
       if ( peek ( dfa, c ) == NULL )
