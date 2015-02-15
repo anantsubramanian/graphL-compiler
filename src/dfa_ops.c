@@ -103,7 +103,7 @@ STATE* getState ( DFA *dfa, int stateNumber )
     return NULL;
   }
 
-  if ( stateNumber > dfa->num_states )
+  if ( stateNumber >= dfa->num_states )
   {
     fprintf ( stderr, "State requested is out-of-bounds\n" );
     return NULL;
