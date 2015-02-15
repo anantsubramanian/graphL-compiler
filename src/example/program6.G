@@ -10,7 +10,8 @@ Define Graph G
 
 Define Int x
 
-Let x be 10 + 25
+# Code line with trailing spaces -- should not be a problem
+Let x be 10 + 25   
 
 If x > 0 :
 # If the test cocndition is true

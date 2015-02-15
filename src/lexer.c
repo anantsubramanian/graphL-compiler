@@ -4,12 +4,17 @@
 #define FILEPATH "config/dfa_lexer_description"
 #define BUFFERLEN 200
 
-// TODO (Aditya) : Add error states, names and transitions
+// TODO (Aditya) : Add error states for String literals
+// TODO (Aditya) : Add error state for membership operator
+// TODO (Aditya) : Add support for escape characters in literals and corresponding errors
 // TODO (Aditya) : Output errors and tokens to files instead of stdout
 // TODO (Aditya) : Output line numbers with errors
 // TODO (Aditya) : Count number of errors and stop at #define amount
 // TODO (Aditya) : Only display tokens if number of errors == 0
-// TODO (Aditya) : Read from file using two buffers
+// TODO (Anant)  : Read Integer and Float literals as Strings itself
+// TODO (Anant)  : Change lexer to read from file given a s acommand line argument
+// TODO (Anant)  : Read from file using two buffers
+// TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
 int main()
 {

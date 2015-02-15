@@ -244,6 +244,18 @@ DFA* gotoNextState ( DFA *dfa, char input )
   return dfa;
 }
 
+STATE* resetTransition ( STATE *state, char input )
+{
+  if ( state == NULL )
+  {
+    fprintf ( stderr, "Cannot reset transition for non-existent state\n" );
+    return NULL;
+  }
+
+  state->next_state [ input ] = NULL;
+  return state;
+}
+
 DFA* initializeFromFile ( DFA *dfa, const char *filename )
 {
   FILE *file = NULL;
@@ -425,6 +437,18 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     char printable;
     fscanf ( file, "%d", &numfrom );
 
+    int shouldReset = FALSE;
+    if ( numfrom < 0 )
+    {
+      shouldReset = TRUE;
+      numfrom = abs ( numfrom );
+    }
+    else if (numfrom == 0 )
+    {
+      fprintf ( stderr, "Incorrect number of from states\n" );
+      return NULL;
+    }
+
     int fromlist [ numfrom ];
     int fromindx = 0;
 
@@ -440,22 +464,29 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     }
 
     fscanf ( file, "%d", &numto );
+    
+    if ( shouldReset == FALSE && numto <= 0 )
+    {
+      fprintf ( stderr, "Invalid number of to states\n" );
+      return NULL;
+    }
 
     int tolist [ numto ];
     int toindx = 0;
 
-    // Populate the 'to' states list
-    for ( toindx = 0; toindx < numto; toindx++ )
+    if ( shouldReset == FALSE)
     {
-      fscanf ( file, "%d", tolist + toindx );
-      if ( tolist [ toindx ] < 0 || tolist [ toindx ] > num_states )
+      // Populate the 'to' states list
+      for ( toindx = 0; toindx < numto; toindx++ )
       {
-        fprintf ( stderr, "Incorrect state number in transitions\n" );
-        return NULL;
+        fscanf ( file, "%d", tolist + toindx );
+        if ( tolist [ toindx ] < 0 || tolist [ toindx ] > num_states )
+        {
+          fprintf ( stderr, "Incorrect state number in transitions\n" );
+          return NULL;
+        }
       }
     }
-
-    fscanf ( file, "%d %d", &state1, &state2 );
 
     do
     {
@@ -485,11 +516,20 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
           fscanf ( file, "%c", &a );
         } while ( a <= 32 );
 
-        // Add a transition from every state in fromlist to every state in tolist
-        for ( fromindx = 0; fromindx < numfrom; fromindx++ )
-          for ( toindx = 0; toindx < numto; toindx++ )
-            addTransition ( a, getState ( dfa, fromlist [ fromindx ] ),
-                               getState ( dfa, tolist [ toindx ] ) );
+        if ( shouldReset == TRUE )
+        {
+          // Reset transitions for each from state
+          for ( fromindx = 0; fromindx < numfrom; fromindx++ )
+            resetTransition ( getState ( dfa, fromlist [ fromindx ] ), a );
+        }
+        else
+        {
+          // Add transitions from every state in fromlist to every state in tolist
+          for ( fromindx = 0; fromindx < numfrom; fromindx++ )
+            for ( toindx = 0; toindx < numto; toindx++ )
+              addTransition ( a, getState ( dfa, fromlist [ fromindx ] ),
+                                 getState ( dfa, tolist [ toindx ] ) );
+        }
       }
     }
     else if ( printable == 'N' )
@@ -554,14 +594,24 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
           lowerlimit = asciival;
           upperlimit = asciival + 1;
         }
-
-        // For each char 'p', add a transition from every state in fromlist to every state in tolist
+        
         int p;
-        for ( fromindx = 0; fromindx < numfrom; fromindx++ )
-          for ( toindx = 0; toindx < numto; toindx++ )
+        if ( shouldReset )
+        {
+          // Reset transitions for each p for each state in from list
+          for ( fromindx = 0; fromindx < numfrom; fromindx++ )
             for ( p = lowerlimit; p < upperlimit; p++ )
-              addTransition ( (char) p, getState ( dfa, fromlist [ fromindx ] ),
-                                        getState ( dfa, tolist [ toindx ] ) );
+              resetTransition ( getState ( dfa, fromlist [ fromindx ] ), (char) p );
+        }
+        else
+        {
+          // For each char 'p' add a transition from fromlist to tolist state
+          for ( fromindx = 0; fromindx < numfrom; fromindx++ )
+            for ( toindx = 0; toindx < numto; toindx++ )
+              for ( p = lowerlimit; p < upperlimit; p++ )
+                addTransition ( (char) p, getState ( dfa, fromlist [ fromindx ] ),
+                                          getState ( dfa, tolist [ toindx ] ) );
+        }
       }
     }
   }
