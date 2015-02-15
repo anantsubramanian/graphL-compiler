@@ -12,7 +12,7 @@
 // TODO (Aditya) : Count number of errors and stop at #define amount
 // TODO (Aditya) : Only display tokens if number of errors == 0
 // TODO (Anant)  : Read Integer and Float literals as Strings itself
-// TODO (Anant)  : Change lexer to read from file given a s acommand line argument
+// TODO (Anant)  : Change lexer to read from file given as a command line argument
 // TODO (Anant)  : Read from file using two buffers
 // TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
@@ -31,7 +31,7 @@ int main()
   float floatliteral = 0.0, floatliteral2 = 0.0;
   int decimalcount = 1;
   int started = FALSE;
-  while (1)
+  while ( TRUE )
   {
     c = getchar();
     if ( c == EOF )
@@ -52,7 +52,7 @@ int main()
         else
           printf ( "<%s>\n", getCurrentState (dfa) -> name );
       }
-      
+
       if ( peek ( dfa, c ) == NULL )
         dfa = gotoInitialState ( dfa );
     }

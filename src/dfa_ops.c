@@ -443,7 +443,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
       shouldReset = TRUE;
       numfrom = abs ( numfrom );
     }
-    else if (numfrom == 0 )
+    else if ( numfrom == 0 )
     {
       fprintf ( stderr, "Incorrect number of from states\n" );
       return NULL;
@@ -464,7 +464,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
     }
 
     fscanf ( file, "%d", &numto );
-    
+
     if ( shouldReset == FALSE && numto <= 0 )
     {
       fprintf ( stderr, "Invalid number of to states\n" );
@@ -594,7 +594,7 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
           lowerlimit = asciival;
           upperlimit = asciival + 1;
         }
-        
+
         int p;
         if ( shouldReset )
         {

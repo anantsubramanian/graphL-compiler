@@ -20,7 +20,7 @@ Begin
   Let c be 1.g25 * c
 End
 
-# These Lines shows integer errors
+# These lines show integer errors
 Let x be y + z + 2a
 Let y be 400a4
 Let z be 434

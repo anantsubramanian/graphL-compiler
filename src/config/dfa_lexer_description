@@ -358,7 +358,7 @@ $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $C
    with the same name is specified using the $NumberOfStates property.
 
 3. For each transition:
-   a. The $FromLen property mentions the number of states from which the 
+   a. The $FromLen property mentions the number of states from which the
       transitions should be added.
    b. The $ToLen property mentions the number of states to which the transition
       must be added.
