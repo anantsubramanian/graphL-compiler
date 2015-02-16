@@ -11,8 +11,8 @@ lexer: lexer.o dfa_ops.o
 lexer.o: lexer.c
 	$(CC) $(OBJFLAG) lexer.c
 
-dfa_ops.o: dfa_ops.c
-	$(CC) $(OBJFLAG) dfa_ops.c
+dfa_ops.o: headers/dfa_ops.c
+	$(CC) $(OBJFLAG) headers/dfa_ops.c
 
 clean:
 	$(RM) $(ALLFILES)

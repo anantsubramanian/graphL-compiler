@@ -1,7 +1,10 @@
-#include "headers/dfa.h"
 #include <stdio.h>
+#include <string.h>
+#include "headers/dfa.h"
 
-#define FILEPATH "config/dfa_lexer_description"
+#define DFA_PATH "config/dfa_lexer_description"
+#define TOKENS_FILE "TOKENS"
+#define ERRORS_FILE "ERRORS"
 #define BUFFERLEN 200
 #define ERRORS 100
 #define NEWLINE '\n'
@@ -10,16 +13,17 @@
 // TODO (Anant)  : Read from file using two buffers
 // TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
-int main()
+int main ( int argc, char *argv[] )
 {
   DFA *dfa;
   dfa = getNewDFA();
-  dfa = initializeFromFile ( dfa, FILEPATH );
+  dfa = initializeFromFile ( dfa, DFA_PATH );
 
   int shouldread = TRUE;
   int started = FALSE;
 
   char c;
+  char errorc;
   char stringliteral [ BUFFERLEN ];
   char identifier [ BUFFERLEN ];
   char floatorint [ BUFFERLEN ];
@@ -33,8 +37,8 @@ int main()
 
   FILE *errorsfile, *tokensfile;
 
-  errorsfile = fopen ( "Errors.txt", "w+" );
-  tokensfile = fopen ( "Tokens.txt", "w+" );
+  errorsfile = fopen ( ERRORS_FILE, "w+" );
+  tokensfile = fopen ( TOKENS_FILE, "w+" );
 
   if ( errorsfile == NULL || tokensfile == NULL )
   {
@@ -44,12 +48,13 @@ int main()
 
   while ( TRUE )
   {
+    errorc = c;
     c = getchar();
 
     if ( c == EOF )
       break;
 
-    if ( c == 10)
+    if ( c == NEWLINE )
       linenumber++;
 
     if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
@@ -59,10 +64,26 @@ int main()
       {
         if ( getSpecialProperty ( getCurrentState (dfa) ) == ERROR )
         {
-          fprintf ( errorsfile, "%d : %s\n", linenumber, getCurrentState (dfa) -> name );
-          // Just to match with Unit-testing for the time being
-          fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
+          fprintf ( errorsfile, "Line %d: ", errorc == NEWLINE ? linenumber - 1 : linenumber );
+          if ( floatintindex != 0 )
+          {
+            fprintf ( errorsfile, "%s%c\n", floatorint, errorc <= 32 ? ' ' : errorc );
+            floatintindex = 0;
+            floatorint [ 0 ] = '\0';
+          }
+          else if ( idenindex != 0 )
+            fprintf ( errorsfile, "%s%c\n", identifier, errorc <= 32 ? ' ' : errorc );
+          else
+          {
+            int len = strlen ( stringliteral );
+            stringliteral [ len - 1 ] = '\0';
+            fprintf ( errorsfile, "%s%c\n", stringliteral, errorc <= 32 ? ' ' : errorc );
+            stringlitindex = 0;
+          }
+
+          fprintf ( errorsfile, "\t\t%s\n\n", getCurrentState (dfa) -> name );
           errorcount++;
+          
           if ( errorcount >= ERRORS )
             break;
         }
@@ -90,6 +111,7 @@ int main()
       if ( strcmp ( getCurrentState (dfa) -> name , "Decimal Point" ) == 0 )
       {
         floatorint [ floatintindex++ ] = '.';
+        floatorint [ floatintindex ] = '\0';
       }
       else if ( strcmp ( getCurrentState (dfa) -> name, "TK_FLOATLIT" ) == 0 )
       {
@@ -101,7 +123,7 @@ int main()
         floatorint [ floatintindex++ ] = c;
         floatorint [ floatintindex ] = '\0';
       }
-      else
+      else if ( getSpecialProperty ( getCurrentState (dfa) ) != ERROR )
       {
         floatorint [ floatintindex ] = '\0';
         floatintindex = 0;
@@ -130,7 +152,7 @@ int main()
         identifier [ idenindex ++ ] = c;
         identifier [ idenindex ] = '\0';
       }
-      else
+      else if ( getSpecialProperty ( getCurrentState (dfa) ) != ERROR )
       {
         started = FALSE;
         idenindex = 0;
@@ -149,23 +171,6 @@ int main()
   if ( fclose ( tokensfile ) != 0 )
     fprintf ( stderr, "Error while closing lexical tokens file\n" );
 
-  if ( errorcount == 0 )
-  {
-      tokensfile = fopen ( "Tokens.txt", "r" );
-      if ( tokensfile == NULL )
-      {
-        fprintf ( stderr, "Failed to open tokens file to read the second time\n" );
-        return -1;
-      }
-
-      while ( ! feof ( tokensfile ) )
-      {
-        fscanf ( tokensfile, "%c", &c );
-        printf ( "%c", c );
-      }
-
-      if ( fclose ( tokensfile ) != 0 )
-        fprintf ( stderr, "Failed to close tokens file while re-reading\n" );
-  }
   return 0;
 }
+

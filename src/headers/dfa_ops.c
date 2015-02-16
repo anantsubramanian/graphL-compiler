@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "headers/dfa.h"
+#include "dfa.h"
 
 #define MAX_NAME_LEN 100
 #define BUFFERLENGTH 50

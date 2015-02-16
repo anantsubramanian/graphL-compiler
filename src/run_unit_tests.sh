@@ -4,7 +4,7 @@ echo "Running Unit Tests:"
 make
 
 # Clean files from previous runs
-rm unit-testing/program*_produced 2>/dev/null
+rm TOKENS ERRORS 2>/dev/null
 
 # Decide number of sample programs
 echo -n "Enter the number of test programs in the example folder: "
@@ -12,17 +12,26 @@ read numcases
 
 # Run required number of tests
 for (( i = 1; i <= $numcases; i++ )); do
+
   echo -n "Running test $i... "
-  ./lexer < example/program${i}.G 2>/dev/null > unit-testing/program${i}_produced
-  diffres=$(diff Tokens.txt unit-testing/program${i}_output)
+  ./lexer < unit-testing/program${i}.G 2>/dev/null
+  
+  errors=$(cat ERRORS)
+  filetouse="TOKENS"
+  if [ "$errors" != "" ]; then
+    filetouse="ERRORS"
+  fi
+
+  diffres=$(diff ${filetouse} unit-testing/program${i}_output)
   if [ "$diffres" != "" ]; then
     echo "FAILED!"
+    echo ""
     echo "Differences listed below: "
-    diff unit-testing/program${i}_produced unit-testing/program${i}_output
+    diff ${filetouse} unit-testing/program${i}_output
     exit
   fi
   echo "PASSED!"
-  rm unit-testing/program${i}_produced
+  rm TOKENS ERRORS
 done
 
 # Done with all unit tests
