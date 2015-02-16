@@ -394,3 +394,4 @@ $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $C
    the given from states, the transitions for the mentioned symbols are being
    removed (i.e.) -6 means 6 states are being specified, and their transitions
    for the given symbols are being reset. $ToLen and $ToStateList are ignored.
+

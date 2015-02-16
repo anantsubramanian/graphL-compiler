@@ -36,3 +36,7 @@ done
 
 # Done with all unit tests
 echo "All unit tests passed. Proceed to commit"
+
+# Cleanup
+make clean
+

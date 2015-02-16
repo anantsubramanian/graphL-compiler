@@ -16,3 +16,4 @@ dfa_ops.o: headers/dfa_ops.c
 
 clean:
 	$(RM) $(ALLFILES)
+
