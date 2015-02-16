@@ -4,9 +4,6 @@
 #define BUFFERLEN 200
 #define ERRORS 100
 
-// TODO (Aditya) : Add error states for String literals
-// TODO (Aditya) : Add error state for membership operator
-// TODO (Aditya) : Add support for escape characters in literals and corresponding errors
 // TODO (Anant)  : Read Integer and Float literals as Strings itself
 // TODO (Anant)  : Change lexer to read from file given as a command line argument
 // TODO (Anant)  : Read from file using two buffers
@@ -37,14 +34,14 @@ int main()
     c = getchar();
     if ( c == EOF )
       break;
+    if ( c == 10)
+      linenumber++;
 
     if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
     {
       if ( isFinal ( getCurrentState (dfa) ) == TRUE )
       {
-        if ( strcmp ( getCurrentState (dfa) -> name , "TK_NEWLINE" ) == 0 )
-          linenumber++;
-      
+              
         if ( getSpecialProperty ( getCurrentState (dfa) ) == ERROR )
         {
           fprintf(f,"%d : %s\n",linenumber,getCurrentState (dfa) -> name);
