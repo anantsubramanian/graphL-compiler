@@ -1,10 +1,11 @@
 #include "headers/dfa.h"
 #include <stdio.h>
+
 #define FILEPATH "config/dfa_lexer_description"
 #define BUFFERLEN 200
 #define ERRORS 100
+#define NEWLINE '\n'
 
-// TODO (Anant)  : Read Integer and Float literals as Strings itself
 // TODO (Anant)  : Change lexer to read from file given as a command line argument
 // TODO (Anant)  : Read from file using two buffers
 // TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
@@ -14,55 +15,70 @@ int main()
   DFA *dfa;
   dfa = getNewDFA();
   dfa = initializeFromFile ( dfa, FILEPATH );
+
   int shouldread = TRUE;
+  int started = FALSE;
+
   char c;
-  char stringliteral[ BUFFERLEN ];
-  char identifier[ BUFFERLEN ];
+  char stringliteral [ BUFFERLEN ];
+  char identifier [ BUFFERLEN ];
+  char floatorint [ BUFFERLEN ];
+
   int idenindex = 0;
   int stringlitindex = 0;
-  int intliteral = 0;
-  float floatliteral = 0.0, floatliteral2 = 0.0;
-  int decimalcount = 1;
-  int started = FALSE;
-  int linenumber=1;
-  int error = 0;
-  FILE *f,*p;
-  f = fopen ( "Errors.txt","w+");
-  p = fopen ( "Tokens.txt","w+");
+  int floatintindex = 0;
+
+  int linenumber = 1;
+  int errorcount = 0;
+
+  FILE *errorsfile, *tokensfile;
+
+  errorsfile = fopen ( "Errors.txt", "w+" );
+  tokensfile = fopen ( "Tokens.txt", "w+" );
+
+  if ( errorsfile == NULL || tokensfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open errors / tokens file\n" );
+    return -1;
+  }
+
   while ( TRUE )
   {
     c = getchar();
+
     if ( c == EOF )
       break;
+
     if ( c == 10)
       linenumber++;
 
     if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
     {
+      // Token over / error encountered so should process intermediate result
       if ( isFinal ( getCurrentState (dfa) ) == TRUE )
       {
-              
         if ( getSpecialProperty ( getCurrentState (dfa) ) == ERROR )
         {
-          fprintf(f,"%d : %s\n",linenumber,getCurrentState (dfa) -> name);
-          fprintf(p,"<%s>\n",getCurrentState (dfa) -> name);    // Just to match with Unit-testing for the time being
-          error++;
-          if ( error >= ERRORS )
+          fprintf ( errorsfile, "%d : %s\n", linenumber, getCurrentState (dfa) -> name );
+          // Just to match with Unit-testing for the time being
+          fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
+          errorcount++;
+          if ( errorcount >= ERRORS )
             break;
         }
-
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
-          fprintf (p,"<TK_INTLIT,%d>\n", intliteral );
+          fprintf ( tokensfile, "<TK_INTLIT,%s>\n", floatorint );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
-          fprintf (p,"<TK_FLOATLIT,%f>\n", floatliteral + floatliteral2 );
+          fprintf ( tokensfile, "<TK_FLOATLIT,%s>\n", floatorint );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
-          fprintf (p,"<TK_STRINGLIT,%s>\n", stringliteral );
+          fprintf ( tokensfile, "<TK_STRINGLIT,%s>\n", stringliteral );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
-          fprintf (p,"<TK_IDEN,%s>\n", identifier );
+          fprintf ( tokensfile, "<TK_IDEN,%s>\n", identifier );
         else
-          fprintf (p,"<%s>\n", getCurrentState (dfa) -> name );
+          fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
       }
 
+      // If there is no further transition, start from the initial state again
       if ( peek ( dfa, c ) == NULL )
         dfa = gotoInitialState ( dfa );
     }
@@ -73,23 +89,23 @@ int main()
     {
       if ( strcmp ( getCurrentState (dfa) -> name , "Decimal Point" ) == 0 )
       {
-        floatliteral = (float) intliteral;
-        decimalcount = 1;
-        floatliteral2 = 0;
+        floatorint [ floatintindex++ ] = '.';
       }
-     
       else if ( strcmp ( getCurrentState (dfa) -> name, "TK_FLOATLIT" ) == 0 )
       {
-        decimalcount *= 10;
-        floatliteral2 = floatliteral2 + ((c - 48) / (float) decimalcount);
+        floatorint [ floatintindex++ ] = c;
+        floatorint [ floatintindex ] = '\0';
+      }
+      else if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
+      {
+        floatorint [ floatintindex++ ] = c;
+        floatorint [ floatintindex ] = '\0';
       }
       else
-        floatliteral = 0;
-
-      if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
-        intliteral = intliteral * 10 + c - 48;
-      else
-        intliteral = 0;
+      {
+        floatorint [ floatintindex ] = '\0';
+        floatintindex = 0;
+      }
 
       if ( strcmp ( getCurrentState (dfa) -> name , "Started Quote" ) == 0 )
       {
@@ -128,19 +144,28 @@ int main()
 
   }
 
-  fclose(f);
-  fclose(p);
+  if ( fclose ( errorsfile ) != 0 )
+    fprintf ( stderr, "Error while closing lexical error file\n" );
+  if ( fclose ( tokensfile ) != 0 )
+    fprintf ( stderr, "Error while closing lexical tokens file\n" );
 
-  if ( error == 0 )
+  if ( errorcount == 0 )
   {
-      p = fopen("Tokens.txt","r");
-      char c;
-      while ( !feof(p) )
+      tokensfile = fopen ( "Tokens.txt", "r" );
+      if ( tokensfile == NULL )
       {
-        fscanf(p,"%c",&c);
-        fprintf(stdout,"%c",c);  
+        fprintf ( stderr, "Failed to open tokens file to read the second time\n" );
+        return -1;
       }
-      fclose(p);
+
+      while ( ! feof ( tokensfile ) )
+      {
+        fscanf ( tokensfile, "%c", &c );
+        printf ( "%c", c );
+      }
+
+      if ( fclose ( tokensfile ) != 0 )
+        fprintf ( stderr, "Failed to close tokens file while re-reading\n" );
   }
   return 0;
 }
