@@ -1,0 +1,2 @@
+1 : Invalid symbol after decimal
+1 : Invalid suffix to Integer

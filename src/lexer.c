@@ -1,13 +1,9 @@
 #include "headers/dfa.h"
 #include <stdio.h>
-
 #define FILEPATH "config/dfa_lexer_description"
 #define BUFFERLEN 200
+#define ERRORS 5
 
-// TODO (Aditya) : Add error states, names and transitions
-// TODO (Aditya) : Output errors and tokens to files instead of stdout
-// TODO (Aditya) : Output line numbers with errors
-// TODO (Aditya) : Count number of errors and stop at #define amount
 // TODO (Aditya) : Only display tokens if number of errors == 0
 // TODO (Aditya) : Read from file using two buffers
 
@@ -26,6 +22,11 @@ int main()
   float floatliteral = 0.0, floatliteral2 = 0.0;
   int decimalcount = 1;
   int started = FALSE;
+  int linenumber=1;
+  int errors = 0;
+  FILE *f,*p;
+  f = fopen ( "Errors.txt","w+");
+  p = fopen ( "Tokens.txt","w+");
   while (1)
   {
     c = getchar();
@@ -36,16 +37,27 @@ int main()
     {
       if ( isFinal ( getCurrentState (dfa) ) == TRUE )
       {
-        if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
-          printf ( "<TK_INTLIT,%d>\n", intliteral );
+        if ( strcmp ( getCurrentState (dfa) -> name , "TK_NEWLINE" ) == 0 )
+          linenumber++;
+      
+        if ( getSpecialProperty ( getCurrentState (dfa) ) == ERROR )
+        {
+          fprintf(f,"%d : %s\n",linenumber,getCurrentState (dfa) -> name);
+          errors++;
+          if ( errors >= 5 )
+            break;
+        }
+
+        else if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
+          fprintf (p,"<TK_INTLIT,%d>\n", intliteral );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
-          printf ( "<TK_FLOATLIT,%f>\n", floatliteral + floatliteral2 );
+          fprintf (p,"<TK_FLOATLIT,%f>\n", floatliteral + floatliteral2 );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
-          printf ( "<TK_STRINGLIT,%s>\n", stringliteral );
+          fprintf (p,"<TK_STRINGLIT,%s>\n", stringliteral );
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
-          printf ( "<TK_IDEN,%s>\n", identifier );
+          fprintf (p,"<TK_IDEN,%s>\n", identifier );
         else
-          printf ( "<%s>\n", getCurrentState (dfa) -> name );
+          fprintf (p,"<%s>\n", getCurrentState (dfa) -> name );
       }
       
       if ( peek ( dfa, c ) == NULL )
@@ -111,5 +123,7 @@ int main()
     }
 
   }
+  fclose(f);
+  fclose(p);
   return 0;
 }
