@@ -14,7 +14,7 @@ read numcases
 for (( i = 1; i <= $numcases; i++ )); do
 
   echo -n "Running test $i... "
-  ./lexer < unit-testing/program${i}.G 2>/dev/null
+  ./lexer unit-testing/program${i}.G 2>/dev/null
   
   errors=$(cat ERRORS)
   filetouse="TOKENS"

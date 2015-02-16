@@ -9,12 +9,17 @@
 #define ERRORS 100
 #define NEWLINE '\n'
 
-// TODO (Anant)  : Change lexer to read from file given as a command line argument
 // TODO (Anant)  : Read from file using two buffers
 // TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
 int main ( int argc, char *argv[] )
 {
+  if ( argc <= 1 )
+  {
+    fprintf ( stderr, "Please provide the file path as a command line argument\n" );
+    return -1;
+  }
+
   DFA *dfa;
   dfa = getNewDFA();
   dfa = initializeFromFile ( dfa, DFA_PATH );
@@ -35,10 +40,18 @@ int main ( int argc, char *argv[] )
   int linenumber = 1;
   int errorcount = 0;
 
+  FILE *inputfile;
   FILE *errorsfile, *tokensfile;
 
+  inputfile = fopen ( argv[1] , "r" );
   errorsfile = fopen ( ERRORS_FILE, "w+" );
   tokensfile = fopen ( TOKENS_FILE, "w+" );
+
+  if ( inputfile == NULL )
+  {
+    fprintf ( stderr, "Fatal error! Unable to locate/open input file\n" );
+    return -1;
+  }
 
   if ( errorsfile == NULL || tokensfile == NULL )
   {
@@ -49,7 +62,7 @@ int main ( int argc, char *argv[] )
   while ( TRUE )
   {
     errorc = c;
-    c = getchar();
+    c = fgetc ( inputfile );
 
     if ( c == EOF )
       break;
@@ -83,7 +96,7 @@ int main ( int argc, char *argv[] )
 
           fprintf ( errorsfile, "\t\t%s\n\n", getCurrentState (dfa) -> name );
           errorcount++;
-          
+
           if ( errorcount >= ERRORS )
             break;
         }
@@ -166,6 +179,8 @@ int main ( int argc, char *argv[] )
 
   }
 
+  if ( fclose ( inputfile ) != 0 )
+    fprintf ( stderr, "Error while closing input file\n" );
   if ( fclose ( errorsfile ) != 0 )
     fprintf ( stderr, "Error while closing lexical error file\n" );
   if ( fclose ( tokensfile ) != 0 )
