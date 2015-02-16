@@ -112,12 +112,12 @@ $Name                               $NumberOfStates  $StatesList
                                                            165 167 169 170 171 172 173 174 175 176 177 180
                                                            181 104 125 156 91
 
-$Numtransitions:     209
+$Numtransitions:     211
 
 $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $Char/ASCII
 
 1         0                        1       182              N         1       -1
-1         0                        1       2                N         1       -5
+1         0                        1       0                N         1       -5
 149       27 28 29 30 31 32 33 34
           35 36 37 38 39 40 41 42
           43 44 45 46 47 48 49 50
@@ -160,7 +160,7 @@ $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $C
 1         0                        1       16               Y         1       #
 1         16                       1       16               N         1       -1
 1         16                       1       183              N         1       10
-1         183                      1       183              N         1       10
+1         183                      1       183              N         1       -5
 1         0                        1       17               Y         1       <
 1         17                       1       18               Y         1       =
 1         0                        1       19               Y         1       >
@@ -177,18 +177,20 @@ $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $C
 1         0                        1       26               N         2       -2 -3
 1         0                        1       132              N         1       -4
 1         132                      1       186              N         1       -1
-1         132                      1       2                N         1       -5
+-1        132                      0       0                N         1       -5
+-1        132                      0       0                Y         18      = + [ ] { } ( ) : * / % , # < > ' -
 1         186                      1       188              N         1       -1
 1         186                      1       2                N         1       -5
 1         132                      1       132              N         1       -4
 1         132                      1       122              Y         1       .
 1         122                      1       184              N         1       -1
 1         184                      1       188              N         1       -1
-1         184                      1       2                N         1       -5
+-1        184                      0       0                N         1       -5
 1         188                      1       188              N         1       -1
 1         188                      1       2                N         1       -5
 1         92                       1       185              N         1       -1
-1         92                       1       2                N         1       -5
+-1        92                       0       0                N         1       -5
+-1        92                       0       0                Y         18      = + [ ] { } ( ) : * / % , # < > ' -
 1         185                      1       188              N         1       -1
 1         185                      1       2                N         1       -5
 2         122 92                   1       92               N         1       -4
@@ -348,3 +350,32 @@ $FromLen  $FromStateList           $ToLen  $ToStateList     $Symbol?  $NumCs  $C
 1         91                       1       130              Y         1       t
 2         150 96                   1       182              N         1       10
 
+# Comments beyond this point
+
+1. Special States can have 2 properties: E (Error) and T (Trap).
+
+2. Multiple states can be assigned the same unique name. The number of states
+   with the same name is specified using the $NumberOfStates property.
+
+3. For each transition:
+   a. The $FromLen property mentions the number of states from which the
+      transitions should be added.
+   b. The $ToLen property mentions the number of states to which the transition
+      must be added.
+   c. A transition is added from each state in the from list to each state in
+      the to list, for the specified characters.
+
+4. The Symbol property can take 2 values: Y (the symbol is given as is), or
+   N (the symbol is given as an Integer which represents its ASCII value).
+
+5. If the Symbol property has the value N, then there are some special values:
+   -1 : The transition is valid for ALL ASCII characters.
+   -2 : The transition is valid for ALL lower case characters.
+   -3 : The transition is valid for ALL upper case characters.
+   -4 : The transition is valid for ALL digits.
+   -5 : The transition is valid for ALL whitespace characters (ASCII <= 32).
+
+6. If the $FromLen property has a negative value, then it implies that for
+   the given from states, the transitions for the mentioned symbols are being
+   removed (i.e.) -6 means 6 states are being specified, and their transitions
+   for the given symbols are being reset. $ToLen and $ToStateList are ignored.

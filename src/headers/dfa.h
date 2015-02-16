@@ -49,6 +49,8 @@ extern int isFinal ( STATE *st );
 
 extern DFA* gotoNextState ( DFA *dfa, char input );
 
+extern STATE* resetTransition ( STATE *state, char input );
+
 extern DFA* initializeFromFile ( DFA *dfa, const char *filename );
 
 extern int getSpecialProperty ( STATE *state );

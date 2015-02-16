@@ -14,7 +14,7 @@ read numcases
 for (( i = 1; i <= $numcases; i++ )); do
   echo -n "Running test $i... "
   ./lexer < example/program${i}.G 2>/dev/null > unit-testing/program${i}_produced
-  diffres=$(diff unit-testing/program${i}_produced unit-testing/program${i}_output)
+  diffres=$(diff Tokens.txt unit-testing/program${i}_output)
   if [ "$diffres" != "" ]; then
     echo "FAILED!"
     echo "Differences listed below: "

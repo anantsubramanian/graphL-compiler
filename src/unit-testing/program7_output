@@ -1,0 +1,109 @@
+<TK_DEFINE>
+<TK_INT>
+<TK_IDEN,x>
+<TK_COMMA>
+<TK_IDEN,y>
+<TK_COMMA>
+<TK_IDEN,z>
+<TK_NEWLINE>
+<TK_DEFINE>
+<TK_FLOAT>
+<TK_IDEN,c>
+<TK_NEWLINE>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<Invalid suffix to Floating Point>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_INTLIT,1>
+<TK_MINUS>
+<Invalid suffix to Floating Point>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,c>
+<TK_PLUS>
+<Invalid suffix to Floating Point>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,c>
+<TK_MUL>
+<Invalid suffix to Floating Point>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,c>
+<TK_DIV>
+<Invalid suffix to Floating Point>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<Invalid symbol after decimal>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,x>
+<TK_PLUS>
+<Invalid symbol after decimal>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,y>
+<TK_MINUS>
+<Invalid symbol after decimal>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,z>
+<TK_MUL>
+<Invalid symbol after decimal>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,x>
+<TK_DIV>
+<Invalid symbol after decimal>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<TK_IDEN,c>
+<TK_PLUS>
+<Invalid symbol after decimal>
+<TK_INTLIT,4>
+<TK_NEWLINE>
+<TK_IF>
+<TK_IDEN,c>
+<TK_GT>
+<TK_INTLIT,0>
+<TK_COLON>
+<TK_NEWLINE>
+<TK_BEGIN>
+<TK_NEWLINE>
+<TK_LET>
+<TK_IDEN,c>
+<TK_BE>
+<Invalid symbol after decimal>
+<TK_MUL>
+<TK_IDEN,c>
+<TK_NEWLINE>
+<TK_END>
+<TK_NEWLINE>
+<TK_LET>
+<TK_IDEN,x>
+<TK_BE>
+<TK_IDEN,y>
+<TK_PLUS>
+<TK_IDEN,z>
+<TK_PLUS>
+<Invalid suffix to Integer>
+<TK_LET>
+<TK_IDEN,y>
+<TK_BE>
+<Invalid suffix to Integer>
+<TK_LET>
+<TK_IDEN,z>
+<TK_BE>
+<TK_INTLIT,434>
+<TK_NEWLINE>
