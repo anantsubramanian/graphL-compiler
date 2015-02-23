@@ -2,16 +2,17 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "headers/dfa.h"
+#include "headers/trie.h"
 
 #define DFA_PATH "config/dfa_lexer_description"
 #define TOKENS_FILE "TOKENS"
 #define ERRORS_FILE "ERRORS"
+#define DICT_FILE "TOKENMAP"
+#define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
 #define CHARSIZE 8
 #define ERRORS 100
 #define NEWLINE '\n'
-
-// TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
 int main ( int argc, char *argv[] )
 {
@@ -26,9 +27,14 @@ int main ( int argc, char *argv[] )
   stat ( "/", &fi );
   int blocksize = fi.st_blksize;
 
-  DFA *dfa;
+  DFA *dfa = NULL;
   dfa = getNewDFA();
   dfa = initializeFromFile ( dfa, DFA_PATH );
+
+  TRIE* dictionary = NULL;
+  dictionary = getNewTrie();
+  dictionary = setTrieName ( dictionary, DICTNAME );
+  int tokenid = 0;
 
   int shouldread = TRUE;
   int started = FALSE;
@@ -51,10 +57,11 @@ int main ( int argc, char *argv[] )
   int errorcount = 0;
 
   FILE *inputfile;
-  FILE *errorsfile, *tokensfile;
+  FILE *errorsfile, *tokensfile, *tokenmapfile;
 
   inputfile = fopen ( argv[1] , "r" );
   errorsfile = fopen ( ERRORS_FILE, "w+" );
+  tokenmapfile = fopen ( DICT_FILE, "w+" );
   tokensfile = fopen ( TOKENS_FILE, "w+" );
 
   if ( inputfile == NULL )
@@ -63,9 +70,9 @@ int main ( int argc, char *argv[] )
     return -1;
   }
 
-  if ( errorsfile == NULL || tokensfile == NULL )
+  if ( errorsfile == NULL || tokensfile == NULL || tokenmapfile == NULL )
   {
-    fprintf ( stderr, "Failed to open errors / tokens file\n" );
+    fprintf ( stderr, "Failed to open errors/tokens/tokenmap file\n" );
     return -1;
   }
 
@@ -123,13 +130,61 @@ int main ( int argc, char *argv[] )
             break;
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_INTLIT" ) == 0 )
-          fprintf ( tokensfile, "<TK_INTLIT,%s>\n", floatorint );
+        {
+          TNODE* find = findString ( dictionary, floatorint );
+          int valueToPrint = tokenid;
+          if ( find == NULL )
+          {
+            find = insertString ( dictionary, floatorint );
+            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            setValue ( find, tokenid++ );
+          }
+          else
+            valueToPrint = find -> value;
+          fprintf ( tokensfile, "<TK_INTLIT,%d>\n", valueToPrint );
+        }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
-          fprintf ( tokensfile, "<TK_FLOATLIT,%s>\n", floatorint );
+        {
+          TNODE* find = findString ( dictionary, floatorint );
+          int valueToPrint = tokenid;
+          if ( find == NULL )
+          {
+            find = insertString ( dictionary, floatorint );
+            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            setValue ( find, tokenid++ );
+          }
+          else
+            valueToPrint = find -> value;
+          fprintf ( tokensfile, "<TK_FLOATLIT,%d>\n", valueToPrint );
+        }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
-          fprintf ( tokensfile, "<TK_STRINGLIT,%s>\n", stringliteral );
+        {
+          TNODE* find = findString ( dictionary, stringliteral );
+          int valueToPrint = tokenid;
+          if ( find == NULL )
+          {
+            find = insertString ( dictionary, stringliteral );
+            fprintf ( tokenmapfile, "%s %d\n", stringliteral, tokenid );
+            setValue ( find, tokenid++ );
+          }
+          else
+            valueToPrint = find -> value;
+          fprintf ( tokensfile, "<TK_STRINGLIT,%d>\n", valueToPrint );
+        }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
-          fprintf ( tokensfile, "<TK_IDEN,%s>\n", identifier );
+        {
+          TNODE* find = findString ( dictionary, identifier );
+          int valueToPrint = tokenid;
+          if ( find == NULL )
+          {
+            find = insertString ( dictionary, identifier );
+            fprintf ( tokenmapfile, "%s %d\n", identifier, tokenid );
+            setValue ( find, tokenid++ );
+          }
+          else
+            valueToPrint = find -> value;
+          fprintf ( tokensfile, "<TK_IDEN,%d>\n", valueToPrint );
+        }
         else
           fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
       }
@@ -207,6 +262,8 @@ int main ( int argc, char *argv[] )
     fprintf ( stderr, "Error while closing lexical error file\n" );
   if ( fclose ( tokensfile ) != 0 )
     fprintf ( stderr, "Error while closing lexical tokens file\n" );
+  if ( fclose ( tokenmapfile ) != 0 )
+    fprintf ( stderr, "Error while closing tokens map file\n" );
 
   return 0;
 }

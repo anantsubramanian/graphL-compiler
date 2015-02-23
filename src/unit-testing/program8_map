@@ -1,0 +1,12 @@
+a 0
+b 1
+c 2
+"This is a correct \t string\n" 3
+"A correct one again" 4
+character 5
+escape 6
+an 7
+incorrect 8
+quote 9
+d 10
+"Valid escaped \"Quotes\" inside a \r quote" 11

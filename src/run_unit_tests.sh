@@ -4,7 +4,7 @@ echo "Running Unit Tests:"
 make
 
 # Clean files from previous runs
-rm TOKENS ERRORS 2>/dev/null
+rm TOKENS TOKENMAP ERRORS 2>/dev/null
 
 # Decide number of sample programs
 echo -n "Enter the number of test programs in the example folder: "
@@ -15,9 +15,10 @@ for (( i = 1; i <= $numcases; i++ )); do
 
   echo -n "Running test $i... "
   ./lexer unit-testing/program${i}.G 2>/dev/null
-  
+
   errors=$(cat ERRORS)
   filetouse="TOKENS"
+  mapfile="TOKENMAP"
   if [ "$errors" != "" ]; then
     filetouse="ERRORS"
   fi
@@ -30,13 +31,22 @@ for (( i = 1; i <= $numcases; i++ )); do
     diff ${filetouse} unit-testing/program${i}_output
     exit
   fi
+  diffres2=$(diff ${mapfile} unit-testing/program${i}_map)
+  if [ "$diffres2" != "" ]; then
+    echo "FAILED!"
+    echo ""
+    echo "Differences in MAP file: "
+    diff ${mapfile} unit-testing/program${i}_map
+    exit
+  fi
   echo "PASSED!"
-  rm TOKENS ERRORS
+  rm TOKENS ERRORS TOKENMAP
 done
 
 # Done with all unit tests
 echo "All unit tests passed. Proceed to commit"
 
 # Cleanup
+echo "Cleaning up temporary files"
 make clean
 

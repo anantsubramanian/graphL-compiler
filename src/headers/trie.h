@@ -18,7 +18,7 @@ typedef struct trie_struct
 
 extern TRIE* getNewTrie ();
 
-extern TRIE* setName ( TRIE * , const char * );
+extern TRIE* setTrieName ( TRIE * , const char * );
 
 extern TNODE* initializeNode ( TNODE * );
 
@@ -32,5 +32,5 @@ extern TNODE* setNodeName ( TNODE * , const char * );
 
 extern TRIE* deleteString ( TRIE * , const char * );
 
-extern int isFinal ( TNODE * );
+extern int isFinalTNode ( TNODE * );
 

@@ -30,7 +30,7 @@ TRIE* getNewTrie ()
   return trie;
 }
 
-TRIE* setName ( TRIE *trie, const char *name )
+TRIE* setTrieName ( TRIE *trie, const char *name )
 {
   if ( trie == NULL )
   {
@@ -154,7 +154,7 @@ TNODE* findString ( TRIE *trie, const char *str )
     curnode = curnode -> next [ str [i] ];
   }
 
-  if ( str [i] != '\0' || isFinal ( curnode ) == FALSE )
+  if ( str [i] != '\0' || isFinalTNode ( curnode ) == FALSE )
     return NULL;
 
   return curnode;
@@ -231,7 +231,7 @@ TRIE* deleteString ( TRIE* trie, const char *str )
   return trie;
 }
 
-int isFinal ( TNODE *node )
+int isFinalTNode ( TNODE *node )
 {
   if ( node == NULL )
   {
