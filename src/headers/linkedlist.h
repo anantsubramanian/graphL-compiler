@@ -19,6 +19,8 @@ extern LINKEDLIST* insertAtBack ( LINKEDLIST * , char * );
 
 extern LINKEDLIST* insertAtFront ( LINKEDLIST * , char * );
 
+extern LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * , char * );
+
 extern LINKEDLIST* deleteFromBack ( LINKEDLIST * );
 
 extern LINKEDLIST* deleteFromFront ( LINKEDLIST * );

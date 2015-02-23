@@ -13,7 +13,7 @@ LINKEDLIST* getLinkedList ()
     fprintf ( stderr, "Failed to allocate memory for linked list\n" );
     return NULL;
   }
-  
+
   list->head = NULL;
   list->tail = NULL;
   list->name = NULL;
@@ -102,6 +102,36 @@ LINKEDLIST* insertAtFront ( LINKEDLIST * list, char * value )
     list -> head -> prev = node;
     list -> head = node;
   }
+
+  return list;
+}
+
+LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * list, char * wordlist )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Attempting to insert space sep. words into non-existent list\n" );
+    return NULL;
+  }
+
+  int indx = 0;
+  int len = strlen ( wordlist );
+  char buffer [ len + 1 ];
+
+  do
+  {
+    while ( indx < len && wordlist [ indx ] <= 32 ) indx++;
+    if ( indx == len ) break;
+
+    int buffindx = 0;
+    while ( indx < len && wordlist [ indx ] > 32 )
+    {
+      buffer [ buffindx++ ] = wordlist [ indx ];
+      indx++;
+    }
+    buffer [ buffindx ] = '\0';
+    list = insertAtBack ( list, buffer );
+  } while ( indx < len );
 
   return list;
 }
