@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "headers/dfa.h"
 
 #define DFA_PATH "config/dfa_lexer_description"
 #define TOKENS_FILE "TOKENS"
 #define ERRORS_FILE "ERRORS"
 #define BUFFERLEN 200
+#define CHARSIZE 8
 #define ERRORS 100
 #define NEWLINE '\n'
 
-// TODO (Anant)  : Read from file using two buffers
 // TODO (Anant)  : Output literals/identifiers to symbol file and output pointer numbers
 
 int main ( int argc, char *argv[] )
@@ -20,12 +21,21 @@ int main ( int argc, char *argv[] )
     return -1;
   }
 
+  // Get the system block size
+  struct stat fi;
+  stat ( "/", &fi );
+  int blocksize = fi.st_blksize;
+
   DFA *dfa;
   dfa = getNewDFA();
   dfa = initializeFromFile ( dfa, DFA_PATH );
 
   int shouldread = TRUE;
   int started = FALSE;
+
+  char buffers [2] [ blocksize ];
+  int curbuff = -1;
+  int charindx = -1;
 
   char c;
   char errorc;
@@ -62,10 +72,22 @@ int main ( int argc, char *argv[] )
   while ( TRUE )
   {
     errorc = c;
-    c = fgetc ( inputfile );
+
+    // Get char from appropriate buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( fread ( buffers [ curbuff ], CHARSIZE, blocksize / CHARSIZE, inputfile ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
 
     if ( c == EOF )
+    {
+      printf ( "EOF Found\n" );
       break;
+    }
 
     if ( c == NEWLINE )
       linenumber++;

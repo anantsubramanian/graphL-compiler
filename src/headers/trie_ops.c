@@ -21,9 +21,9 @@ TRIE* getNewTrie ()
     fprintf ( stderr, "Failed to allocate memory for the root\n" );
     return NULL;
   }
-  
+
   initializeNode ( trie->root );
-  
+
   // Give root a sentinel count value
   trie->root->count = -1;
 
@@ -75,7 +75,7 @@ TNODE* initializeNode ( TNODE *node )
   node->value = 0;
   node->is_final = FALSE;
   node->count = 0;
-  
+
   int i;
   for ( i = 0; i < 128; i++ )
     node -> next [ i ] = NULL;
@@ -123,7 +123,7 @@ TNODE* insertString ( TRIE *trie, const char *str )
   }
 
   curnode -> is_final = TRUE;
-  
+
   return curnode;
 }
 
@@ -206,10 +206,10 @@ TRIE* deleteString ( TRIE* trie, const char *str )
     TNODE *tempnode = curnode;
     curnode = curnode -> next [ str [i] ];
     curnode -> count--;
-    
+
     if ( curnode -> count == 0 && tempnode != NULL )
       tempnode -> next [ str [i] ] = NULL;
-    
+
     if ( tempnode != NULL && tempnode -> count == 0 )
     {
       if ( tempnode -> name != NULL )
