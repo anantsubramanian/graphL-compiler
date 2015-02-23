@@ -1,3 +1,5 @@
+#define TRUE 1
+#define FALSE 0
 
 typedef struct linkedlist_node
 {
@@ -22,6 +24,12 @@ extern LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * , char * );
 extern LINKEDLIST* deleteFromBack ( LINKEDLIST * );
 
 extern LINKEDLIST* deleteFromFront ( LINKEDLIST * );
+
+extern LNODE* getIterator ( LINKEDLIST * );
+
+extern int hasNext ( LNODE * );
+
+extern LNODE* getNext ( LNODE * );
 
 extern LNODE* getFront ( LINKEDLIST * );
 

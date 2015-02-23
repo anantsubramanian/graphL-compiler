@@ -202,6 +202,52 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
   return list;
 }
 
+LNODE* getIterator ( LINKEDLIST * list )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Cannot get iterator of non-existent list\n" );
+    return NULL;
+  }
+
+  LNODE *node = malloc ( sizeof (LNODE) );
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Failed to alloate memory for iterator\n" );
+    return NULL;
+  }
+
+  node -> next = list -> head;
+  node -> prev = NULL;
+  node -> value = NULL;
+
+  return node;
+}
+
+int hasNext ( LNODE * iterator )
+{
+  if ( iterator == NULL || iterator -> next == NULL )
+    return FALSE;
+
+  return TRUE;
+}
+
+LNODE* getNext ( LNODE * iterator )
+{
+  if ( iterator == NULL || iterator -> next == NULL )
+  {
+    fprintf ( stderr, "Potential error, no next element in list\n" );
+    return NULL;
+  }
+
+  LNODE *temp = iterator;
+  iterator = iterator -> next;
+  if ( temp -> value == NULL )
+    free ( temp );
+
+  return iterator;
+}
+
 LNODE* getFront ( LINKEDLIST * list )
 {
   if ( list == NULL )
