@@ -1,20 +1,24 @@
 #define TRUE 1
 #define FALSE 0
+#define NONE 0
+#define TRAP 1
+#define ERROR 2
 #define TRANSITION_LIMIT 128
 
 typedef struct state_struct
 {
-	char *name;
-	int state_number;
-	int is_final;
-	struct state_struct *next_state[TRANSITION_LIMIT];
+  char *name;
+  int state_number;
+  int is_final;
+  int special_property;
+  struct state_struct *next_state[TRANSITION_LIMIT];
 } STATE;
 
 typedef struct dfa_struct
 {
-	int num_states;
-	int current_state;
-	STATE *all_states;
+  int num_states;
+  int current_state;
+  STATE *all_states;
 } DFA;
 
 extern DFA* getNewDFA ( );
@@ -35,9 +39,19 @@ extern STATE* setFinal ( STATE *state );
 
 extern STATE* getCurrentState ( DFA *dfa );
 
+extern STATE* peek ( DFA *dfa, char nextinp );
+
+extern STATE* setSpecialProperty ( STATE *state , int property );
+
 extern DFA* setCurrentState ( DFA *dfa, STATE *state );
 
 extern int isFinal ( STATE *st );
 
 extern DFA* gotoNextState ( DFA *dfa, char input );
+
+extern STATE* resetTransition ( STATE *state, char input );
+
+extern DFA* initializeFromFile ( DFA *dfa, const char *filename );
+
+extern int getSpecialProperty ( STATE *state );
 

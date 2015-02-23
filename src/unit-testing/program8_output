@@ -1,0 +1,15 @@
+Line 6: "This is an incorrect one 
+		Unmatched Quote
+
+Line 9: "Not a valid escape \b
+		Invalid Escape character
+
+Line 9: ": 
+		Unmatched Quote
+
+Line 11: "Again not a valid #Test escape \a
+		Invalid Escape character
+
+Line 14: "Not a correct \k
+		Invalid Escape character
+
