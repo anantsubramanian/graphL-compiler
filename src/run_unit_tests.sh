@@ -44,9 +44,9 @@ for (( i = 1; i <= $numcases; i++ )); do
 done
 
 # Done with all unit tests
-echo "All unit tests passed. Proceed to commit"
+echo "All unit tests passed. Proceed to commit."
 
 # Cleanup
-echo "Cleaning up temporary files"
+echo "Cleaning up temporary files.."
 make clean
 
