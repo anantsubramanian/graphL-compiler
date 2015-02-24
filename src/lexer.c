@@ -10,7 +10,6 @@
 #define DICT_FILE "TOKENMAP"
 #define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
-#define CHARSIZE 8
 #define ERRORS 100
 #define NEWLINE '\n'
 
@@ -42,6 +41,7 @@ int main ( int argc, char *argv[] )
   char buffers [2] [ blocksize ];
   int curbuff = -1;
   int charindx = -1;
+  int charsread = 0;
 
   char c;
   char errorc;
@@ -59,7 +59,7 @@ int main ( int argc, char *argv[] )
   FILE *inputfile;
   FILE *errorsfile, *tokensfile, *tokenmapfile;
 
-  inputfile = fopen ( argv[1] , "r" );
+  inputfile = fopen ( argv[1] , "rb" );
   errorsfile = fopen ( ERRORS_FILE, "w+" );
   tokenmapfile = fopen ( DICT_FILE, "w+" );
   tokensfile = fopen ( TOKENS_FILE, "w+" );
@@ -85,14 +85,15 @@ int main ( int argc, char *argv[] )
     if ( charindx == 0 )
     {
       curbuff = ( curbuff + 1 ) & 1;
-      if ( fread ( buffers [ curbuff ], CHARSIZE, blocksize / CHARSIZE, inputfile ) == 0 )
+      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
+                                blocksize, inputfile ) ) == 0 )
         break;
     }
     c = buffers [ curbuff ] [ charindx ];
 
-    if ( c == EOF )
+    if ( charsread < blocksize && charindx >= charsread )
     {
-      printf ( "EOF Found\n" );
+      fprintf ( stderr, "EOF Found\n" );
       break;
     }
 
