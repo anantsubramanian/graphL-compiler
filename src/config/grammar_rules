@@ -1,0 +1,125 @@
+<program> -> <globaldefines> <fndefines> <statements> 
+<globaldefines> -> <globaldefine> TK_NEWLINE <globaldefines> 
+<globaldefines> ->  e 
+<globaldefine> -> TK_GLOBAL <defineargs> 
+<definestmt> -> TK_DEFINE <defineargs> 
+<defineargs> -> <datatype> <identifier> <moreidens> 
+<moreidens> -> TK_COMMA <identifier> <moreidens> 
+<moreidens> ->  e 
+<letstmt> -> TK_LET <assignable> TK_BE <equatable> 
+<assignable> -> <identifier> <assignable1> 
+<assignable1> -> TK_MEMBEROP <endassignable> 
+<assignable1> ->  e 
+<endassignable> -> <primitivetype> 
+<endassignable> ->  TK_ROOT <primitiveval> 
+<endassignable> ->  TK_SOURCE <primitiveval> 
+<endassignable> ->  TK_DEST <primitiveval> 
+<endassignable> ->  TK_WEIGHT 
+<primitiveval> -> TK_MEMBEROP <primitivetype> 
+<primitiveval> ->  e 
+<datatype> -> <primitivetype> 
+<datatype> ->  <complextype> 
+<primitivetype> -> TK_INT 
+<primitivetype> ->  TK_FLOAT 
+<primitivetype> ->  TK_STRING 
+<complextype> -> TK_VERTEX 
+<complextype> ->  TK_EDGE 
+<complextype> ->  TK_GRAPH 
+<complextype> ->  TK_TREE 
+<equatable> -> TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
+<equatable> ->  <exp> 
+<fndefines> -> TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
+<fndefines> ->  e 
+<paramlist> -> <params> 
+<paramlist> ->  e 
+<params> -> <param> <moreparams> 
+<moreparams> -> TK_COMMA <params> 
+<moreparams> ->  e 
+<param> -> <datatype> <identifier> 
+<returntype> -> <datatype> 
+<returntype> ->  TK_NOTHING 
+<fnbody> -> TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
+<returnable> -> <equatable> 
+<returnable> ->  TK_NOTHING 
+<statements> -> <possiblestmts> <statements> 
+<statements> ->  e 
+<possiblestmts> -> <validstatement> TK_NEWLINE 
+<possiblestmts> ->  <validconditional> 
+<validstatement> -> <definestmt> 
+<validstatement> ->  <letstmt> 
+<validstatement> ->  <iteration> 
+<validstatement> ->  <input> 
+<validstatement> ->  <output> 
+<validstatement> ->  <funcstmt> 
+<validstatement> ->  <breakstmt> 
+<breakstmt> -> TK_BREAK 
+<returnstmt> -> TK_RETURN <returnable> 
+<validconditional> -> <ifblock> TK_NEWLINE <elseifblock> 
+<ifblock> -> <ifstmt> TK_COLON <block> 
+<elseifblock> -> TK_ELSE <elseifblock1> 
+<elseifblock> ->  e 
+<elseifblock1> -> <validconditional> 
+<elseifblock1> ->  TK_COLON <block> TK_NEWLINE 
+<block> -> TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<ifstmt> -> TK_IF <boolexp> 
+<boolexp> -> <expor> <boolexp1> 
+<boolexp1> -> TK_OR <boolexp> 
+<boolexp1> ->  e 
+<expor> -> <expand> <expor1> 
+<expor1> -> TK_AND <expor> 
+<expor1> ->  e 
+<expand> -> TK_NOT <expand> 
+<expand> ->  <expnot> 
+<expnot> -> <boolresult> 
+<expnot> ->  TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN 
+<boolresult> -> <exp> <relop> <exp> 
+<relop> -> TK_GT 
+<relop> ->  TK_LT 
+<relop> ->  TK_GTE 
+<relop> ->  TK_LTE 
+<relop> ->  TK_EQ 
+<exp> -> <mulexp> <exp1> 
+<exp1> -> TK_MINUS <exp> 
+<exp1> ->  TK_PLUS <exp> 
+<exp1> ->  e 
+<mulexp> -> <modexp> <mulexp1> 
+<mulexp1> -> TK_MUL <mulexp> 
+<mulexp1> ->  TK_DIV <mulexp> 
+<mulexp1> ->  e 
+<modexp> -> <baseexp> <modexp1> 
+<modexp> ->  TK_OPENPAREN <exp> TK_CLOSEPAREN 
+<modexp1> -> TK_MODULO <modexp> 
+<modexp1> ->  e 
+<baseexp> -> <assignorfunc> 
+<baseexp> ->  <literal> 
+<baseexp> ->  TK_DEPTH 
+<assignorfunc> -> <identifier> <assignorfunc1> 
+<assignorfunc1> -> <assignable1> 
+<assignorfunc1> ->  <funcstmt1> 
+<funcstmt> -> <identifier> <funcstmt1> 
+<funcstmt1> -> TK_OPENPAREN <passedparams> TK_CLOSEPAREN 
+<passedparams> -> <assignable> <morepassed> 
+<passedparams> ->  e 
+<morepassed> -> TK_COMMA <assignable> <morepassed> 
+<morepassed> ->  e 
+<input> -> TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN 
+<output> -> TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
+<printable> -> <assignable> 
+<printable> ->  <literal> 
+<iteration> -> TK_FOR <loop> TK_COLON <block> 
+<loop> -> <identifier> <loop1> 
+<loop> ->  <literal> TK_ITERATIONS 
+<loop1> -> TK_ITERATIONS 
+<loop1> ->  TK_IN <iterable> 
+<iterable> -> <identifier> <iterable1> 
+<iterable> ->  <iterop> <operatorparams> 
+<iterop> -> TK_BFT 
+<iterop> ->  TK_DFT 
+<operatorparams> -> TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
+<iterable1> -> TK_ADJACENT TK_TO <assignable> 
+<iterable1> ->  e 
+<literal> -> TK_INTLIT 
+<literal> ->  TK_FLOATLIT 
+<literal> ->  TK_STRINGLIT 
+<identifier> -> TK_IDEN 
+
