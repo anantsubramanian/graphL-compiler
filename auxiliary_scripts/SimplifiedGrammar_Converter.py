@@ -7,7 +7,7 @@ with open('Grammar.txt') as inp:
 			
 			for i in range(0,len(line)):
 				if(line[i] == '|'):
-					out.write("\n" + line[0] + " -> " + " ")
+					out.write("\n" + line[0] + " -> ")
 					continue
 				else:
 					out.write(line[i] + " ")
