@@ -335,8 +335,13 @@ int main ( int argc, char * argv [] )
         val = currnode -> value;
 
         if ( val[0] == 'e' )
-          continue;
-
+        {
+          temp = findString ( terminals , "e" );
+          tvalue = temp -> value;
+          parseTable [ ntvalue ] [ tvalue ] = ruleno;
+          continue;  
+        }
+          
         if ( val[0] == 'T' )
         {
           temp = findString ( terminals , val );
@@ -369,9 +374,13 @@ int main ( int argc, char * argv [] )
         //Adding entry for Parse Table for 'e'
         if ( epsflag == 1 )
         {
-          temp = findString ( terminals , "e" );
-          tvalue = temp -> value;
-          parseTable [ ntvalue ] [ tvalue ] = ruleno;
+          if ( ! hasNext ( currnode ) )
+          {
+            temp = findString ( terminals , "e" );
+            tvalue = temp -> value;
+            parseTable [ ntvalue ] [ tvalue ] = ruleno;
+          }
+
           epsflag = 0;
         }
         else
