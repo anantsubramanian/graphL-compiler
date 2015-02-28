@@ -49,11 +49,11 @@ int getLineCount ( FILE *inputfile, int blocksize )
   return lines;
 }
 
-void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [], TRIE* gramrules, 
+void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [], TRIE* gramrules,
                      TRIE* nonterm, TRIE* terminals, TRIE* mixedbag, int *tokencounts )
 {
   char c;
-  
+
   char buffers [2] [blocksize];
   char token [ MAXRULE ];
   char *nttoken = NULL, *ttoken = NULL;
@@ -87,7 +87,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
     fprintf ( stderr, "Failed to open non-terminals index file\n" );
     exit (-1);
   }
-  
+
   while ( TRUE )
   {
     // Read next character from the buffer
@@ -105,7 +105,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       fprintf ( stderr, "EOF Found\n" );
       break;
     }
-    
+
     if ( c == '-' )
       marker = tokencounter;
 
@@ -115,7 +115,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       token [ tokencounter ] = c;
 
     tokencounter++;
-    
+
     // tokencounter == 1 indicates a blank line (only NULL character)
     if ( c == NEWLINE && tokencounter != 1 )
     {
@@ -134,7 +134,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       if ( temp == NULL )
       {
         temp = insertString ( nonterm , nttoken );
-        
+
         // Write non terminal to index file
         fprintf ( ntmapfile, "%d %s\n", nonterminalcount, nttoken );
 
@@ -167,7 +167,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
           if ( temp == NULL )
           {
             temp = insertString ( terminals , ttoken );
-        
+
             // Write terminal to index file
             fprintf ( tmapfile, "%d %s\n", terminalcount, ttoken );
 
@@ -187,7 +187,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
   }
 
   temp = insertString ( terminals , "e" );
-        
+
   // Write non terminal to index file
   fprintf ( tmapfile, "%d e\n", terminalcount );
 
@@ -214,11 +214,11 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
 void populateFirstSets ( FILE *firstsfile, int blocksize, LINKEDLIST* firsts [], TRIE* mixedbag )
 {
   char c;
-  
+
   char buffers [2] [blocksize];
   char token [ MAXRULE ];
   char *finalterms = NULL;
-  
+
   int charindx = -1;
   int curbuff = -1;
   int charsread = 0;
@@ -275,8 +275,8 @@ void populateFirstSets ( FILE *firstsfile, int blocksize, LINKEDLIST* firsts [],
   }
 }
 
-int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [], 
-                          LINKEDLIST* firsts [], TRIE* gramrules, TRIE* nonterm, 
+int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
+                          LINKEDLIST* firsts [], TRIE* gramrules, TRIE* nonterm,
                           TRIE* terminals, TRIE* mixedbag, int nonterminalcount,
                           int terminalcount )
 {
@@ -295,7 +295,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
   {
     parseTable [i] = NULL;
     parseTable [i] = malloc ( terminalcount * sizeof ( int ) );
-  
+
     if ( parseTable [i] == NULL )
     {
       fprintf ( stderr, "Failed to allocate memory for row of parse table\n" );
@@ -311,10 +311,10 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
   }
 
   char c;
-  
+
   char buffers [2] [blocksize];
   char token [ MAXRULE ];
-  
+
   int nodevalue = -1;    // Index of Linked List
   int ntvalue = -1;      // Index of Parse Table row
   int tvalue = -1;       // Index of Parse Table col
@@ -330,7 +330,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
 
   char *val = NULL;
   char *nttoken = NULL;
-  
+
   LNODE *currnode = NULL;     // temporary node for Rules LL
   LNODE *firstnode = NULL;    // temporary node for Firsts LL
   TNODE *temp = NULL;
@@ -367,7 +367,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
     if ( token [0] == '\0' )
        break;
 
-    if ( c == NEWLINE ) 
+    if ( c == NEWLINE )
     {
       ruleno++;
       temp = findString ( gramrules , token );
@@ -387,15 +387,15 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
       {
         currnode = getNext ( currnode );
         val = currnode -> value;
-        
+
         if ( val[0] == 'e' )
         {
           temp = findString ( terminals , "e" );
           tvalue = temp -> value;
           parseTable [ ntvalue ] [ tvalue ] = ruleno;
-          continue;  
+          continue;
         }
-          
+
         if ( val[0] == 'T' )
         {
           temp = findString ( terminals , val );
@@ -413,7 +413,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         {
           firstnode = getNext ( firstnode );
           val = firstnode -> value;
-          
+
           if ( val[0] == 'e' )
           {
             epsflag = 1;
@@ -481,7 +481,7 @@ int main ( int argc, char * argv [] )
     return -1;
   }
   grammarfile = NULL;
- 
+
   fprintf ( stderr, "PHASE 1 complete\n" );
 
   /***************************************************
@@ -493,7 +493,7 @@ int main ( int argc, char * argv [] )
 
 
   LINKEDLIST* ruleLists [lines];
-  
+
   // Initialize each Linked List to null
   int i;
   for ( i = 0; i < lines; i++ )
@@ -523,9 +523,9 @@ int main ( int argc, char * argv [] )
     return -1;
   }
 
-  populateTries ( grammarfile, blocksize, ruleLists, gramrules, 
+  populateTries ( grammarfile, blocksize, ruleLists, gramrules,
                   nonterm, terminals, mixedbag, tokencounts );
-  
+
   if ( fclose ( grammarfile ) != 0 )
   {
     fprintf ( stderr, "Failed to close grammar file\n" );
@@ -582,7 +582,7 @@ int main ( int argc, char * argv [] )
 
 
   grammarfile = fopen ( GRAMMAR_FILE , "r" );
-  
+
   if ( grammarfile == NULL )
   {
     fprintf ( stderr, "Failed to open grammar file to generate parse table\n" );
@@ -590,9 +590,9 @@ int main ( int argc, char * argv [] )
   }
 
   int **parseTable = NULL;
-  
-  parseTable = populateParseTable ( grammarfile, blocksize, ruleLists, firsts, 
-                                    gramrules, nonterm, terminals, mixedbag, 
+
+  parseTable = populateParseTable ( grammarfile, blocksize, ruleLists, firsts,
+                                    gramrules, nonterm, terminals, mixedbag,
                                     nonterminalcount, terminalcount );
 
   if ( parseTable == NULL )
@@ -634,3 +634,4 @@ int main ( int argc, char * argv [] )
 
   return 0;
 }
+
