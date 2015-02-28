@@ -66,7 +66,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
 
   FILE *rulesfile = NULL;
   rulesfile = fopen ( RULES_FILE, "w+" );
-  
+
   if ( rulesfile == NULL )
   {
     fprintf ( stderr, "Failed to open rules output file\n" );

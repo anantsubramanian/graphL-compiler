@@ -120,7 +120,7 @@ if [[ "$yn" == "y" ]]; then
   printf "\n-------------------------------------------------------\n\n"
 
 else
-  
+
   printf "Not testing module Parse Table generator\n\n"
 
 fi
