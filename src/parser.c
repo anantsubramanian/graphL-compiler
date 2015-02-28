@@ -104,7 +104,7 @@ int getLineCount ( FILE *inputfile, int blocksize )
   return lines;
 }
 
-void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleLists [] ) 
+void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleLists [] )
 {
   char c;
 
@@ -157,7 +157,7 @@ void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleList
   }
 }
 
-void populateParseTable ( FILE *ptablefile, int blocksize, int **parseTable ) 
+void populateParseTable ( FILE *ptablefile, int blocksize, int **parseTable )
 {
   char c;
 
@@ -214,6 +214,58 @@ void populateParseTable ( FILE *ptablefile, int blocksize, int **parseTable )
   }
 }
 
+void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [MAXRULE] )
+{
+  char c;
+
+  char buffers [2] [blocksize];
+  char token [ MAXRULE ];
+
+  int curbuff = -1;
+  int charindx = -1;
+  int charsread = 0;
+  int tokenindex = 0;
+
+  int torval = 0;
+  int value = 0;
+
+  while ( TRUE )
+  {
+    // Read next character from the buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, ptablefile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == NEWLINE )
+    {
+      strcpy ( attributes [ value ], token );
+      tokenindex = 0;
+      torval = 0;
+    }
+    else if ( c == ' ' )
+    {
+      token [ tokenindex ] = '\0';
+      value = 0;
+      torval = 1;
+    }
+    else if ( torval == 0 )
+      token [ tokenindex++ ] = c;
+    else
+      value = value * 10 + c - 48;
+  }
+}
+
 int main ( int argc, char *argv[] )
 {
   // Get the system block size
@@ -226,11 +278,11 @@ int main ( int argc, char *argv[] )
 
   terminals = getNewTrie ();
   nonterminals = getNewTrie ();
-  
+
   FILE *tmapfile = NULL, *ntmapfile = NULL;
 
 
-  
+
   /***********************************************************
     *                                                        *
     *   PHASE 1 : Populate terminal and non-terminal tries   *
@@ -267,18 +319,18 @@ int main ( int argc, char *argv[] )
     return -1;
   }
   tmapfile = ntmapfile = NULL;
-  
-  
-  
+
+
+
   /***********************************************************
     *                                                        *
     *       PHASE 2 : Populate linked list of rules          *
     *                                                        *
     **********************************************************
    */
-  
-  
-  
+
+
+
   FILE *rulesfile = NULL;
   rulesfile = fopen ( RULES_FILE, "rb" );
 
@@ -311,13 +363,13 @@ int main ( int argc, char *argv[] )
   }
 
   populateGrammarRules ( rulesfile, blocksize, ruleLists );
-  
+
   if ( fclose ( rulesfile ) != 0 )
   {
     fprintf ( stderr, "Failed to close rules file\n" );
     return -1;
   }
- 
+
 
 
   /***********************************************************
@@ -327,9 +379,9 @@ int main ( int argc, char *argv[] )
     **********************************************************
    */
 
-  
+
   int **parseTable = NULL;
-  
+
   parseTable = malloc ( nonterminalscount * sizeof ( int * ) );
   if ( parseTable == NULL )
   {
@@ -375,9 +427,42 @@ int main ( int argc, char *argv[] )
     **********************************************************
    */
 
-  // TODO: Parse the input file
-  // TODO: Read input file as command line argument
-  
+  FILE *inputfile = NULL, *attributefile = NULL;
+  attributefile = fopen ( DICT_FILE, "rb" );
+
+  if ( attributefile == NULL )
+  {
+    fprintf ( stderr, "Failed to open attribute map file\n" );
+    return -1;
+  }
+
+  int attributelines = getLineCount ( attributefile, blocksize );
+
+  if ( fclose ( attributefile ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close attributes file\n" );
+    return -1;
+  }
+  attributefile = NULL;
+
+  char attributes [ attributelines ] [ MAXRULE ];
+
+  attributefile = fopen ( DICT_FILE, "rb" );
+
+  if ( attributefile == NULL )
+  {
+    fprintf ( stderr, "Failed to open attribute map file\n" );
+    return -1;
+  }
+
+  populateAttributes ( attributefile, blocksize, attributes );
+
+  if ( fclose ( attributefile ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close attributes file\n" );
+    return -1;
+  }
+
   return 0;
 }
 
