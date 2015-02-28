@@ -111,7 +111,7 @@ if [[ "$yn" == "y" ]]; then
 fi
 
 # Done with all unit tests
-printf "All unit tests passed. Proceed to commit.\n\n"
+printf "\nAll unit tests passed. Proceed to commit.\n\n"
 
 # Cleanup
 printf "Cleaning up temporary files..\n"
