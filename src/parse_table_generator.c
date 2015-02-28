@@ -13,6 +13,10 @@
 #define PARSE_TABLE_FILE "config/parse_table"
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define T_INDEX_FILE "config/terminals_index"
+#define RULE_TRIE_NAME "Grammar Rules"
+#define NT_TRIE_NAME "Non Terminals"
+#define T_TRIE_NAME "Terminals"
+#define TNT_TRIE_NAME "Terminals and Non Terminals"
 
 int getLineCount ( FILE *inputfile, int blocksize )
 {
@@ -502,16 +506,16 @@ int main ( int argc, char * argv [] )
   TRIE *gramrules = NULL, *nonterm = NULL, *terminals = NULL, *mixedbag = NULL;
 
   gramrules = getNewTrie();
-  gramrules = setTrieName( gramrules , "Grammar Rules" );
+  gramrules = setTrieName( gramrules , RULE_TRIE_NAME );
 
   nonterm = getNewTrie();
-  nonterm = setTrieName( nonterm , "Non Terminals");
+  nonterm = setTrieName( nonterm , NT_TRIE_NAME );
 
   terminals = getNewTrie();
-  terminals = setTrieName( terminals , "Terminals" );
+  terminals = setTrieName( terminals , T_TRIE_NAME );
 
   mixedbag = getNewTrie();
-  mixedbag = setTrieName( mixedbag , "Terminals and Non Terminals" );
+  mixedbag = setTrieName( mixedbag , TNT_TRIE_NAME );
 
   int tokencounts [ 3 ];
 
