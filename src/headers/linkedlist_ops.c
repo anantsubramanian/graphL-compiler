@@ -224,9 +224,39 @@ LNODE* getIterator ( LINKEDLIST * list )
   return node;
 }
 
+LNODE* getReverseIterator ( LINKEDLIST * list )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Cannot get iterator of non-existent list\n" );
+    return NULL;
+  }
+
+  LNODE *node = malloc ( sizeof (LNODE) );
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Failed to alloate memory for iterator\n" );
+    return NULL;
+  }
+
+  node -> next = NULL;
+  node -> prev = list -> tail;
+  node -> value = NULL;
+
+  return node;
+}
+
 int hasNext ( LNODE * iterator )
 {
   if ( iterator == NULL || iterator -> next == NULL )
+    return FALSE;
+
+  return TRUE;
+}
+
+int hasPrevious ( LNODE * iterator )
+{
+  if ( iterator == NULL || iterator -> prev == NULL )
     return FALSE;
 
   return TRUE;
@@ -242,6 +272,22 @@ LNODE* getNext ( LNODE * iterator )
 
   LNODE *temp = iterator;
   iterator = iterator -> next;
+  if ( temp -> value == NULL )
+    free ( temp );
+
+  return iterator;
+}
+
+LNODE* getPrevious ( LNODE * iterator )
+{
+  if ( iterator == NULL || iterator -> prev == NULL )
+  {
+    fprintf ( stderr, "Potential error, no next element in list\n" );
+    return NULL;
+  }
+
+  LNODE *temp = iterator;
+  iterator = iterator -> prev;
   if ( temp -> value == NULL )
     free ( temp );
 

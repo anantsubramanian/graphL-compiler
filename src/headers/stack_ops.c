@@ -90,10 +90,10 @@ char* top ( STACK * s )
 
 STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
 {
-  LNODE *iterator = getIterator ( list );
-  while ( hasNext ( iterator ) )
+  LNODE *iterator = getReverseIterator ( list );
+  while ( hasPrevious ( iterator ) )
   {
-    iterator = getNext ( iterator );
+    iterator = getPrevious ( iterator );
     stack = push ( stack, iterator -> value );
   }
 

@@ -27,9 +27,15 @@ extern LINKEDLIST* deleteFromFront ( LINKEDLIST * );
 
 extern LNODE* getIterator ( LINKEDLIST * );
 
+extern LNODE* getReverseIterator ( LINKEDLIST * );
+
 extern int hasNext ( LNODE * );
 
+extern int hasPrevious ( LNODE * );
+
 extern LNODE* getNext ( LNODE * );
+
+extern LNODE* getPrevious ( LNODE * );
 
 extern LNODE* getFront ( LINKEDLIST * );
 
