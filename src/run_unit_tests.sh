@@ -7,7 +7,7 @@ make
 rm TOKENS TOKENMAP ERRORS 2>/dev/null
 
 # Decide number of sample programs
-printf "\nEnter the number of test programs in the example folder: "
+printf "\nEnter the number of test programs in the testing folder: "
 read numcases
 
 ##############################################
@@ -119,7 +119,50 @@ if [[ "$yn" == "y" ]]; then
   printf "Testing module Parse Table generator complete."
   printf "\n-------------------------------------------------------\n\n"
 
+else
+  
+  printf "Not testing module Parse Table generator\n\n"
+
 fi
+
+##############################################
+#           Starting Parser Tests            #
+##############################################
+
+# Decide number of sample programs
+printf "\nEnter the number of error-free programs in the testing folder: "
+read numcases
+
+printf "\n\n-------------------------------------------------------\n"
+printf "Testing module parser:"
+printf "\n-------------------------------------------------------\n\n"
+
+# Run required number of tests
+for (( i = 1; i <= $numcases; i++ )); do
+
+  printf "Running test $i... "
+  cp unit-testing/program${i}_output TOKENS
+  cp unit-testing/program${i}_map TOKENMAP
+
+  parserout=$(./parser 2>/dev/null)
+
+  if [[ "$parserout" != "Parsing completed successfully" ]]; then
+    printf "FAILED!\n\n"
+    printf "Errors reported:\n\n"
+    ./parser >/dev/null
+    printf "\n\n"
+    exit
+  fi
+
+  printf "PASSED!\n"
+
+  rm TOKENS TOKENMAP
+done
+
+printf "All tests passed!"
+printf "\n\n-------------------------------------------------------\n"
+printf "Testing module Parser complete."
+printf "\n-------------------------------------------------------\n\n"
 
 # Done with all unit tests
 printf "\nAll unit tests passed. Proceed to commit.\n\n"
