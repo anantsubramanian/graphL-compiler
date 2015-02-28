@@ -88,3 +88,15 @@ char* top ( STACK * s )
   return getBack ( s -> stack ) -> value;
 }
 
+STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
+{
+  LNODE *iterator = getIterator ( list );
+  while ( hasNext ( iterator ) )
+  {
+    iterator = getNext ( iterator );
+    stack = push ( stack, iterator -> value );
+  }
+
+  return stack;
+}
+

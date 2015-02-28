@@ -19,3 +19,5 @@ extern STACK* pop ( STACK * );
 
 extern char* top ( STACK * );
 
+extern STACK* insertFromLinkedList ( STACK * , LINKEDLIST * );
+
