@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "headers/trie.h"
-#include "headers/linkedlist.h"
+#include "headers/stack.h"
 
 #define TOKENS_FILE "TOKENS"
 #define DICT_FILE "TOKENMAP"
@@ -11,9 +11,12 @@
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define PTABLE_FILE "config/parse_table"
 #define RULES_FILE "config/rules_file"
+#define START_SYMBOL "<program>"
 #define MAXRULE 200
 #define BUFFERLEN 200
+#define NO_TRANSITION -1
 #define NEWLINE '\n'
+#define COMMA ','
 
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {
@@ -266,6 +269,155 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
   }
 }
 
+void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
+                         TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [] )
+{
+
+  STACK *stack = NULL;
+  stack = getStack ();
+
+  stack = push ( stack, START_SYMBOL );
+
+  char c;
+
+  char buffers [2] [blocksize];
+  char token [ MAXRULE ];
+
+  int curbuff = -1;
+  int charindx = -1;
+  int charsread = 0;
+  int tokenindex = 0;
+
+  int epscolumn = findString ( terminals, "e" ) -> value;
+
+  int value = 0;
+  int torval = 0;
+
+  while ( TRUE )
+  {
+    // Read next character from the buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      // Input token stream has ended, stack should be empty / should be nullable
+      if ( ! isEmpty ( stack ) )
+      {
+        while ( ! isEmpty ( stack ) )
+        {
+          char *topval = strdup ( top ( stack ) );
+          stack = pop ( stack );
+
+          TNODE *nonterm = findString ( nonterminals, topval );
+          if ( findString ( terminals, topval ) != NULL || nonterm == NULL )
+          {
+            fprintf ( stderr, "Error while parsing, input stream empty, but stack is not\n" );
+            exit (-1);
+          }
+
+          int nontermval = nonterm -> value;
+          if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
+          {
+            fprintf ( stderr, "Error while parsing, input stream empty, but stack is not\n" );
+            exit (-1);
+          }
+        }
+      }
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == NEWLINE )
+    {
+      if ( torval == 0 )
+        token [ tokenindex - 1 ] = '\0';
+
+      TNODE *tomatch = findString ( terminals, token + 1 );
+      if ( tomatch == NULL )
+      {
+        fprintf ( stderr, "Unrecognized token in input file\n" );
+        exit (-1 );
+      }
+
+      int column = tomatch -> value;
+
+      while ( TRUE )
+      {
+        if ( isEmpty ( stack ) )
+        {
+          fprintf ( stderr, "Error while parsing, stack emptied while parsing\n" );
+          exit (-1);
+        }
+
+        char *topval = strdup ( top ( stack ) );
+
+        stack = pop ( stack );
+
+        TNODE *current = findString ( nonterminals, topval );
+
+        if ( current != NULL )
+        {
+          // Top of stack is a non-terminal
+          int nontermindex = current -> value;
+
+          if ( parseTable [ nontermindex ] [ column ] != NO_TRANSITION )
+          {
+            LNODE *iter = getIterator ( ruleLists [ parseTable [ nontermindex ] [ column ] ] );
+            stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );
+          }
+          else if ( parseTable [ nontermindex ] [ epscolumn ] != NO_TRANSITION )
+            continue;
+          else
+          {
+            fprintf ( stderr, "Error while parsing token %s\n", token + 1 );
+            exit (-1);
+          }
+        }
+        else
+        {
+          // Top of the stack is a terminal
+          current = findString ( terminals, topval );
+
+          if ( current == NULL )
+          {
+            fprintf ( stderr, "Unrecognized terminal on top of the stack\n" );
+            exit (-1);
+          }
+          int stackterminal = current -> value;
+
+          if ( stackterminal != column )
+          {
+            fprintf ( stderr, "Failed to parse token %s\n", token + 1 );
+            exit (-1);
+          }
+          else
+            break;    // Found the required terminal, so exit the while loop
+        }
+      }
+
+      tokenindex = 0;
+      torval = 0;
+    }
+    else if ( c == COMMA )
+    {
+      token [ tokenindex ] = '\0';
+      value = 0;
+      torval = 1;
+    }
+    else if ( torval == 0 )
+      token [ tokenindex++ ] = c;
+    else if ( c != '>' )
+      value = value * 10 + c - 48;
+  }
+}
+
 int main ( int argc, char *argv[] )
 {
   // Get the system block size
@@ -427,6 +579,8 @@ int main ( int argc, char *argv[] )
     **********************************************************
    */
 
+
+
   FILE *inputfile = NULL, *attributefile = NULL;
   attributefile = fopen ( DICT_FILE, "rb" );
 
@@ -462,6 +616,17 @@ int main ( int argc, char *argv[] )
     fprintf ( stderr, "Failed to close attributes file\n" );
     return -1;
   }
+
+  inputfile = fopen ( TOKENS_FILE, "rb" );
+  if ( inputfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open program to parse\n" );
+    return -1;
+  }
+
+  parseInputProgram ( inputfile, blocksize, parseTable, terminals, nonterminals, ruleLists );
+
+  printf ( "Parsing completed successfully\n" );
 
   return 0;
 }
