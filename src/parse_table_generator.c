@@ -13,6 +13,7 @@
 #define PARSE_TABLE_FILE "config/parse_table"
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define T_INDEX_FILE "config/terminals_index"
+#define RULES_FILE "config/rules_file"
 #define RULE_TRIE_NAME "Grammar Rules"
 #define NT_TRIE_NAME "Non Terminals"
 #define T_TRIE_NAME "Terminals"
@@ -62,6 +63,15 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
   char token [ MAXRULE ];
   char *nttoken = NULL, *ttoken = NULL;
   char *rhs = NULL, *finalterms = NULL;
+
+  FILE *rulesfile = NULL;
+  rulesfile = fopen ( RULES_FILE, "w+" );
+  
+  if ( rulesfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open rules output file\n" );
+    exit (-1);
+  }
 
   int curbuff = -1;
   int charindx = -1;
@@ -159,6 +169,8 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       ruleLists [ruleno] = getLinkedList();
       ruleLists [ruleno] = insertSpaceSeparatedWords ( ruleLists[ruleno] , nttoken + 2 );
 
+      fprintf ( rulesfile, "%d %s\n", ruleno, nttoken + 2 );
+
       // Inserting into Terminals Trie and MixedBag Trie
       finalterms = strdup ( nttoken + 1 );
       ttoken = strtok ( finalterms , " " );
@@ -211,6 +223,12 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
   if ( fclose ( ntmapfile ) != 0 )
   {
     fprintf ( stderr, "Failed to close non-terminals index file\n" );
+    exit (-1);
+  }
+
+  if ( fclose ( rulesfile ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close rules file\n" );
     exit (-1);
   }
 }

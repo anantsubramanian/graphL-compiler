@@ -92,6 +92,17 @@ if [[ "$yn" == "y" ]]; then
   fi
   printf "PASSED!\n"
 
+  printf "Testing rules file... "
+  rulediff=$(diff config/rules_file unit-testing/rules_file)
+
+  if [[ "$rulediff" != "" ]]; then
+    printf "FAILED!\n\n"
+    printf "Differences listed below:\n"
+    diff config/rules_file unit-testing/rules_file
+    exit
+  fi
+  printf "PASSED!\n"
+
   printf "Testing parse table... "
   ptdiff=$(diff config/parse_table unit-testing/parse_table)
 
