@@ -319,14 +319,14 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           TNODE *nonterm = findString ( nonterminals, topval );
           if ( findString ( terminals, topval ) != NULL || nonterm == NULL )
           {
-            fprintf ( stderr, "Error while parsing, input stream empty, but stack is not\n" );
+            printf ( "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
             exit (-1);
           }
 
           int nontermval = nonterm -> value;
           if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
           {
-            fprintf ( stderr, "Error while parsing, input stream empty, but stack is not\n" );
+            printf ( "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
             exit (-1);
           }
         }
@@ -340,7 +340,8 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       TNODE *tomatch = findString ( terminals, token + 1 );
       if ( tomatch == NULL )
       {
-        fprintf ( stderr, "Unrecognized token in input file\n" );
+        printf ( "FATAL ERROR: Unrecognized input token %s\nConsider \
+                 re-compiling the lexer module\n", token + 1 );
         exit (-1 );
       }
 
@@ -350,7 +351,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       {
         if ( isEmpty ( stack ) )
         {
-          fprintf ( stderr, "Error while parsing, stack emptied while parsing\n" );
+          printf ( "Error at line %d:\n\tTrailing characters at the end of the program\n", linenum );
           exit (-1);
         }
 
@@ -374,7 +375,8 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             continue;
           else
           {
-            fprintf ( stderr, "Error while parsing token %s\n", token + 1 );
+            // TODO: Give a more informative error by reading input program again
+            printf ( "Error at line %d:\n\tUnexpected token %s encountered", linenum, token + 1 );
             exit (-1);
           }
         }
@@ -385,14 +387,16 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
           if ( current == NULL )
           {
-            fprintf ( stderr, "Unrecognized terminal on top of the stack\n" );
+            printf ( "FATAL ERROR: Unrecognized terminal %s encountered \
+                      while parsing.\nConsider re-checking grammar rules.\n" );
             exit (-1);
           }
           int stackterminal = current -> value;
 
           if ( stackterminal != column )
           {
-            fprintf ( stderr, "Failed to parse token %s\n", token + 1 );
+            // TODO: Give more informative error by reading the input program again
+            printf ( "Error at line %d:\n\t Expected %s, but got %s\n", linenum, topval, token + 1 );
             exit (-1);
           }
           else
