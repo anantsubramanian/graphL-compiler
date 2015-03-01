@@ -144,7 +144,7 @@ for (( i = 1; i <= $numcases; i++ )); do
   cp unit-testing/parser_test${i}_tokens TOKENS
   cp unit-testing/parser_test${i}_map TOKENMAP
 
-  parserout=$(./parser 2>/dev/null)
+  parserout=$(./parser 2>/dev/null unit-testing/parser_program${i}.G)
 
   if [[ "$parserout" != "Parsing completed successfully" ]]; then
     printf "FAILED!\n\n"
