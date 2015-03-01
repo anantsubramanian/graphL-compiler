@@ -26,12 +26,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+
+  return Nothing
+
 End
 
 Function edgeWeight2() -> Nothing:
@@ -57,12 +60,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight3() -> Nothing:
@@ -88,12 +94,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight4() -> Nothing:
@@ -119,12 +128,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight5() -> Nothing:
@@ -150,12 +162,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight6() -> Nothing:
@@ -181,12 +196,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight7() -> Nothing:
@@ -212,12 +230,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight8() -> Nothing:
@@ -243,12 +264,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight9() -> Nothing:
@@ -274,12 +298,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight10() -> Nothing:
@@ -305,12 +332,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight11() -> Nothing:
@@ -336,12 +366,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight12() -> Nothing:
@@ -367,12 +400,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight13() -> Nothing:
@@ -398,12 +434,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight14() -> Nothing:
@@ -429,12 +468,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight15() -> Nothing:
@@ -460,12 +502,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight16() -> Nothing:
@@ -491,12 +536,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight17() -> Nothing:
@@ -522,12 +570,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight18() -> Nothing:
@@ -553,12 +604,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight19() -> Nothing:
@@ -584,12 +638,15 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
 Function edgeWeight20() -> Nothing:
@@ -615,11 +672,14 @@ Begin
 	Begin
   	Let e1 be [u, T's root]
 
-  	If not ( v = e1's weight ):
+  	If not { v = e1's weight }:
   	Begin
     	Let answer be e1's weight
   	End
 
 	End
+  
+	return Nothing
+
 End
 
