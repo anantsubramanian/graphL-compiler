@@ -12,6 +12,7 @@
 #define PTABLE_FILE "config/parse_table"
 #define RULES_FILE "config/rules_file"
 #define START_SYMBOL "<program>"
+#define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
 #define NO_TRANSITION -1
@@ -105,6 +106,59 @@ int getLineCount ( FILE *inputfile, int blocksize )
   }
 
   return lines;
+}
+
+char* getLine ( FILE *inputfile, int blocksize, int linenumber )
+{
+  char c;
+
+  int curbuff = -1;
+  int charindx = -1;
+  int lines = 1;
+  int charsread = 0;
+  char buffers [2] [blocksize];
+
+  char token [ MAXLINE ];
+  int tokenindx = 0;
+
+  while ( TRUE )
+  {
+    // Get char from appropriate buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == NEWLINE )
+    {
+      if ( lines == linenumber )
+      {
+        token [ tokenindx ] = '\0';
+        return strdup ( token );
+      }
+
+      lines++;
+      tokenindx = 0;
+    }
+    else
+      token [ tokenindx++ ] = c;
+
+  }
+
+  fprintf ( stderr, "Unable to retrieve requested line\n" );
+  exit (-1);
+
+  return NULL;
 }
 
 void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleLists [] )
@@ -270,7 +324,8 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
 }
 
 void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
-                         TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [] )
+                         TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [],
+                         char *inputprogram )
 {
 
   STACK *stack = NULL;
@@ -351,7 +406,21 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       {
         if ( isEmpty ( stack ) )
         {
-          printf ( "Error at line %d:\n\tTrailing characters at the end of the program\n", linenum );
+          FILE* programfile = NULL;
+          programfile = fopen ( inputprogram, "rb" );
+
+          if ( programfile == NULL )
+          {
+            fprintf ( stderr, "Failed to open input program to print errors\n" );
+            exit (-1);
+          }
+
+          printf ( "Error at line %d: %s\n\tTrailing characters at the end of \
+                    the program\n", linenum, getLine ( programfile, blocksize, linenum ) );
+
+          if ( fclose ( programfile ) != 0 )
+            fprintf ( stderr, "Failed to close input program used to display errors\n" );
+
           exit (-1);
         }
 
@@ -375,8 +444,21 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             continue;
           else
           {
-            // TODO: Give a more informative error by reading input program again
-            printf ( "Error at line %d:\n\tUnexpected token %s encountered", linenum, token + 1 );
+            FILE* programfile = NULL;
+            programfile = fopen ( inputprogram, "rb" );
+
+            if ( programfile == NULL )
+            {
+              fprintf ( stderr, "Failed to open input program to print errors\n" );
+              exit (-1);
+            }
+
+            printf ( "Error at line %d: %s\n\tUnexpected token %s encountered\n",
+                      linenum, getLine ( programfile, blocksize, linenum ), token + 1 );
+
+            if ( fclose ( programfile ) != 0 )
+              fprintf ( stderr, "Failed to close input program used to display errors\n" );
+
             exit (-1);
           }
         }
@@ -395,8 +477,22 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
           if ( stackterminal != column )
           {
-            // TODO: Give more informative error by reading the input program again
-            printf ( "Error at line %d:\n\t Expected %s, but got %s\n", linenum, topval, token + 1 );
+            FILE* programfile = NULL;
+            programfile = fopen ( inputprogram, "rb" );
+
+            if ( programfile == NULL )
+            {
+              fprintf ( stderr, "Failed to open input program to print errors\n" );
+              exit (-1);
+            }
+
+            printf ( "Error at line %d: %s\n\tExpected %s, but got %s\n",
+                      linenum, getLine ( programfile, blocksize, linenum ),
+                      topval, token + 1 );
+
+            if ( fclose ( programfile ) != 0 )
+              fprintf ( stderr, "Failed to close input program used to display errors\n" );
+
             exit (-1);
           }
           else
@@ -437,6 +533,13 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
 int main ( int argc, char *argv[] )
 {
+
+  if ( argc <= 1 )
+  {
+    fprintf ( stderr, "Please provide the input program as an argument\n" );
+    return -1;
+  }
+
   // Get the system block size
   struct stat fi;
   stat ( "/", &fi );
@@ -641,7 +744,8 @@ int main ( int argc, char *argv[] )
     return -1;
   }
 
-  parseInputProgram ( inputfile, blocksize, parseTable, terminals, nonterminals, ruleLists );
+  parseInputProgram ( inputfile, blocksize, parseTable, terminals,
+                      nonterminals, ruleLists, argv [1] );
 
   printf ( "Parsing completed successfully\n" );
 
