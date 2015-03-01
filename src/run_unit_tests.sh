@@ -141,8 +141,8 @@ printf "\n-------------------------------------------------------\n\n"
 for (( i = 1; i <= $numcases; i++ )); do
 
   printf "Running test $i... "
-  cp unit-testing/program${i}_output TOKENS
-  cp unit-testing/program${i}_map TOKENMAP
+  cp unit-testing/parser_test${i}_tokens TOKENS
+  cp unit-testing/parser_test${i}_map TOKENMAP
 
   parserout=$(./parser 2>/dev/null)
 
