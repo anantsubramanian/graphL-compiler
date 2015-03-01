@@ -291,7 +291,8 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   int epscolumn = findString ( terminals, "e" ) -> value;
 
   int value = 0;
-  int torval = 0;
+  int linenum = 0;
+  int torvalorlno = 0;
 
   while ( TRUE )
   {
@@ -336,9 +337,6 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
     if ( c == NEWLINE )
     {
-      if ( torval == 0 )
-        token [ tokenindex - 1 ] = '\0';
-
       TNODE *tomatch = findString ( terminals, token + 1 );
       if ( tomatch == NULL )
       {
@@ -403,18 +401,33 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       }
 
       tokenindex = 0;
-      torval = 0;
+      torvalorlno = 0;
     }
     else if ( c == COMMA )
     {
       token [ tokenindex ] = '\0';
-      value = 0;
-      torval = 1;
+
+      if ( torvalorlno == 0 )
+        value = 0;
+      else
+        linenum = 0;
+
+      torvalorlno++;
     }
-    else if ( torval == 0 )
+    else if ( c == '>' )
+    {
+      if ( torvalorlno == 1 )
+      {
+        linenum = value;
+        value = -1;
+      }
+    }
+    else if ( torvalorlno == 0 )
       token [ tokenindex++ ] = c;
-    else if ( c != '>' )
+    else if ( torvalorlno == 1 )
       value = value * 10 + c - 48;
+    else if ( c != '>' )
+      linenum = linenum * 10 + c - 48;
   }
 }
 
