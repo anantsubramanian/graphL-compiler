@@ -142,7 +142,8 @@ int main ( int argc, char *argv[] )
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_INTLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_INTLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
         {
@@ -156,7 +157,8 @@ int main ( int argc, char *argv[] )
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_FLOATLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_FLOATLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
         {
@@ -170,7 +172,8 @@ int main ( int argc, char *argv[] )
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_STRINGLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_STRINGLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
         {
@@ -184,10 +187,12 @@ int main ( int argc, char *argv[] )
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_IDEN,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_IDEN,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else
-          fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
+          fprintf ( tokensfile, "<%s,%d>\n", getCurrentState (dfa) -> name,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
       }
 
       // If there is no further transition, start from the initial state again
