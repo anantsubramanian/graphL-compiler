@@ -90,11 +90,17 @@ char* top ( STACK * s )
 
 STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
 {
-  LNODE *iterator = getReverseIterator ( list );
-  while ( hasPrevious ( iterator ) )
+  LNODE iterator;
+  if ( getReverseIterator ( list, &iterator ) == NULL )
   {
-    iterator = getPrevious ( iterator );
-    stack = push ( stack, iterator -> value );
+    fprintf ( stderr, "Failed to get iterator\n" );
+    return NULL;
+  }
+
+  while ( hasPrevious ( &iterator ) )
+  {
+    getPrevious ( &iterator );
+    stack = push ( stack, iterator.value );
   }
 
   return stack;

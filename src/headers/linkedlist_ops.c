@@ -202,29 +202,24 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
   return list;
 }
 
-LNODE* getIterator ( LINKEDLIST * list )
+LNODE* copyNode ( LNODE *to, LNODE *from )
 {
-  if ( list == NULL )
+  if ( to == NULL || from == NULL )
   {
-    fprintf ( stderr, "Cannot get iterator of non-existent list\n" );
+    fprintf ( stderr, "Attempting to copy from/to empty node\n" );
     return NULL;
   }
 
-  LNODE *node = malloc ( sizeof (LNODE) );
-  if ( node == NULL )
-  {
-    fprintf ( stderr, "Failed to alloate memory for iterator\n" );
-    return NULL;
-  }
+  to -> prev = from -> prev;
+  to -> next = from -> next;
 
-  node -> next = list -> head;
-  node -> prev = NULL;
-  node -> value = NULL;
+  // Intentionally referencing same location
+  to -> value = from -> value;
 
-  return node;
+  return to;
 }
 
-LNODE* getReverseIterator ( LINKEDLIST * list )
+LNODE* getIterator ( LINKEDLIST * list, LNODE * iterator )
 {
   if ( list == NULL )
   {
@@ -232,18 +227,38 @@ LNODE* getReverseIterator ( LINKEDLIST * list )
     return NULL;
   }
 
-  LNODE *node = malloc ( sizeof (LNODE) );
-  if ( node == NULL )
+  if ( iterator == NULL )
   {
-    fprintf ( stderr, "Failed to alloate memory for iterator\n" );
+    fprintf ( stderr, "Invalid location provided for iterator\n" );
     return NULL;
   }
 
-  node -> next = NULL;
-  node -> prev = list -> tail;
-  node -> value = NULL;
+  iterator -> next = list -> head;
+  iterator -> prev = NULL;
+  iterator -> value = NULL;
 
-  return node;
+  return iterator;
+}
+
+LNODE* getReverseIterator ( LINKEDLIST * list, LNODE * iterator )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Cannot get iterator of non-existent list\n" );
+    return NULL;
+  }
+
+  if ( iterator == NULL )
+  {
+    fprintf ( stderr, "Invalid location provided for iterator\n" );
+    return NULL;
+  }
+
+  iterator -> next = NULL;
+  iterator -> prev = list -> tail;
+  iterator -> value = NULL;
+
+  return iterator;
 }
 
 int hasNext ( LNODE * iterator )
@@ -270,10 +285,11 @@ LNODE* getNext ( LNODE * iterator )
     return NULL;
   }
 
-  LNODE *temp = iterator;
-  iterator = iterator -> next;
-  if ( temp -> value == NULL )
-    free ( temp );
+  if ( copyNode ( iterator, iterator -> next ) == NULL )
+  {
+    fprintf ( stderr, "Failed to copy next node for iterator\n" );
+    return NULL;
+  }
 
   return iterator;
 }
@@ -286,10 +302,11 @@ LNODE* getPrevious ( LNODE * iterator )
     return NULL;
   }
 
-  LNODE *temp = iterator;
-  iterator = iterator -> prev;
-  if ( temp -> value == NULL )
-    free ( temp );
+  if ( copyNode ( iterator, iterator -> prev ) == NULL )
+  {
+    fprintf ( stderr, "Failed to copy previous node for iterator\n" );
+    return NULL;
+  }
 
   return iterator;
 }

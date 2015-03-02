@@ -353,8 +353,8 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
   char *val = NULL;
   char *nttoken = NULL;
 
-  LNODE *currnode = NULL;     // temporary node for Rules LL
-  LNODE *firstnode = NULL;    // temporary node for Firsts LL
+  LNODE currnode;        // temporary node for Rules LL
+  LNODE firstnode;       // temporary node for Firsts LL
   TNODE *temp = NULL;
 
   while ( TRUE )
@@ -404,11 +404,16 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
       ntvalue = temp -> value;
 
       //Getting the RHS of the Non-Terminal and populating Parse Table
-      currnode = getIterator ( ruleLists [ nodevalue ] );
-      while ( hasNext ( currnode ) )
+      if ( getIterator ( ruleLists [ nodevalue ], &currnode ) == NULL )
       {
-        currnode = getNext ( currnode );
-        val = currnode -> value;
+        fprintf ( stderr, "Failed to get iterator for current node\n" );
+        exit (-1);
+      }
+
+      while ( hasNext ( &currnode ) )
+      {
+        getNext ( &currnode );
+        val = currnode.value;
 
         if ( val[0] == 'e' )
         {
@@ -430,11 +435,16 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         ntindex = temp -> value;
 
         //Getting the Firsts of the respective non-terminal
-        firstnode = getIterator ( firsts [ntindex] );
-        while ( hasNext (firstnode) )
+        if ( getIterator ( firsts [ntindex], &firstnode ) == NULL )
         {
-          firstnode = getNext ( firstnode );
-          val = firstnode -> value;
+          fprintf ( stderr, "Failed to get iterator for first node\n" );
+          exit (-1);
+        }
+
+        while ( hasNext ( &firstnode ) )
+        {
+          getNext ( &firstnode );
+          val = firstnode.value;
 
           if ( val[0] == 'e' )
           {
@@ -451,7 +461,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         //Adding entry for Parse Table for 'e'
         if ( epsflag == 1 )
         {
-          if ( ! hasNext ( currnode ) )
+          if ( ! hasNext ( &currnode ) )
           {
             temp = findString ( terminals , "e" );
             tvalue = temp -> value;

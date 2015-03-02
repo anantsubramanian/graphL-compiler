@@ -436,10 +436,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           int nontermindex = current -> value;
 
           if ( parseTable [ nontermindex ] [ column ] != NO_TRANSITION )
-          {
-            LNODE *iter = getIterator ( ruleLists [ parseTable [ nontermindex ] [ column ] ] );
             stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );
-          }
           else if ( parseTable [ nontermindex ] [ epscolumn ] != NO_TRANSITION )
             continue;
           else
