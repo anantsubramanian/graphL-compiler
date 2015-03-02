@@ -173,6 +173,12 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
 
       // Inserting into Terminals Trie and MixedBag Trie
       finalterms = strdup ( nttoken + 1 );
+      if ( finalterms == NULL )
+      {
+        fprintf ( stderr, "Failed to duplicate non terminal tokens\n" );
+        exit (-1);
+      }
+
       ttoken = strtok ( finalterms , " " );
 
       while ( ttoken != NULL )
@@ -199,6 +205,9 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
 
         ttoken = strtok ( NULL , " " );
       }
+
+      free ( finalterms );
+      finalterms = NULL;
     }
   }
 

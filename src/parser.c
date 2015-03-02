@@ -369,6 +369,12 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         while ( ! isEmpty ( stack ) )
         {
           char *topval = strdup ( top ( stack ) );
+          if ( topval == NULL )
+          {
+            fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
+            exit (-1);
+          }
+
           stack = pop ( stack );
 
           TNODE *nonterm = findString ( nonterminals, topval );
@@ -377,6 +383,10 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             printf ( "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
             exit (-1);
           }
+
+          // Free allocated memory for duplicate top of stack
+          free ( topval );
+          topval = NULL;
 
           int nontermval = nonterm -> value;
           if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
@@ -425,6 +435,11 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         }
 
         char *topval = strdup ( top ( stack ) );
+        if ( topval == NULL )
+        {
+          fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
+          exit (-1);
+        }
 
         stack = pop ( stack );
 
@@ -493,8 +508,15 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             exit (-1);
           }
           else
+          {
+            free ( topval );
+            topval = NULL;
             break;    // Found the required terminal, so exit the while loop
+          }
         }
+
+        free ( topval );
+        topval = NULL;
       }
 
       tokenindex = 0;
