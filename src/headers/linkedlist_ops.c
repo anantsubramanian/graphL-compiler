@@ -155,6 +155,7 @@ LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
     {
       LNODE *temp = list -> head;
       list -> head = list -> tail = NULL;
+      free ( temp -> value );
       free ( temp );
     }
     else
@@ -162,6 +163,7 @@ LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
       LNODE *temp = list -> tail;
       list -> tail -> prev -> next = NULL;
       list -> tail = list -> tail -> prev;
+      free ( temp -> value );
       free ( temp );
     }
   }
@@ -188,6 +190,7 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
     {
       LNODE *temp = list -> head;
       list -> head = list -> tail = NULL;
+      free ( temp -> value );
       free ( temp );
     }
     else
@@ -195,6 +198,7 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
       LNODE *temp = list -> head;
       list -> head -> next -> prev = NULL;
       list -> head  = list -> head -> next;
+      free ( temp -> value );
       free ( temp );
     }
   }
