@@ -157,7 +157,7 @@ for (( i = 1; i <= $numcases; i++ )); do
   if [[ "$comp" != "" ]]; then
     printf "FAILED!\n\n"
     printf "Errors reported:\n\n"
-    ./parser unit-testing/parser_program${i}.G >/dev/null
+    diff unit-testing/parser_test${i}_output $filetouse
     printf "\n\n"
     exit
   fi
