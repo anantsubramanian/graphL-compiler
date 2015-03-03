@@ -137,7 +137,7 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, floatorint );
-            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
             setValue ( find, tokenid++ );
           }
           else
@@ -152,7 +152,7 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, floatorint );
-            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
             setValue ( find, tokenid++ );
           }
           else
@@ -167,7 +167,7 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, stringliteral );
-            fprintf ( tokenmapfile, "%s %d\n", stringliteral, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, stringliteral );
             setValue ( find, tokenid++ );
           }
           else
@@ -182,7 +182,7 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, identifier );
-            fprintf ( tokenmapfile, "%s %d\n", identifier, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, identifier );
             setValue ( find, tokenid++ );
           }
           else

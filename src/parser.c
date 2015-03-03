@@ -351,7 +351,7 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
   int charsread = 0;
   int tokenindex = 0;
 
-  int torval = 0;
+  int torval = 1;
   int value = 0;
 
   while ( TRUE )
@@ -371,18 +371,19 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
       fprintf ( stderr, "EOF Found\n" );
       break;
     }
-
+    
     if ( c == NEWLINE )
     {
+      token [ tokenindex ] = '\0';
       strcpy ( attributes [ value ], token );
+      
+      torval = 1;
+      value = 0;
+    }
+    else if ( c == ' ' && torval == 1 )
+    {
       tokenindex = 0;
       torval = 0;
-    }
-    else if ( c == ' ' )
-    {
-      token [ tokenindex ] = '\0';
-      value = 0;
-      torval = 1;
     }
     else if ( torval == 0 )
       token [ tokenindex++ ] = c;
@@ -637,8 +638,16 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
               exit (-1);
             }
 
-            fprintf ( parseerr, "Error at line %d: %s\n\tUnexpected token %s encountered\n",
+            fprintf ( parseerr, "Error at line %d: %s\n\t%s ",
                       linenum, getLine ( programfile, blocksize, linenum ), terminalnames [ column ] );
+
+            if ( column == identifierterm || column == stringlitterm ||
+                 column == floatlitterm || column == intlitterm )
+            {
+              fprintf ( parseerr, "%s ", attributes [ value ] );
+            }
+
+            fprintf ( parseerr, "not expected at this point\n" );
 
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
