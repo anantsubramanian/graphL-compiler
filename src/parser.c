@@ -13,6 +13,7 @@
 #define RULES_FILE "config/rules_file"
 #define PARSE_OUTPUT "PARSEOUTPUT"
 #define START_SYMBOL "<program>"
+#define NEWLINE_SYMBOL "TK_NEWLINE"
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
@@ -359,6 +360,17 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   int linenum = 0;
   int torvalorlno = 0;
 
+  int in_error_state = FALSE;
+
+  TNODE* newlinenode = NULL;
+  if ( ( newlinenode = findString ( terminals, NEWLINE_SYMBOL ) ) == NULL )
+  {
+    fprintf ( stderr, "Failed to find newline terminal\n" );
+    exit (-1);
+  }
+
+  int newlineterm = newlinenode -> value;
+
   while ( TRUE )
   {
     // Read next character from the buffer
@@ -422,6 +434,19 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
       int column = tomatch -> value;
 
+      if ( in_error_state )
+      {
+        if ( column == newlineterm )
+        {
+          // Found synchronization newline, continue with next token
+          in_error_state = FALSE;
+        }
+
+        tokenindex = 0;
+        torvalorlno = 0;
+        continue;
+      }
+
       while ( TRUE )
       {
         if ( isEmpty ( stack ) )
@@ -481,6 +506,9 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           }
           else
           {
+            // In an error state, fall back till synchronization newline
+            in_error_state = TRUE;
+
             FILE* programfile = NULL;
             programfile = fopen ( inputprogram, "rb" );
 
@@ -496,7 +524,28 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
 
-            exit (-1);
+            while ( !isEmpty ( stack ) )
+            {
+              char *topval = top ( stack );
+              TNODE *temp = findString ( terminals, topval );
+              if ( temp == NULL )
+                continue;
+              stack = pop ( stack );
+
+              // If synchronization newline is found, break
+              if ( temp -> value == newlineterm )
+                break;
+            }
+
+            if ( in_error_state )
+            {
+              // Token stream already at synchronization point
+              // Can continue normal parsing
+              if ( column == newlineterm )
+                in_error_state = FALSE;
+
+              break;
+            }
           }
         }
         else
@@ -514,6 +563,9 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
           if ( stackterminal != column )
           {
+            // In error state, fall back till synchronization newline
+            in_error_state = TRUE;
+
             FILE* programfile = NULL;
             programfile = fopen ( inputprogram, "rb" );
 
@@ -530,7 +582,27 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
 
-            exit (-1);
+            // Stack already at newline synchronization, only token stream
+            // needs to be synchronized
+            if ( stackterminal == newlineterm )
+              break;
+
+            while ( !isEmpty ( stack ) )
+            {
+              char *topval = top ( stack );
+              TNODE *temp = findString ( terminals, topval );
+              stack = pop ( stack );
+
+              if ( temp == NULL )
+                continue;
+
+              // If synchronization newline is found, break
+              if ( temp -> value == newlineterm )
+                break;
+            }
+
+            if ( in_error_state )
+              break;
           }
           else
           {
