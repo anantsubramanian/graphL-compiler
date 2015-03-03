@@ -1,0 +1,6 @@
+Error at line 3: Let a be 2 * 3 ++ 5
+	+ not expected at this point
+Error at line 8: If c < 0 or > 10 :
+	> not expected at this point
+Error at line 9: Begin
+	Trailing characters at the end of the program
