@@ -598,7 +598,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             }
 
             fprintf ( parseerr, "Error at line %d: %s\n\tUnexpected token %s encountered\n",
-                      linenum, getLine ( programfile, blocksize, linenum ), token + 1 );
+                      linenum, getLine ( programfile, blocksize, linenum ), terminalnames [ column ] );
 
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
@@ -666,7 +666,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             fprintf ( parseerr, "Error at line %d: %s\n\tExpected %s, but got %s\n",
                       linenum, getLine ( programfile, blocksize, linenum ),
-                      topval, token + 1 );
+                      terminalnames [ stackterminal ], terminalnames [ column ] );
 
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
