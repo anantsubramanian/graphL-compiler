@@ -371,12 +371,12 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
       fprintf ( stderr, "EOF Found\n" );
       break;
     }
-    
+
     if ( c == NEWLINE )
     {
       token [ tokenindex ] = '\0';
       strcpy ( attributes [ value ], token );
-      
+
       torval = 1;
       value = 0;
     }
