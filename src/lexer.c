@@ -10,7 +10,6 @@
 #define DICT_FILE "TOKENMAP"
 #define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
-#define CHARSIZE 8
 #define ERRORS 100
 #define NEWLINE '\n'
 
@@ -42,6 +41,7 @@ int main ( int argc, char *argv[] )
   char buffers [2] [ blocksize ];
   int curbuff = -1;
   int charindx = -1;
+  int charsread = 0;
 
   char c;
   char errorc;
@@ -59,7 +59,7 @@ int main ( int argc, char *argv[] )
   FILE *inputfile;
   FILE *errorsfile, *tokensfile, *tokenmapfile;
 
-  inputfile = fopen ( argv[1] , "r" );
+  inputfile = fopen ( argv[1] , "rb" );
   errorsfile = fopen ( ERRORS_FILE, "w+" );
   tokenmapfile = fopen ( DICT_FILE, "w+" );
   tokensfile = fopen ( TOKENS_FILE, "w+" );
@@ -85,14 +85,15 @@ int main ( int argc, char *argv[] )
     if ( charindx == 0 )
     {
       curbuff = ( curbuff + 1 ) & 1;
-      if ( fread ( buffers [ curbuff ], CHARSIZE, blocksize / CHARSIZE, inputfile ) == 0 )
+      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
+                                blocksize, inputfile ) ) == 0 )
         break;
     }
     c = buffers [ curbuff ] [ charindx ];
 
-    if ( c == EOF )
+    if ( charsread < blocksize && charindx >= charsread )
     {
-      printf ( "EOF Found\n" );
+      fprintf ( stderr, "EOF Found\n" );
       break;
     }
 
@@ -136,12 +137,13 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, floatorint );
-            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
             setValue ( find, tokenid++ );
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_INTLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_INTLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_FLOATLIT" ) == 0 )
         {
@@ -150,12 +152,13 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, floatorint );
-            fprintf ( tokenmapfile, "%s %d\n", floatorint, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
             setValue ( find, tokenid++ );
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_FLOATLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_FLOATLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_STRINGLIT" ) == 0 )
         {
@@ -164,12 +167,13 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, stringliteral );
-            fprintf ( tokenmapfile, "%s %d\n", stringliteral, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, stringliteral );
             setValue ( find, tokenid++ );
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_STRINGLIT,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_STRINGLIT,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else if ( strcmp ( getCurrentState (dfa) -> name , "TK_IDEN" ) == 0 )
         {
@@ -178,15 +182,17 @@ int main ( int argc, char *argv[] )
           if ( find == NULL )
           {
             find = insertString ( dictionary, identifier );
-            fprintf ( tokenmapfile, "%s %d\n", identifier, tokenid );
+            fprintf ( tokenmapfile, "%d %s\n", tokenid, identifier );
             setValue ( find, tokenid++ );
           }
           else
             valueToPrint = find -> value;
-          fprintf ( tokensfile, "<TK_IDEN,%d>\n", valueToPrint );
+          fprintf ( tokensfile, "<TK_IDEN,%d,%d>\n", valueToPrint,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
         }
         else
-          fprintf ( tokensfile, "<%s>\n", getCurrentState (dfa) -> name );
+          fprintf ( tokensfile, "<%s,%d>\n", getCurrentState (dfa) -> name,
+                    c == NEWLINE ? linenumber - 1 : linenumber );
       }
 
       // If there is no further transition, start from the initial state again

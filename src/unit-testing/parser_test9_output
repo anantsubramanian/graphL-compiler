@@ -1,0 +1,6 @@
+Error at line 2: Function shortestPath (Graph G, Vertex v, u) -> Int :
+	an Identifier u not expected at this point
+Error at line 9:     Begin
+	Expected ":" but got a 'Newline' instead
+Error at line 18: Define Vertex v u
+	Expected "a 'Newline'" but got an Identifier u instead

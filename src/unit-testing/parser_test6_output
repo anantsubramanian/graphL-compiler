@@ -1,0 +1,112 @@
+<program>
+<globaldefines> <fndefines> <statements> 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_VERTEX 
+TK_IDEN 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_GRAPH 
+TK_IDEN 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<primitivetype> 
+TK_INT 
+TK_IDEN 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+TK_IDEN 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+TK_INTLIT 
+e 
+e 
+TK_PLUS <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+TK_INTLIT 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validconditional> 
+<ifblock> TK_NEWLINE <elseifblock> 
+<ifstmt> TK_COLON <block> 
+TK_IF <boolexp> 
+<expor> <boolexp1> 
+<expand> <expor1> 
+<expnot> 
+<boolresult> 
+<exp> <relop> <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+TK_IDEN 
+e 
+e 
+e 
+e 
+TK_GT 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+TK_INTLIT 
+e 
+e 
+e 
+e 
+e 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+TK_IDEN 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+TK_INTLIT 
+e 
+e 
+TK_MINUS <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+TK_INTLIT 
+e 
+e 
+e 
+e 
