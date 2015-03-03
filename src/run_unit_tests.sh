@@ -6,9 +6,14 @@ make
 # Clean files from previous runs
 rm TOKENS TOKENMAP ERRORS 2>/dev/null
 
-# Decide number of sample programs
-printf "\nEnter the number of test programs in the testing folder: "
-read numcases
+if [[ "$1" == "" ]]; then
+  # Decide number of sample programs
+  printf "\nEnter the number of test programs in the testing folder: "
+  read numcases
+else
+  # Argument 1 is the number of lexer test cases
+  numcases=$1
+fi
 
 ##############################################
 #           Starting Lexer Tests             #
@@ -58,8 +63,13 @@ printf "\n-------------------------------------------------------\n\n"
 #         Starting Parse Table Tests         #
 ##############################################
 
-printf "Test Parse Table generator? (y = yes): "
-read yn
+if [[ "$2" == "" ]]; then
+  printf "Test Parse Table generator? (y = yes): "
+  read yn
+else
+  # Argument 2 is y or n for parse table generator tests
+  yn=$2
+fi
 
 if [[ "$yn" == "y" ]]; then
 
@@ -129,9 +139,14 @@ fi
 #           Starting Parser Tests            #
 ##############################################
 
-# Decide number of sample programs
-printf "\nEnter the number of error-free programs in the testing folder: "
-read numcases
+if [[ "$3" == "" ]]; then
+  # Decide number of sample programs
+  printf "\nEnter the number of error-free programs in the testing folder: "
+  read numcases
+else
+  # Argument 3 is the number of parser test programs
+  numcases=$3
+fi
 
 printf "\n\n-------------------------------------------------------\n"
 printf "Testing module parser:"
