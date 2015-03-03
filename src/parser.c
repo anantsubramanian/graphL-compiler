@@ -473,8 +473,12 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             exit (-1);
           }
 
-          printf ( "Error at line %d: %s\n\tTrailing characters at the end of \
-                    the program\n", linenum, getLine ( programfile, blocksize, linenum ) );
+          fprintf ( parseerr, "Error at line %d: %s\n\tTrailing characters at the end of ",
+                    linenum, getLine ( programfile, blocksize, linenum ) );
+          fprintf ( parseerr, "the program\n" );
+
+          if ( fclose ( parseerr ) != 0 )
+            fprintf ( stderr, "Failed to close parse errors file\n" );
 
           if ( fclose ( programfile ) != 0 )
             fprintf ( stderr, "Failed to close input program used to display errors\n" );
@@ -883,8 +887,6 @@ int main ( int argc, char *argv[] )
 
   parseInputProgram ( inputfile, blocksize, parseTable, terminals,
                       nonterminals, ruleLists, argv [1] );
-
-  printf ( "Parsing completed successfully\n" );
 
   return 0;
 }
