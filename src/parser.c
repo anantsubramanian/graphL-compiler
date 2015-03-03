@@ -11,6 +11,7 @@
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define PTABLE_FILE "config/parse_table"
 #define RULES_FILE "config/rules_file"
+#define T_NAMEMAP_FILE "config/terminals_namemap"
 #define PARSE_OUTPUT "PARSEOUTPUT"
 #define PARSE_ERRORS "PARSEERRORS"
 #define START_SYMBOL "<program>"
@@ -67,6 +68,65 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
       temp = insertString ( trie, token );
       temp -> value = value;
       *count = value;
+      value = 0;
+      torval = 0;
+    }
+    else if ( torval == 1 )
+      token [ tokenindex++ ] = c;
+    else
+      value = value * 10 + c - 48;
+  }
+}
+
+void populateTerminalNames ( FILE *tnamemapfile, int blocksize, char **terminalnames, int maxvalue )
+{
+  char buffers [2] [ blocksize ];
+  int curbuff = -1;
+  int charindx = -1;
+  int charsread = 0;
+  int tokenindex = 0;
+  int torval = 0;
+
+  char c;
+  char token [ BUFFERLEN ];
+  int value = 0;
+
+  while ( TRUE )
+  {
+    // Get char from appropriate buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
+                                blocksize, tnamemapfile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == ' ' && torval == 0 )
+    {
+      torval = 1;
+      tokenindex = 0;
+    }
+    else if ( c == NEWLINE )
+    {
+      if ( value > maxvalue )
+      {
+        fprintf ( stderr, "Mapping a terminal name to a wrong value\n" );
+        exit (-1);
+      }
+
+      token [ tokenindex ] = '\0';
+      terminalnames [ value ] = malloc ( ( tokenindex + 1 ) * sizeof ( char ) );
+      strcpy ( terminalnames [ value ], token );
+
       value = 0;
       torval = 0;
     }
@@ -329,7 +389,7 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
 
 void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                          TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [],
-                         char *inputprogram )
+                         char **terminalnames, char *inputprogram )
 {
   FILE *parseout = NULL;
   parseout = fopen ( PARSE_OUTPUT, "w+" );
@@ -706,17 +766,20 @@ int main ( int argc, char *argv[] )
 
   TRIE* terminals = NULL, *nonterminals = NULL;
   int terminalscount = 0, nonterminalscount = 0;
+  char **terminalnames = NULL;
 
   terminals = getNewTrie ();
   nonterminals = getNewTrie ();
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
+  FILE *tnamemapfile = NULL;
 
 
 
   /***********************************************************
     *                                                        *
     *   PHASE 1 : Populate terminal and non-terminal tries   *
+    *             and terminals true names                   *
     *                                                        *
     **********************************************************
    */
@@ -725,10 +788,12 @@ int main ( int argc, char *argv[] )
 
   tmapfile = fopen ( T_INDEX_FILE, "rb" );
   ntmapfile = fopen ( NT_INDEX_FILE, "rb" );
+  tnamemapfile = fopen ( T_NAMEMAP_FILE, "rb" );
 
-  if ( tmapfile == NULL || ntmapfile == NULL )
+  if ( tmapfile == NULL || ntmapfile == NULL || tnamemapfile == NULL )
   {
-    fprintf ( stderr, "Failed to open (non)terminals index file\n" );
+    fprintf ( stderr, "Failed to open (non)terminals index file " );
+    fprintf ( stderr, "or terminals true names file\n" );
     return -1;
   }
 
@@ -749,7 +814,30 @@ int main ( int argc, char *argv[] )
     fprintf ( stderr, "Failed to close non-terminals map file\n" );
     return -1;
   }
+
   tmapfile = ntmapfile = NULL;
+
+  // Now set terminal names from file
+  terminalnames = malloc ( terminalscount * sizeof ( char * ) );
+  if ( terminalnames == NULL )
+  {
+    fprintf ( stderr, "Failed to allocate memory for terminal names array\n" );
+    return -1;
+  }
+
+  int i;
+  for ( i = 0; i < terminalscount; i++ )
+    terminalnames [i] = NULL;
+
+  populateTerminalNames ( tnamemapfile, blocksize, terminalnames, terminalscount );
+
+  if ( fclose ( tnamemapfile ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close terminals name map file\n" );
+    return -1;
+  }
+
+  tnamemapfile = NULL;
 
 
 
@@ -781,7 +869,6 @@ int main ( int argc, char *argv[] )
   rulesfile = NULL;
 
   LINKEDLIST* ruleLists [linecount];
-  int i;
   for ( i = 0; i < linecount; i++ )
     ruleLists [i] = NULL;
 
@@ -904,7 +991,7 @@ int main ( int argc, char *argv[] )
   }
 
   parseInputProgram ( inputfile, blocksize, parseTable, terminals,
-                      nonterminals, ruleLists, argv [1] );
+                      nonterminals, ruleLists, terminalnames, argv [1] );
 
   return 0;
 }

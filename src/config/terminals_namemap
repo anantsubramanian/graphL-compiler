@@ -1,0 +1,62 @@
+0 a 'newline'
+1 Global
+2 Define
+3 ,
+4 Let
+5 be
+6 's
+7 root
+8 source
+9 dest
+10 weight
+11 Int
+12 Float
+13 String
+14 Vertex
+15 Edge
+16 Graph
+17 Tree
+18 [
+19 ]
+20 Function
+21 (
+22 )
+23 ->
+24 :
+25 Nothing
+26 Begin
+27 End
+28 break
+29 return
+30 Else
+31 If
+32 or
+33 and
+34 not
+35 {
+36 }
+37 >
+38 <
+39 >=
+40 <=
+41 =
+42 -
+43 +
+44 *
+45 /
+46 %
+47 Depth
+48 Read
+49 Print
+50 For
+51 iterations
+52 in
+53 BFT
+54 DFT
+55 adjacent
+56 to
+57 a 'Literal'
+58 a 'Literal'
+59 a 'Literal'
+60 an 'Identifier'
+61 epsilon
