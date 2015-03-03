@@ -11,6 +11,7 @@
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define PTABLE_FILE "config/parse_table"
 #define RULES_FILE "config/rules_file"
+#define PARSE_OUTPUT "PARSEOUTPUT"
 #define START_SYMBOL "<program>"
 #define MAXLINE 500
 #define MAXRULE 200
@@ -327,11 +328,20 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                          TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [],
                          char *inputprogram )
 {
+  FILE *parseout = NULL;
+  parseout = fopen ( PARSE_OUTPUT, "w+" );
+
+  if ( parseout == NULL )
+  {
+    fprintf ( stderr, "Failed to open parser output file\n" );
+    exit (-1);
+  }
 
   STACK *stack = NULL;
   stack = getStack ();
 
   stack = push ( stack, START_SYMBOL );
+  fprintf ( parseout, "%s\n", START_SYMBOL );
 
   char c;
 
@@ -451,9 +461,24 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           int nontermindex = current -> value;
 
           if ( parseTable [ nontermindex ] [ column ] != NO_TRANSITION )
+          {
+            // Print rules to parser output
+            LNODE iterator;
+            getIterator ( ruleLists [ parseTable [ nontermindex ] [ column ] ], &iterator );
+            while ( hasNext ( &iterator ) )
+            {
+              getNext ( &iterator );
+              fprintf ( parseout, "%s ", iterator.value );
+            }
+            fprintf ( parseout, "\n" );
+
             stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );
+          }
           else if ( parseTable [ nontermindex ] [ epscolumn ] != NO_TRANSITION )
+          {
+            fprintf ( parseout, "e \n" );
             continue;
+          }
           else
           {
             FILE* programfile = NULL;
@@ -548,6 +573,9 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     else if ( c != '>' )
       linenum = linenum * 10 + c - 48;
   }
+
+  if ( fclose ( parseout ) != 0 )
+    fprintf ( stderr, "Failed to close parser output file\n" );
 }
 
 int main ( int argc, char *argv[] )
