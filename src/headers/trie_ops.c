@@ -181,12 +181,26 @@ TNODE* setNodeName ( TNODE *node, const char *name )
   }
 
   if ( node->name != NULL )
+  {
     free ( node -> name );
+    node -> name = NULL;
+  }
 
-  int len = strlen ( name );
-  node -> name = malloc ( (len+1) * sizeof (char) );
+  if ( name == NULL )
+    fprintf ( stderr, "Potential error, attempting to set name as NULL\n" );
+  else
+  {
+    int len = strlen ( name );
+    node -> name = malloc ( (len+1) * sizeof (char) );
+    if( node -> name == NULL )
+    {
+      fprintf ( stderr, "Allocation of Trie node name failed\n" );
+      return NULL;
+    }
 
-  strcpy ( node->name, name );
+    strcpy ( node->name, name );
+  }
+
   return node;
 }
 
