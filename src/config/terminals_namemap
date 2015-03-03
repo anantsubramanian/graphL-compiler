@@ -1,4 +1,4 @@
-0 a 'newline'
+0 a 'Newline'
 1 Global
 2 Define
 3 ,
@@ -55,8 +55,8 @@
 54 DFT
 55 adjacent
 56 to
-57 a 'Literal'
-58 a 'Literal'
-59 a 'Literal'
-60 an 'Identifier'
+57 an Integer literal
+58 a Float literal
+59 a String literal
+60 an identifier
 61 epsilon

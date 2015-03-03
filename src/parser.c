@@ -16,6 +16,10 @@
 #define PARSE_ERRORS "PARSEERRORS"
 #define START_SYMBOL "<program>"
 #define NEWLINE_SYMBOL "TK_NEWLINE"
+#define IDENTIFIER_SYMBOL "TK_IDEN"
+#define STRINGLIT_SYMBOL "TK_STRINGLIT"
+#define INTLIT_SYMBOL "TK_INTLIT"
+#define FLOATLIT_SYMBOL "TK_FLOATLIT"
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
@@ -389,7 +393,7 @@ void populateAttributes ( FILE *ptablefile, int blocksize, char attributes [] [M
 
 void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                          TRIE* terminals, TRIE* nonterminals, LINKEDLIST* ruleLists [],
-                         char **terminalnames, char *inputprogram )
+                         char **terminalnames, char attributes [] [ MAXRULE ], char *inputprogram )
 {
   FILE *parseout = NULL;
   parseout = fopen ( PARSE_OUTPUT, "w+" );
@@ -436,6 +440,42 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   }
 
   int newlineterm = newlinenode -> value;
+
+  TNODE* identifiernode = NULL;
+  if ( ( identifiernode = findString ( terminals, IDENTIFIER_SYMBOL ) ) == NULL )
+  {
+    fprintf ( stderr, "Failed to find identifier terminal\n" );
+    exit (-1);
+  }
+
+  int identifierterm = identifiernode -> value;
+
+  TNODE* stringlitnode = NULL;
+  if ( ( stringlitnode = findString ( terminals, STRINGLIT_SYMBOL ) ) == NULL )
+  {
+    fprintf ( stderr, "Failed to find string literal terminal\n" );
+    exit (-1);
+  }
+
+  int stringlitterm = stringlitnode -> value;
+
+  TNODE* floatlitnode = NULL;
+  if ( ( floatlitnode = findString ( terminals, FLOATLIT_SYMBOL ) ) == NULL )
+  {
+    fprintf ( stderr, "Failed to find float literal terminal\n" );
+    exit (-1);
+  }
+
+  int floatlitterm = floatlitnode -> value;
+
+  TNODE* intlitnode = NULL;
+  if ( ( intlitnode = findString ( terminals, INTLIT_SYMBOL ) ) == NULL )
+  {
+    fprintf ( stderr, "Failed to find int literal terminal\n" );
+    exit (-1);
+  }
+
+  int intlitterm = intlitnode -> value;
 
   while ( TRUE )
   {
@@ -664,9 +704,15 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
               exit (-1);
             }
 
-            fprintf ( parseerr, "Error at line %d: %s\n\tExpected %s, but got %s\n",
+            fprintf ( parseerr, "Error at line %d: %s\n\tExpected \"%s\" but got %s ",
                       linenum, getLine ( programfile, blocksize, linenum ),
                       terminalnames [ stackterminal ], terminalnames [ column ] );
+
+            if ( column == identifierterm || column == stringlitterm || column == intlitterm
+                 || column == floatlitterm )
+              fprintf ( parseerr, "%s instead\n", attributes [ value ] );
+            else
+              fprintf ( parseerr, "instead\n" );
 
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
@@ -991,7 +1037,8 @@ int main ( int argc, char *argv[] )
   }
 
   parseInputProgram ( inputfile, blocksize, parseTable, terminals,
-                      nonterminals, ruleLists, terminalnames, argv [1] );
+                      nonterminals, ruleLists, terminalnames,
+                      attributes, argv [1] );
 
   return 0;
 }
