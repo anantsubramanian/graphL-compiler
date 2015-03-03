@@ -94,15 +94,15 @@ ANODE* setNodeName ( ANODE *node, const char *str )
   else
   {
     if ( node->name != NULL )
-      free ( ast->name );
-    int len = strlen ( name );
+      free ( node->name );
+    int len = strlen ( str );
     node->name = malloc ( (len+1) * sizeof (char) );
     if ( node->name == NULL )
     {
       fprintf ( stderr, "Failed to allocate memory for node's name\n" );
       return NULL;
     }
-    strcpy ( node->name, name );
+    strcpy ( node->name, str );
   }
 }
 
@@ -135,7 +135,7 @@ ANODE* allocateChildren ( ANODE * node )
   node -> next = malloc ( (node -> num_of_children) * sizeof (ANODE) );
   int i;
   for( i = 0 ; i < node -> num_of_children ; i++)
-  	initializeNode ( node -> next[i]; );
+  	initializeNode ( node -> next[i] );
   
   return node;
 }
