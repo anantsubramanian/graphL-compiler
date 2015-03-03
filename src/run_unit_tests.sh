@@ -144,19 +144,27 @@ for (( i = 1; i <= $numcases; i++ )); do
   cp unit-testing/parser_test${i}_tokens TOKENS
   cp unit-testing/parser_test${i}_map TOKENMAP
 
-  parserout=$(./parser 2>/dev/null unit-testing/parser_program${i}.G)
+  ./parser 2>/dev/null unit-testing/parser_program${i}.G
 
-  if [[ "$parserout" != "Parsing completed successfully" ]]; then
+  errors=$(cat PARSEERRORS)
+  filetouse="PARSEOUTPUT"
+  if [ "$errors" != "" ]; then
+    filetouse="PARSEERRORS"
+  fi
+
+  comp=$(diff $filetouse unit-testing/parser_test${i}_output)
+
+  if [[ "$comp" != "" ]]; then
     printf "FAILED!\n\n"
     printf "Errors reported:\n\n"
-    ./parser >/dev/null
+    ./parser unit-testing/parser_program${i}.G >/dev/null
     printf "\n\n"
     exit
   fi
 
   printf "PASSED!\n"
 
-  rm TOKENS TOKENMAP
+  rm TOKENS TOKENMAP PARSEOUTPUT PARSEERRORS
 done
 
 printf "All tests passed!"
