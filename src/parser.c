@@ -12,6 +12,7 @@
 #define PTABLE_FILE "config/parse_table"
 #define RULES_FILE "config/rules_file"
 #define PARSE_OUTPUT "PARSEOUTPUT"
+#define PARSE_ERRORS "PARSEERRORS"
 #define START_SYMBOL "<program>"
 #define NEWLINE_SYMBOL "TK_NEWLINE"
 #define MAXLINE 500
@@ -332,9 +333,12 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   FILE *parseout = NULL;
   parseout = fopen ( PARSE_OUTPUT, "w+" );
 
-  if ( parseout == NULL )
+  FILE *parseerr = NULL;
+  parseerr = fopen ( PARSE_ERRORS, "w+" );
+
+  if ( parseout == NULL || parseerr == NULL )
   {
-    fprintf ( stderr, "Failed to open parser output file\n" );
+    fprintf ( stderr, "Failed to open parser output/error file\n" );
     exit (-1);
   }
 
@@ -402,7 +406,10 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           TNODE *nonterm = findString ( nonterminals, topval );
           if ( findString ( terminals, topval ) != NULL || nonterm == NULL )
           {
-            printf ( "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
+            fprintf ( parseerr, "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
+            if ( fclose ( parseerr ) != 0 )
+              fprintf ( stderr, "Failed to close parse error file\n" );
+
             exit (-1);
           }
 
@@ -413,7 +420,10 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           int nontermval = nonterm -> value;
           if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
           {
-            printf ( "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
+            fprintf ( parseerr, "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
+            if ( fclose ( parseerr ) != 0 )
+              fprintf ( stderr, "Failed to close parse error file\n" );
+
             exit (-1);
           }
         }
@@ -427,8 +437,11 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       TNODE *tomatch = findString ( terminals, token + 1 );
       if ( tomatch == NULL )
       {
-        printf ( "FATAL ERROR: Unrecognized input token %s\nConsider \
-                 re-compiling the lexer module\n", token + 1 );
+        fprintf ( parseerr, "FATAL ERROR: Unrecognized input token %s\nConsider ", token + 1 );
+        fprintf ( parseerr, "re-compiling the lexer module\n" );
+        if ( fclose ( parseerr ) != 0 )
+          fprintf ( stderr, "Failed to close parse errors file\n" );
+
         exit (-1 );
       }
 
@@ -518,7 +531,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
               exit (-1);
             }
 
-            printf ( "Error at line %d: %s\n\tUnexpected token %s encountered\n",
+            fprintf ( parseerr, "Error at line %d: %s\n\tUnexpected token %s encountered\n",
                       linenum, getLine ( programfile, blocksize, linenum ), token + 1 );
 
             if ( fclose ( programfile ) != 0 )
@@ -555,8 +568,11 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
           if ( current == NULL )
           {
-            printf ( "FATAL ERROR: Unrecognized terminal %s encountered \
-                      while parsing.\nConsider re-checking grammar rules.\n" );
+            fprintf ( parseerr, "FATAL ERROR: Unrecognized terminal %s encountered ", topval + 1 );
+            fprintf ( parseerr, "while parsing.\nConsider re-checking grammar rules.\n" );
+            if ( fclose ( parseerr ) != 0 )
+              fprintf ( stderr, "Failed to close parse errors file\n" );
+
             exit (-1);
           }
           int stackterminal = current -> value;
@@ -575,7 +591,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
               exit (-1);
             }
 
-            printf ( "Error at line %d: %s\n\tExpected %s, but got %s\n",
+            fprintf ( parseerr, "Error at line %d: %s\n\tExpected %s, but got %s\n",
                       linenum, getLine ( programfile, blocksize, linenum ),
                       topval, token + 1 );
 
@@ -648,6 +664,8 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
   if ( fclose ( parseout ) != 0 )
     fprintf ( stderr, "Failed to close parser output file\n" );
+  if ( fclose ( parseerr ) != 0 )
+    fprintf ( stderr, "Failed to close parser errors file\n" );
 }
 
 int main ( int argc, char *argv[] )
