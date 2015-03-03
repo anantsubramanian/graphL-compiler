@@ -18,6 +18,7 @@
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
+#define MAX_ERRORS 100
 #define NO_TRANSITION -1
 #define NEWLINE '\n'
 #define COMMA ','
@@ -365,6 +366,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   int torvalorlno = 0;
 
   int in_error_state = FALSE;
+  int errorcount = 0;
 
   TNODE* newlinenode = NULL;
   if ( ( newlinenode = findString ( terminals, NEWLINE_SYMBOL ) ) == NULL )
@@ -545,24 +547,31 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             {
               char *topval = top ( stack );
               TNODE *temp = findString ( terminals, topval );
+              stack = pop ( stack );
+
               if ( temp == NULL )
                 continue;
-              stack = pop ( stack );
 
               // If synchronization newline is found, break
               if ( temp -> value == newlineterm )
                 break;
             }
 
-            if ( in_error_state )
+            errorcount++;
+            if ( errorcount == MAX_ERRORS )
             {
-              // Token stream already at synchronization point
-              // Can continue normal parsing
-              if ( column == newlineterm )
-                in_error_state = FALSE;
+              if ( fclose ( parseerr ) != 0 )
+                fprintf ( stderr, "Failed to close errors file\n" );
 
-              break;
+              exit (-1);
             }
+
+            // Token stream already at synchronization point
+            // Can continue normal parsing
+            if ( column == newlineterm )
+              in_error_state = FALSE;
+
+            break;
           }
         }
         else
@@ -601,6 +610,15 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             if ( fclose ( programfile ) != 0 )
               fprintf ( stderr, "Failed to close input program used to display errors\n" );
+
+            errorcount++;
+            if ( errorcount == MAX_ERRORS )
+            {
+              if ( fclose ( parseerr ) != 0 )
+                fprintf ( stderr, "Failed to close errors file\n" );
+
+              exit (-1);
+            }
 
             // Stack already at newline synchronization, only token stream
             // needs to be synchronized
