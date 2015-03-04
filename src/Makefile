@@ -4,12 +4,14 @@ OBJFLAG=-c
 LEXOUTPUT=lexer
 PTOUTPUT=parse_table_generator
 PRSOUTPUT=parser
+ASTOUTPUT=ast_generator
 RM=rm
 ALLFILES=lexer parse_table_generator dfa_ops.o trie_ops.o \
 				 lexer.o parse_table_generator.o linkedlist_ops.o \
-				 parser parser.o stack_ops.o
+				 parser parser.o stack_ops.o ast_generator.o \
+         ast_generator ast_ops.o
 
-all: lexer parse_table_generator parser
+all: lexer parse_table_generator parser ast_generator
 
 lexer: lexer.o dfa_ops.o trie_ops.o
 	$(CC) lexer.o dfa_ops.o trie_ops.o $(CFLAGS) $(LEXOUTPUT)
@@ -20,6 +22,9 @@ parse_table_generator: parse_table_generator.o trie_ops.o linkedlist_ops.o
 parser: parser.o trie_ops.o stack_ops.o linkedlist_ops.o
 	$(CC) parser.o trie_ops.o stack_ops.o linkedlist_ops.o $(CFLAGS) $(PRSOUTPUT)
 
+ast_generator: ast_generator.o trie_ops.o ast_ops.o
+	$(CC) ast_generator.o trie_ops.o ast_ops.o $(CFLAGS) $(ASTOUTPUT)
+
 lexer.o: lexer.c
 	$(CC) $(OBJFLAG) lexer.c
 
@@ -28,6 +33,9 @@ parse_table_generator.o: parse_table_generator.c
 
 parser.o: parser.c
 	$(CC) $(OBJFLAG) parser.c
+
+ast_generator.o: ast_generator.c
+	$(CC) $(OBJFLAG) ast_generator.c
 
 dfa_ops.o: headers/dfa_ops.c
 	$(CC) $(OBJFLAG) headers/dfa_ops.c
@@ -40,6 +48,9 @@ linkedlist_ops.o:	headers/linkedlist_ops.c
 
 stack_ops.o: headers/stack_ops.c
 	$(CC) $(OBJFLAG) headers/stack_ops.c
+
+ast_ops.o: headers/ast_ops.c
+	$(CC) $(OBJFLAG) headers/ast_ops.c
 
 clean:
 	$(RM) $(ALLFILES)
