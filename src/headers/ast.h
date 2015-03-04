@@ -17,9 +17,9 @@ extern AST* getNewAst ();
 
 extern AST* setAstName ( AST * , const char * );
 
-extern ANODE* initializeNode ( ANODE * , ANODE * );
+extern ANODE* initializeAstNode ( ANODE * , ANODE * );
 
-extern ANODE* setNodeName ( ANODE * , const char * );
+extern ANODE* setAstNodeName ( ANODE * , const char * );
 
 extern ANODE* setNumChildren ( ANODE * , int );
 

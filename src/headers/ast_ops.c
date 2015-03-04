@@ -3,6 +3,8 @@
 #include <string.h>
 #include "ast.h"
 
+#define TRUE 1
+
 AST* getNewAst ()
 {
   AST* ast = NULL;
@@ -23,7 +25,7 @@ AST* getNewAst ()
   }
 
   // Initialize root with parent as NULL
-  initializeNode ( ast->root, NULL );
+  initializeAstNode ( ast->root, NULL );
 
   // Set root's num children to sentinel value
   ast -> root -> num_of_children = -1;
@@ -61,7 +63,7 @@ AST* setAstName ( AST *ast, const char *name )
   return ast;
 }
 
-ANODE* initializeNode ( ANODE *node, ANODE *parent )
+ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
 {
   if ( node == NULL )
   {
@@ -78,7 +80,7 @@ ANODE* initializeNode ( ANODE *node, ANODE *parent )
   return node;
 }
 
-ANODE* setNodeName ( ANODE *node, const char *str )
+ANODE* setAstNodeName ( ANODE *node, const char *str )
 {
   if ( node == NULL )
   {
@@ -172,8 +174,8 @@ ANODE* allocateChildren ( ANODE * node )
       return NULL;
     }
 
-    initializeNode ( node -> next [i], node );
-    node -> child_id = i;
+    initializeAstNode ( node -> next [i], node );
+    node -> next [i] -> child_id = i;
   }
 
   return node;
@@ -226,7 +228,7 @@ ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
     }
     buffer [ buffindx ] = '\0';
 
-    setNodeName ( node -> next [nodecount++] , buffer);
+    setAstNodeName ( node -> next [nodecount++] , buffer );
 
   } while ( indx < len );
 
