@@ -1,4 +1,4 @@
-<program>
+<program> 
 <globaldefines> <fndefines> <statements> 
 e 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 

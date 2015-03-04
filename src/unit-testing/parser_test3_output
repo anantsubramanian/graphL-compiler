@@ -1,4 +1,4 @@
-<program>
+<program> 
 <globaldefines> <fndefines> <statements> 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
