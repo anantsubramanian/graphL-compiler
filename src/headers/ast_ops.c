@@ -22,10 +22,12 @@ AST* getNewAst ()
     return NULL;
   }
 
-  initializeNode ( ast->root );
+  // Initialize root with parent as NULL
+  initializeNode ( ast->root, NULL );
 
   // Set root's num children to sentinel value
   ast -> root -> num_of_children = -1;
+  ast -> root -> child_id = 0;
 
   return ast;
 }
@@ -59,7 +61,7 @@ AST* setAstName ( AST *ast, const char *name )
   return ast;
 }
 
-ANODE* initializeNode ( ANODE *node )
+ANODE* initializeNode ( ANODE *node, ANODE *parent )
 {
   if ( node == NULL )
   {
@@ -69,6 +71,8 @@ ANODE* initializeNode ( ANODE *node )
 
   node -> name = NULL;
   node -> num_of_children = -1;
+  node -> child_id = -1;
+  node -> parent = parent;
   node -> next = NULL;
 
   return node;
@@ -168,12 +172,12 @@ ANODE* allocateChildren ( ANODE * node )
       return NULL;
     }
 
-    initializeNode ( node -> next [i] );
+    initializeNode ( node -> next [i], node );
+    node -> child_id = i;
   }
 
   return node;
 }
-
 
 ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
 {
@@ -222,10 +226,93 @@ ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
     }
     buffer [ buffindx ] = '\0';
 
-    setNodeName ( node -> next[nodecount++] , buffer);
+    setNodeName ( node -> next [nodecount++] , buffer);
 
   } while ( indx < len );
 
   return node;
+}
+
+ANODE* getLeftMostDesc ( ANODE *node )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot get left-most descendent of a non-existent node\n" );
+    return NULL;
+  }
+
+  while ( node -> next != NULL )
+  {
+    node = node -> next [0];
+    if ( node == NULL )
+    {
+      fprintf ( stderr, "Potential error, tree might have been populated incorrectly\n" );
+      return NULL;
+    }
+  }
+
+  return node;
+}
+
+ANODE* getNextPreOrder ( ANODE *node )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot get next pre-order of non-existent node\n" );
+    return NULL;
+  }
+
+  if ( node -> next == NULL )
+  {
+    // Is a leaf node
+    if ( node -> parent == NULL )
+    {
+      fprintf ( stderr, "Leaf node has no parent? Either root or a weird tree\n" );
+      return NULL;
+    }
+
+    if ( node -> child_id < ( node -> parent -> num_of_children - 1 ) )
+    {
+      // Node has a sibling that should be visited next
+      int this_id = node -> child_id;
+      node = node -> parent;
+
+      // Return the left-most descendent of the next ordered sibling of node
+      return getLeftMostDesc ( node -> next [ this_id + 1 ] );
+    }
+    else
+    {
+      // Node is a last leaf child, find its ancestor which is not a last child
+      // and get the left most desc of its next ordered sibling
+      do
+      {
+        node = node -> parent;
+        if ( node == NULL || node -> parent == NULL )
+        {
+          fprintf ( stderr, "No next pre order node exists\n" );
+          return NULL;
+        }
+
+        if ( node -> child_id < ( node -> parent -> num_of_children - 1 ) )
+        {
+          // Found the required ancestor
+          int this_id = node -> child_id;
+          node = node -> parent;
+
+          return getLeftMostDesc ( node -> next [ this_id + 1 ] );
+        }
+      } while ( TRUE );
+    }
+  }
+  else
+  {
+    fprintf ( stderr, "Passed node is an internal node, should be a leaf node\n" );
+    return NULL;
+  }
+
+  // If for some reason this line gets exectued, then our programming system
+  // has broken down, C has failed us, so the return value is the least of our
+  // concerns..
+  return getLeftMostDesc ( node );
 }
 
