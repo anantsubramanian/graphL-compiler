@@ -14,9 +14,9 @@ AST* getNewAst ()
     return NULL;
   }
 
-  ast->name = NULL;
-  ast->root = malloc ( sizeof ( ANODE ) );
-  if ( ast->root == NULL )
+  ast -> name = NULL;
+  ast -> root = malloc ( sizeof ( ANODE ) );
+  if ( ast -> root == NULL )
   {
     fprintf ( stderr, "Failed to allocate memory for the root\n" );
     return NULL;
@@ -24,8 +24,8 @@ AST* getNewAst ()
 
   initializeNode ( ast->root );
 
-  // Set root children = 0
-  ast->root->num_of_children = -1;
+  // Set root's num children to sentinel value
+  ast -> root -> num_of_children = -1;
 
   return ast;
 }
@@ -38,19 +38,14 @@ AST* setAstName ( AST *ast, const char *name )
     return NULL;
   }
 
-  if ( name == NULL )
+  if ( ast -> name != NULL )
   {
-    if ( ast->name != NULL )
-    {
-      free ( ast->name );
-      ast->name = NULL;
-      return ast;
-    }
+    free ( ast -> name );
+    ast -> name = NULL;
   }
-  else
+
+  if ( name != NULL )
   {
-    if ( ast->name != NULL )
-      free ( ast->name );
     int len = strlen ( name );
     ast->name = malloc ( (len+1) * sizeof (char) );
     if ( ast->name == NULL )
@@ -72,8 +67,9 @@ ANODE* initializeNode ( ANODE *node )
     return NULL;
   }
 
-  node->name = NULL;
-  node->num_of_children = -1;
+  node -> name = NULL;
+  node -> num_of_children = -1;
+  node -> next = NULL;
 
   return node;
 }
@@ -91,18 +87,19 @@ ANODE* setNodeName ( ANODE *node, const char *str )
     fprintf ( stderr, "Potential error, attempting to set node name as NULL\n" );
     node -> name = NULL;
   }
-
   else
   {
-    if ( node->name != NULL )
-      free ( node->name );
+    if ( node -> name != NULL )
+      free ( node -> name );
+
     int len = strlen ( str );
-    node->name = malloc ( (len+1) * sizeof (char) );
-    if ( node->name == NULL )
+    node -> name = malloc ( (len+1) * sizeof (char) );
+    if ( node -> name == NULL )
     {
       fprintf ( stderr, "Failed to allocate memory for node's name\n" );
       return NULL;
     }
+
     strcpy ( node->name, str );
   }
   return node;
@@ -116,7 +113,21 @@ ANODE* setNumChildren ( ANODE *node, int value )
     return NULL;
   }
 
-  node->num_of_children = value;
+  if ( value <= 0 )
+    fprintf ( stderr, "Attempting to set AST node's num children <= 0\n" );
+
+  // If the node already has children, free them
+  if ( node -> num_of_children != -1 )
+  {
+    int i;
+    for ( i = 0; i < node -> num_of_children; i++ )
+    {
+      free ( node -> next [i] );
+      node -> next [i] = NULL;
+    }
+  }
+
+  node -> num_of_children = value;
   return node;
 }
 
@@ -134,18 +145,30 @@ ANODE* allocateChildren ( ANODE * node )
     return NULL;
   }
 
+  if ( node -> num_of_children <= 0 )
+  {
+    fprintf ( stderr, "Cannot allocate negative number of children for AST node\n" );
+    return NULL;
+  }
+
+  // If next array has already been populated, free it
+  if ( node -> next != NULL )
+    free ( node -> next );
+
   node -> next = malloc ( (node -> num_of_children) * sizeof (ANODE *) );
+
   int i;
   for( i = 0 ; i < node -> num_of_children ; i++)
   {
-    node -> next[i] = NULL;
-    node -> next[i] = malloc ( sizeof ( ANODE ) );
-    if ( node -> next[i] == NULL )
+    node -> next [i] = NULL;
+    node -> next [i] = malloc ( sizeof ( ANODE ) );
+    if ( node -> next [i] == NULL )
     {
       fprintf ( stderr, "Failed to allocate memory for child" );
       return NULL;
     }
-  	initializeNode ( node -> next[i] );
+
+    initializeNode ( node -> next [i] );
   }
 
   return node;
@@ -160,15 +183,30 @@ ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
     return NULL;
   }
 
-  if ( node -> next == NULL )
+  int indx = 0, i = 0;
+  int nodecount = 0;
+  int len = 0, spacecount = 0;
+  int last_was_space = 0;
+
+  // Count spaces and maximum token length
+  while ( wordlist [i] != '\0' )
   {
-  	fprintf ( stderr, "Allocate memory for children before inserting\n" );
-    return NULL;
+    if ( wordlist [ i++ ] <= 32 )
+    {
+      last_was_space = 1;
+      spacecount++;
+      while ( wordlist [i] != '\0' && wordlist [ i ] <= 32 ) i++;
+    }
+    else
+      last_was_space = 0;
+
+    len++;
   }
 
-  int indx = 0;
-  int nodecount = 0;
-  int len = strlen ( wordlist );
+  // Set the number of children as spaces / spaces + 1 depending on last char
+  node = setNumChildren ( node, last_was_space ? spacecount : spacecount + 1 );
+  node = allocateChildren ( node );
+
   char buffer [ len + 1 ];
 
   do
@@ -190,3 +228,4 @@ ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
 
   return node;
 }
+
