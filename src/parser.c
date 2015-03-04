@@ -412,7 +412,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   stack = getStack ();
 
   stack = push ( stack, START_SYMBOL );
-  fprintf ( parseout, "%s\n", START_SYMBOL );
+  fprintf ( parseout, "%s \n", START_SYMBOL );
 
   char c;
 
