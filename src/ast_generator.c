@@ -171,6 +171,11 @@ int main ( int argc, char * argv [] )
   populateTrie ( tmapfile, blocksize, terminals, &terminalscount );
   populateTrie ( ntmapfile, blocksize, nonterminals, &nonterminalscount );
 
+  if ( fclose ( tmapfile ) != 0 )
+    fprintf ( stderr, "Failed to close terminals index file\n" );
+  if ( fclose ( ntmapfile ) != 0 )
+    fprintf ( stderr, "Failed to close non terminals index file\n" );
+
 
 
   /*********************************************************
