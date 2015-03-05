@@ -1,3 +1,17 @@
+# If insufficient command line arguments are provided
+# display arguments information
+if [[ "$4" == "" ]]; then
+  printf "\n\nTo avoid prompts during testing, considering running "
+  printf "the script in the following way:\n\n"
+  printf "./run_unit_tests.sh numlex generatept? numparse numast\n"
+  printf "\nwhere:\n\tnumlex = Number of lexer test programs\n"
+  printf "\tgeneratept? = 'y' if parse table needs to be generated/tested\n"
+  printf "\tnumparse = Number of parser test programs\n"
+  printf "\tnumast = Number of AST generator test programs\n"
+fi
+
+# Start running unit tests
+
 printf "\nRunning Unit Tests:\n\n"
 
 # Recompile to check against latest version
@@ -8,7 +22,7 @@ rm TOKENS TOKENMAP ERRORS 2>/dev/null
 
 if [[ "$1" == "" ]]; then
   # Decide number of sample programs
-  printf "\nEnter the number of test programs in the testing folder: "
+  printf "\nEnter the number of lexer test programs in the testing folder: "
   read numcases
 else
   # Argument 1 is the number of lexer test cases
