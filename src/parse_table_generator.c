@@ -488,7 +488,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
   return parseTable;
 }
 
-int main ( int argc, char * argv [] )
+int main ( )
 {
 
   /***************************************************
@@ -497,8 +497,6 @@ int main ( int argc, char * argv [] )
     *
     **************************************************
   **/
-
-  char c;
 
   FILE *grammarfile = NULL;
   grammarfile = fopen ( GRAMMAR_FILE , "rb" );

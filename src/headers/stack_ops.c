@@ -22,6 +22,8 @@ STACK* getStack ()
   }
 
   s->is_empty = TRUE;
+
+  return s;
 }
 
 int isEmpty ( STACK * s )

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include "headers/dfa.h"
 #include "headers/trie.h"
@@ -35,7 +36,6 @@ int main ( int argc, char *argv[] )
   dictionary = setTrieName ( dictionary, DICTNAME );
   int tokenid = 0;
 
-  int shouldread = TRUE;
   int started = FALSE;
 
   char buffers [2] [ blocksize ];

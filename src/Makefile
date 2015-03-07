@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-O3 -o
-OBJFLAG=-c
+CFLAGS=-O3 -Wall -Wextra -o
+OBJFLAG=-c -Wall -Wextra
 LEXOUTPUT=lexer
 PTOUTPUT=parse_table_generator
 PRSOUTPUT=parser

@@ -101,8 +101,8 @@ TNODE* insertString ( TRIE *trie, const char *str )
   TNODE *curnode = trie->root;
   for ( i = 0; str [i] != '\0'; i++ )
   {
-    if ( curnode -> next [ str [i] ] == NULL ) break;
-    curnode = curnode -> next [ str [i] ];
+    if ( curnode -> next [ (int) str [i] ] == NULL ) break;
+    curnode = curnode -> next [ (int) str [i] ];
     curnode -> count ++;
   }
 
@@ -110,13 +110,13 @@ TNODE* insertString ( TRIE *trie, const char *str )
   {
     for ( ; str [i] != '\0'; i++ )
     {
-      curnode -> next [ str [i] ] = malloc ( sizeof ( TNODE ) );
-      if ( curnode -> next [ str [i] ] == NULL )
+      curnode -> next [ (int) str [i] ] = malloc ( sizeof ( TNODE ) );
+      if ( curnode -> next [ (int) str [i] ] == NULL )
       {
         fprintf ( stderr, "Failed to allocate memory for node while inserting\n" );
         return NULL;
       }
-      curnode = curnode -> next [ str [i] ];
+      curnode = curnode -> next [ (int) str [i] ];
       initializeNode ( curnode );
       curnode -> count++;
     }
@@ -146,12 +146,12 @@ TNODE* findString ( TRIE *trie, const char *str )
 
   for ( i = 0; str [i] != '\0'; i++ )
   {
-    if ( curnode -> next [ str [i] ] == NULL )
+    if ( curnode -> next [ (int) str [i] ] == NULL )
     {
       curnode = NULL;
       break;
     }
-    curnode = curnode -> next [ str [i] ];
+    curnode = curnode -> next [ (int) str [i] ];
   }
 
   if ( str [i] != '\0' || isFinalTNode ( curnode ) == FALSE )
@@ -218,11 +218,11 @@ TRIE* deleteString ( TRIE* trie, const char *str )
   for ( i = 0; str [i] != '\0'; i++ )
   {
     TNODE *tempnode = curnode;
-    curnode = curnode -> next [ str [i] ];
+    curnode = curnode -> next [ (int) str [i] ];
     curnode -> count--;
 
     if ( curnode -> count == 0 && tempnode != NULL )
-      tempnode -> next [ str [i] ] = NULL;
+      tempnode -> next [ (int) str [i] ] = NULL;
 
     if ( tempnode != NULL && tempnode -> count == 0 )
     {

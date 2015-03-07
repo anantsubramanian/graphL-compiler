@@ -66,7 +66,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 }
 
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast,
-                 TRIE *terminals, TRIE *nonterminals )
+                 TRIE *terminals )
 {
   ANODE *currnode = ast -> root;
 
@@ -133,7 +133,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast,
   return ast;
 }
 
-int main ( int argc, char * argv [] )
+int main ( )
 {
   // Get the system block size
   struct stat fi;
@@ -199,7 +199,7 @@ int main ( int argc, char * argv [] )
   AST* ast = NULL;
   ast = getNewAst ();
 
-  ast = createAST ( parseroutput, blocksize, ast, terminals, nonterminals );
+  ast = createAST ( parseroutput, blocksize, ast, terminals );
 
   if ( fclose ( parseroutput ) != 0 )
   {

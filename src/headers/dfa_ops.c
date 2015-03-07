@@ -79,7 +79,10 @@ DFA* setNumStates ( DFA *dfa, int numStates )
     for (j = 0; j < TRANSITION_LIMIT; j++)
       dfa->all_states[i].next_state[j] = NULL;
   }
+
   dfa->num_states = numStates;
+
+  return dfa;
 }
 
 DFA* gotoInitialState ( DFA *dfa )
@@ -141,13 +144,13 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
     return NULL;
   }
 
-  if ( state1->next_state[ input ] != NULL )
+  if ( state1->next_state[ (int) input ] != NULL )
   {
     fprintf ( stderr, "A transition for state %d and ASCII %d already exists\n", state1->state_number, (int) input );
     fprintf ( stderr, "Overwriting transition..\n" );
   }
 
-  state1->next_state[ input ] = state2;
+  state1->next_state[ (int) input ] = state2;
   return state1;
 }
 
@@ -229,7 +232,7 @@ DFA* gotoNextState ( DFA *dfa, char input )
     return NULL;
   }
 
-  STATE *next = dfa->all_states[ dfa->current_state ].next_state [ input ];
+  STATE *next = dfa->all_states[ dfa->current_state ].next_state [ (int) input ];
 
   if ( next == NULL )
   {
@@ -252,7 +255,7 @@ STATE* resetTransition ( STATE *state, char input )
     return NULL;
   }
 
-  state->next_state [ input ] = NULL;
+  state->next_state [ (int) input ] = NULL;
   return state;
 }
 
@@ -433,7 +436,6 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   for ( i = 0; i < num_transitions; i++ )
   {
     int numfrom, numto;
-    int state1, state2;
     char printable;
     fscanf ( file, "%d", &numfrom );
 
@@ -637,7 +639,7 @@ STATE* peek ( DFA *dfa, char nextinp )
     return NULL;
   }
 
-  return dfa->all_states[ dfa->current_state ].next_state[ nextinp ];
+  return dfa->all_states[ dfa->current_state ].next_state[ (int) nextinp ];
 }
 
 int getSpecialProperty ( STATE *state )
