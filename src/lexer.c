@@ -45,7 +45,7 @@ int main ( int argc, char *argv[] )
 
   char c;
   char errorc;
-  char stringliteral [ BUFFERLEN ];
+  char stringliteral [ BUFFERLEN + 1 ];
   char identifier [ BUFFERLEN ];
   char floatorint [ BUFFERLEN ];
 
@@ -99,6 +99,33 @@ int main ( int argc, char *argv[] )
 
     if ( c == NEWLINE )
       linenumber++;
+
+    if ( floatintindex >= BUFFERLEN )
+    {
+      floatorint [ BUFFERLEN - 1 ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, floatorint,
+                "Maximum integer literal length exceeded\n" );
+      floatintindex = 0;
+      errorcount++;
+    }
+
+    if ( idenindex >= BUFFERLEN )
+    {
+      identifier [ BUFFERLEN - 1 ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, identifier,
+                "Maximum identifier length exceeded\n" );
+      idenindex = 0;
+      errorcount++;
+    }
+
+    if ( stringlitindex >= BUFFERLEN )
+    {
+      stringliteral [ BUFFERLEN ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, stringliteral,
+                "Maximum string literal length exceeded\n" );
+      stringlitindex  = 0;
+      errorcount++;
+    }
 
     if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
     {
