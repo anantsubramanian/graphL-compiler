@@ -11,16 +11,20 @@ typedef struct linkedlist_node
   int int_val;
   double double_val;
   char *string_val;
+  void *generic_val;
 } LNODE;
 
 typedef struct linkedlist
 {
   LNODE *head, *tail;
   int data_type;
+  int generic_size;
   char *name;
 } LINKEDLIST;
 
 extern LINKEDLIST* getLinkedList ( int );
+
+extern LINKEDLIST* setGenericSize ( LINKEDLIST * , unsigned int );
 
 extern LINKEDLIST* insertAtBack ( LINKEDLIST * , void * );
 

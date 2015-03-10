@@ -11,10 +11,13 @@ typedef struct stack_struct
 {
   LINKEDLIST *stack;
   int data_type;
+  int generic_size;
   int is_empty;
 } STACK;
 
 extern STACK* getStack ( int );
+
+extern STACK* setStackGenericSize ( STACK * , unsigned int );
 
 extern int isEmpty ( STACK * );
 

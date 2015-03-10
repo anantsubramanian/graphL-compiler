@@ -19,6 +19,8 @@ STACK* getStack ( int data_type )
     s -> stack = getLinkedList ( LL_DOUBLE_TYPE );
   else if ( data_type == STACK_STRING_TYPE )
     s -> stack = getLinkedList ( LL_STRING_TYPE );
+  else if ( data_type == STACK_GENERIC_TYPE )
+    s -> stack = getLinkedList ( LL_GENERIC_TYPE );
 
   if ( s -> stack == NULL )
   {
@@ -28,6 +30,23 @@ STACK* getStack ( int data_type )
 
   s -> is_empty = TRUE;
   s -> data_type = data_type;
+  s -> generic_size = -1;
+
+  return s;
+}
+
+STACK* setStackGenericSize ( STACK *s, unsigned int size )
+{
+  if ( s == NULL )
+  {
+    fprintf ( stderr, "Cannot set generic type size for non-existent stack\n" );
+    return NULL;
+  }
+
+  s -> generic_size = size;
+
+  // Set the same generic size for underlying linked list representation
+  s -> stack = setGenericSize ( s -> stack, size );
 
   return s;
 }
@@ -52,6 +71,7 @@ STACK* push ( STACK *s, void *topush )
   }
 
   // Let the type check bubble down to the underlying linked-list
+  // Let generic type not set warning bubble down to linked-list too
   s -> stack = insertAtBack ( s -> stack, topush );
   s -> is_empty = FALSE;
 
@@ -100,6 +120,8 @@ void* top ( STACK * s )
     return & ( getBack ( s -> stack ) -> double_val );
   else if ( s -> data_type == STACK_STRING_TYPE )
     return getBack ( s -> stack ) -> string_val;
+  else
+    return getBack ( s -> stack ) -> generic_val;
 
   return NULL;
 }
@@ -115,9 +137,16 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
 
   if ( ( stack -> data_type == STACK_INT_TYPE && list -> data_type != LL_INT_TYPE )
       || ( stack -> data_type == STACK_DOUBLE_TYPE && list -> data_type != LL_DOUBLE_TYPE )
-      || ( stack -> data_type == STACK_STRING_TYPE && list -> data_type != LL_STRING_TYPE ) )
+      || ( stack -> data_type == STACK_STRING_TYPE && list -> data_type != LL_STRING_TYPE )
+      || ( stack -> data_type == STACK_GENERIC_TYPE && list -> data_type != LL_GENERIC_TYPE ) )
   {
     fprintf ( stderr, "The types of linkedlist & stack don't match for insertion\n" );
+    return NULL;
+  }
+
+  if ( stack -> data_type == STACK_GENERIC_TYPE && stack -> generic_size != list -> generic_size )
+  {
+    fprintf ( stderr, "Generic type sizes of linked list and stack don't match. Cannot insert\n" );
     return NULL;
   }
 
@@ -130,6 +159,8 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
       stack = push ( stack, & iterator.double_val );
     else if ( stack -> data_type == STACK_STRING_TYPE )
       stack = push ( stack, iterator.string_val );
+    else
+      stack = push ( stack, iterator.generic_val );
   }
 
   return stack;

@@ -14,10 +14,30 @@ LINKEDLIST* getLinkedList ( int data_type )
     return NULL;
   }
 
+  if ( data_type < LL_INT_TYPE || data_type > LL_GENERIC_TYPE )
+  {
+    fprintf ( stderr, "Invalid type for linked list\n" );
+    return NULL;
+  }
+
   list -> head = NULL;
   list -> tail = NULL;
   list -> name = NULL;
   list -> data_type = data_type;
+  list -> generic_size = -1;
+
+  return list;
+}
+
+LINKEDLIST* setGenericSize ( LINKEDLIST *list, unsigned int size )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Cannot set the generic type size of a non-existent list\n" );
+    return NULL;
+  }
+
+  list -> generic_size = size;
 
   return list;
 }
@@ -40,18 +60,18 @@ LINKEDLIST* insertAtBack ( LINKEDLIST * list, void * value )
 
   // Set new node values and copy data
   node -> next = NULL;
+  node -> int_val = 0;
+  node -> double_val = 0;
+  node -> string_val = NULL;
+  node -> generic_val = NULL;
 
   if ( list -> data_type == LL_INT_TYPE )
   {
     node -> int_val = * ( (int *) value );
-    node -> double_val = 0;
-    node -> string_val = NULL;
   }
   else if ( list -> data_type == LL_DOUBLE_TYPE )
   {
     node -> double_val = * ( (double *) value );
-    node -> int_val = 0;
-    node -> string_val = NULL;
   }
   else if ( list -> data_type == LL_STRING_TYPE )
   {
@@ -67,8 +87,22 @@ LINKEDLIST* insertAtBack ( LINKEDLIST * list, void * value )
   }
   else
   {
-    fprintf ( stderr, "Trying to call non-generic insert on generic string list\n" );
-    return NULL;
+    // Is a generic type list
+    if ( list -> generic_size == -1 )
+    {
+      fprintf ( stderr, "Calling insert on generic list without specifying size\n" );
+      return NULL;
+    }
+
+    node -> generic_val = malloc ( list -> generic_size );
+    if ( node -> generic_val == NULL )
+    {
+      fprintf ( stderr, "Failed to allocate memory for generic type node data\n" );
+      return NULL;
+    }
+
+    // Copy the raw data from value to generic_val
+    memcpy ( node -> generic_val, value, list -> generic_size );
   }
 
   if ( list -> head == NULL )
@@ -105,18 +139,18 @@ LINKEDLIST* insertAtFront ( LINKEDLIST * list, void * value )
 
   // Set new node values and copy data
   node -> prev = NULL;
+  node -> int_val = 0;
+  node -> double_val = 0;
+  node -> string_val = NULL;
+  node -> generic_val = NULL;
 
   if ( list -> data_type == LL_INT_TYPE )
   {
     node -> int_val = * ( (int *) value );
-    node -> double_val = 0;
-    node -> string_val = NULL;
   }
   else if ( list -> data_type == LL_DOUBLE_TYPE )
   {
     node -> double_val = * ( (double *) value );
-    node -> int_val = 0;
-    node -> string_val = NULL;
   }
   else if ( list -> data_type == LL_STRING_TYPE )
   {
@@ -132,8 +166,22 @@ LINKEDLIST* insertAtFront ( LINKEDLIST * list, void * value )
   }
   else
   {
-    fprintf ( stderr, "Trying to call non-generic insert on generic string list\n" );
-    return NULL;
+    // Is a generic type list
+    if ( list -> generic_size == -1 )
+    {
+      fprintf ( stderr, "Calling insert on generic list without specifying size\n" );
+      return NULL;
+    }
+
+    node -> generic_val = malloc ( list -> generic_size );
+    if ( node -> generic_val == NULL )
+    {
+      fprintf ( stderr, "Failed to allocate memory for generic type node data\n" );
+      return NULL;
+    }
+
+    // Copy the raw data from value to generic_val
+    memcpy ( node -> generic_val, value, list -> generic_size );
   }
 
   if ( list -> head == NULL )
@@ -212,6 +260,8 @@ LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
 
       if ( list -> data_type == LL_STRING_TYPE )
         free ( temp -> string_val );
+      else if ( list -> data_type == LL_GENERIC_TYPE )
+        free ( temp -> generic_val );
 
       free ( temp );
     }
@@ -223,6 +273,8 @@ LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
 
       if ( list -> data_type == LL_STRING_TYPE )
         free ( temp -> string_val );
+      else if ( list -> data_type == LL_GENERIC_TYPE )
+        free ( temp -> generic_val );
 
       free ( temp );
     }
@@ -253,6 +305,8 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
 
       if ( list -> data_type == LL_STRING_TYPE )
         free ( temp -> string_val );
+      else if ( list -> data_type == LL_GENERIC_TYPE )
+        free ( temp -> generic_val );
 
       free ( temp );
     }
@@ -264,6 +318,8 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
 
       if ( list -> data_type == LL_STRING_TYPE )
         free ( temp -> string_val );
+      else if ( list -> data_type == LL_GENERIC_TYPE )
+        free ( temp -> generic_val );
 
       free ( temp );
     }
@@ -286,6 +342,7 @@ LNODE* copyNode ( LINKEDLIST *list, LNODE *to, LNODE *from )
   to -> int_val = 0;
   to -> double_val = 0;
   to -> string_val = NULL;
+  to -> generic_val = NULL;
 
   // Intentionally referencing same location
   if ( list -> data_type == LL_INT_TYPE )
@@ -294,6 +351,8 @@ LNODE* copyNode ( LINKEDLIST *list, LNODE *to, LNODE *from )
     to -> double_val = from -> double_val;
   else if ( list -> data_type == LL_STRING_TYPE )
     to -> string_val = from -> string_val;
+  else if ( list -> data_type == LL_GENERIC_TYPE )
+    to -> generic_val = from -> generic_val;
 
   return to;
 }
@@ -317,6 +376,7 @@ LNODE* getIterator ( LINKEDLIST * list, LNODE * iterator )
   iterator -> int_val = -1;
   iterator -> double_val = -1;
   iterator -> string_val = NULL;
+  iterator -> generic_val = NULL;
 
   return iterator;
 }
@@ -340,6 +400,7 @@ LNODE* getReverseIterator ( LINKEDLIST * list, LNODE * iterator )
   iterator -> int_val = -1;
   iterator -> double_val = -1;
   iterator -> string_val = NULL;
+  iterator -> generic_val = NULL;
 
   return iterator;
 }
