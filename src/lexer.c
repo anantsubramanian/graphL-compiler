@@ -11,7 +11,7 @@
 #define DICT_FILE "TOKENMAP"
 #define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
-#define ERRORS 100
+#define ERRORS 15
 #define NEWLINE '\n'
 
 int main ( int argc, char *argv[] )

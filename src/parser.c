@@ -23,7 +23,7 @@
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
-#define MAX_ERRORS 100
+#define MAX_ERRORS 15
 #define NO_TRANSITION -1
 #define NEWLINE '\n'
 #define COMMA ','
