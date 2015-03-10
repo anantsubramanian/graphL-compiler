@@ -166,7 +166,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       nttoken = strtok ( NULL, "-" );
 
        // Inserting into Array of Linked List
-      ruleLists [ruleno] = getLinkedList();
+      ruleLists [ruleno] = getLinkedList ( LL_STRING_TYPE );
       ruleLists [ruleno] = insertSpaceSeparatedWords ( ruleLists[ruleno] , nttoken + 2 );
 
       fprintf ( rulesfile, "%d %s\n", ruleno, nttoken + 2 );
@@ -293,7 +293,7 @@ void populateFirstSets ( FILE *firstsfile, int blocksize, LINKEDLIST* firsts [],
         fprintf ( stderr , "Token not Found.\n" );
       else
       {
-        firsts [ temp -> value ] = getLinkedList();
+        firsts [ temp -> value ] = getLinkedList ( LL_STRING_TYPE );
         finalterms = strtok ( NULL , " " );
 
         while ( finalterms != NULL)
@@ -421,8 +421,8 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
 
       while ( hasNext ( &currnode ) )
       {
-        getNext ( &currnode );
-        val = currnode.value;
+        getNext ( ruleLists [ nodevalue ], &currnode );
+        val = currnode.string_val;
 
         if ( val[0] == 'e' )
         {
@@ -452,8 +452,8 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
 
         while ( hasNext ( &firstnode ) )
         {
-          getNext ( &firstnode );
-          val = firstnode.value;
+          getNext ( firsts [ ntindex ], &firstnode );
+          val = firstnode.string_val;
 
           if ( val[0] == 'e' )
           {

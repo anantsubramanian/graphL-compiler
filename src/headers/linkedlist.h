@@ -1,23 +1,30 @@
 #define TRUE 1
 #define FALSE 0
+#define LL_INT_TYPE 1
+#define LL_DOUBLE_TYPE 2
+#define LL_STRING_TYPE 3
+#define LL_GENERIC_TYPE 4
 
 typedef struct linkedlist_node
 {
   struct linkedlist_node *prev, *next;
-  char *value;
+  int int_val;
+  double double_val;
+  char *string_val;
 } LNODE;
 
 typedef struct linkedlist
 {
   LNODE *head, *tail;
+  int data_type;
   char *name;
 } LINKEDLIST;
 
-extern LINKEDLIST* getLinkedList ();
+extern LINKEDLIST* getLinkedList ( int );
 
-extern LINKEDLIST* insertAtBack ( LINKEDLIST * , char * );
+extern LINKEDLIST* insertAtBack ( LINKEDLIST * , void * );
 
-extern LINKEDLIST* insertAtFront ( LINKEDLIST * , char * );
+extern LINKEDLIST* insertAtFront ( LINKEDLIST * , void * );
 
 extern LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * , char * );
 
@@ -25,7 +32,7 @@ extern LINKEDLIST* deleteFromBack ( LINKEDLIST * );
 
 extern LINKEDLIST* deleteFromFront ( LINKEDLIST * );
 
-extern LNODE* copyNode ( LNODE * , LNODE * );
+extern LNODE* copyNode ( LINKEDLIST * , LNODE * , LNODE * );
 
 extern LNODE* getIterator ( LINKEDLIST * , LNODE * );
 
@@ -35,9 +42,9 @@ extern int hasNext ( LNODE * );
 
 extern int hasPrevious ( LNODE * );
 
-extern LNODE* getNext ( LNODE * );
+extern LNODE* getNext ( LINKEDLIST * , LNODE * );
 
-extern LNODE* getPrevious ( LNODE * );
+extern LNODE* getPrevious ( LINKEDLIST * , LNODE * );
 
 extern LNODE* getFront ( LINKEDLIST * );
 

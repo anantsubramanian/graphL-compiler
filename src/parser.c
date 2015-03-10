@@ -265,7 +265,7 @@ void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleList
     if ( c == NEWLINE )
     {
       token [ tokenindex ] = '\0';
-      ruleLists [value] = getLinkedList ();
+      ruleLists [value] = getLinkedList ( LL_STRING_TYPE );
       ruleLists [value] = insertSpaceSeparatedWords ( ruleLists [value], token );
       value = 0;
       torval = 1;
@@ -409,7 +409,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   }
 
   STACK *stack = NULL;
-  stack = getStack ();
+  stack = getStack ( STACK_STRING_TYPE );
 
   stack = push ( stack, START_SYMBOL );
   fprintf ( parseout, "%s \n", START_SYMBOL );
@@ -497,7 +497,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       {
         while ( ! isEmpty ( stack ) )
         {
-          char *topval = strdup ( top ( stack ) );
+          char *topval = strdup ( (char *) top ( stack ) );
           if ( topval == NULL )
           {
             fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
@@ -589,7 +589,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           exit (-1);
         }
 
-        char *topval = strdup ( top ( stack ) );
+        char *topval = strdup ( (char *) top ( stack ) );
         if ( topval == NULL )
         {
           fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
@@ -609,11 +609,12 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           {
             // Print rules to parser output
             LNODE iterator;
-            getIterator ( ruleLists [ parseTable [ nontermindex ] [ column ] ], &iterator );
+            LINKEDLIST *requiredRule = ruleLists [ parseTable [ nontermindex ] [ column ] ];
+            getIterator (  requiredRule, &iterator );
             while ( hasNext ( &iterator ) )
             {
-              getNext ( &iterator );
-              fprintf ( parseout, "%s ", iterator.value );
+              getNext ( requiredRule, &iterator );
+              fprintf ( parseout, "%s ", iterator.string_val );
             }
             fprintf ( parseout, "\n" );
 
@@ -654,7 +655,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             while ( !isEmpty ( stack ) )
             {
-              char *topval = top ( stack );
+              char *topval = (char *) top ( stack );
               TNODE *temp = findString ( terminals, topval );
               stack = pop ( stack );
 
@@ -742,7 +743,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             while ( !isEmpty ( stack ) )
             {
-              char *topval = top ( stack );
+              char *topval = (char *) top ( stack );
               TNODE *temp = findString ( terminals, topval );
               stack = pop ( stack );
 
@@ -895,6 +896,8 @@ int main ( int argc, char *argv[] )
   tnamemapfile = NULL;
 
 
+  fprintf ( stderr, "PHASE 1 complete\n" );
+
 
   /***********************************************************
     *                                                        *
@@ -944,6 +947,8 @@ int main ( int argc, char *argv[] )
   }
 
 
+  fprintf ( stderr, "PHASE 2 complete\n" );
+
 
   /***********************************************************
     *                                                        *
@@ -991,6 +996,8 @@ int main ( int argc, char *argv[] )
     return -1;
   }
 
+
+  fprintf ( stderr, "PHASE 3 complete\n" );
 
 
   /***********************************************************

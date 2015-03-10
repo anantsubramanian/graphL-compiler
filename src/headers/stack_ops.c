@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "stack.h"
 
-STACK* getStack ()
+STACK* getStack ( int data_type )
 {
   STACK *s = NULL;
   s = malloc ( sizeof (STACK) );
@@ -13,7 +13,12 @@ STACK* getStack ()
     return NULL;
   }
 
-  s -> stack = getLinkedList ();
+  if ( data_type == STACK_INT_TYPE )
+    s -> stack = getLinkedList ( LL_INT_TYPE );
+  else if ( data_type == STACK_DOUBLE_TYPE )
+    s -> stack = getLinkedList ( LL_DOUBLE_TYPE );
+  else if ( data_type == STACK_STRING_TYPE )
+    s -> stack = getLinkedList ( LL_STRING_TYPE );
 
   if ( s -> stack == NULL )
   {
@@ -21,7 +26,8 @@ STACK* getStack ()
     return NULL;
   }
 
-  s->is_empty = TRUE;
+  s -> is_empty = TRUE;
+  s -> data_type = data_type;
 
   return s;
 }
@@ -37,7 +43,7 @@ int isEmpty ( STACK * s )
   return s -> is_empty;
 }
 
-STACK* push ( STACK *s, char *topush )
+STACK* push ( STACK *s, void *topush )
 {
   if ( s == NULL )
   {
@@ -45,6 +51,7 @@ STACK* push ( STACK *s, char *topush )
     return NULL;
   }
 
+  // Let the type check bubble down to the underlying linked-list
   s -> stack = insertAtBack ( s -> stack, topush );
   s -> is_empty = FALSE;
 
@@ -73,7 +80,7 @@ STACK* pop ( STACK *s )
   return s;
 }
 
-char* top ( STACK * s )
+void* top ( STACK * s )
 {
   if ( s == NULL )
   {
@@ -87,7 +94,14 @@ char* top ( STACK * s )
     return NULL;
   }
 
-  return getBack ( s -> stack ) -> value;
+  if ( s -> data_type == STACK_INT_TYPE )
+    return & ( getBack ( s -> stack ) -> int_val );
+  else if ( s -> data_type == STACK_DOUBLE_TYPE )
+    return & ( getBack ( s -> stack ) -> double_val );
+  else if ( s -> data_type == STACK_STRING_TYPE )
+    return getBack ( s -> stack ) -> string_val;
+
+  return NULL;
 }
 
 STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
@@ -99,10 +113,23 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
     return NULL;
   }
 
+  if ( ( stack -> data_type == STACK_INT_TYPE && list -> data_type != LL_INT_TYPE )
+      || ( stack -> data_type == STACK_DOUBLE_TYPE && list -> data_type != LL_DOUBLE_TYPE )
+      || ( stack -> data_type == STACK_STRING_TYPE && list -> data_type != LL_STRING_TYPE ) )
+  {
+    fprintf ( stderr, "The types of linkedlist & stack don't match for insertion\n" );
+    return NULL;
+  }
+
   while ( hasPrevious ( &iterator ) )
   {
-    getPrevious ( &iterator );
-    stack = push ( stack, iterator.value );
+    getPrevious ( list, &iterator );
+    if ( stack -> data_type == STACK_INT_TYPE )
+      stack = push ( stack, & iterator.int_val );
+    else if ( stack -> data_type == STACK_DOUBLE_TYPE )
+      stack = push ( stack, & iterator.double_val );
+    else if ( stack -> data_type == STACK_STRING_TYPE )
+      stack = push ( stack, iterator.string_val );
   }
 
   return stack;
