@@ -8,10 +8,13 @@
 typedef struct linkedlist_node
 {
   struct linkedlist_node *prev, *next;
-  int int_val;
-  double double_val;
-  char *string_val;
-  void *generic_val;
+  union
+  {
+    int int_val;
+    double double_val;
+    char *string_val;
+    void *generic_val;
+  } data;
 } LNODE;
 
 typedef struct linkedlist

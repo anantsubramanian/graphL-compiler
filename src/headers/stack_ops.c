@@ -115,13 +115,13 @@ void* top ( STACK * s )
   }
 
   if ( s -> data_type == STACK_INT_TYPE )
-    return & ( getBack ( s -> stack ) -> int_val );
+    return & ( ( getBack ( s -> stack ) -> data ) . int_val );
   else if ( s -> data_type == STACK_DOUBLE_TYPE )
-    return & ( getBack ( s -> stack ) -> double_val );
+    return & ( ( getBack ( s -> stack ) -> data ) . double_val );
   else if ( s -> data_type == STACK_STRING_TYPE )
-    return getBack ( s -> stack ) -> string_val;
+    return  ( getBack ( s -> stack ) -> data ) . string_val;
   else
-    return getBack ( s -> stack ) -> generic_val;
+    return ( getBack ( s -> stack ) -> data ) . generic_val;
 
   return NULL;
 }
@@ -154,13 +154,13 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
   {
     getPrevious ( list, &iterator );
     if ( stack -> data_type == STACK_INT_TYPE )
-      stack = push ( stack, & iterator.int_val );
+      stack = push ( stack, & (iterator.data.int_val) );
     else if ( stack -> data_type == STACK_DOUBLE_TYPE )
-      stack = push ( stack, & iterator.double_val );
+      stack = push ( stack, & (iterator.data.double_val) );
     else if ( stack -> data_type == STACK_STRING_TYPE )
-      stack = push ( stack, iterator.string_val );
+      stack = push ( stack, (iterator.data.string_val) );
     else
-      stack = push ( stack, iterator.generic_val );
+      stack = push ( stack, (iterator.data.generic_val) );
   }
 
   return stack;

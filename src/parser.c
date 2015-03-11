@@ -614,7 +614,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             while ( hasNext ( &iterator ) )
             {
               getNext ( requiredRule, &iterator );
-              fprintf ( parseout, "%s ", iterator.string_val );
+              fprintf ( parseout, "%s ", iterator.data.string_val );
             }
             fprintf ( parseout, "\n" );
 

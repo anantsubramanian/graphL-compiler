@@ -422,7 +422,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
       while ( hasNext ( &currnode ) )
       {
         getNext ( ruleLists [ nodevalue ], &currnode );
-        val = currnode.string_val;
+        val = currnode.data.string_val;
 
         if ( val[0] == 'e' )
         {
@@ -453,7 +453,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         while ( hasNext ( &firstnode ) )
         {
           getNext ( firsts [ ntindex ], &firstnode );
-          val = firstnode.string_val;
+          val = firstnode.data.string_val;
 
           if ( val[0] == 'e' )
           {
