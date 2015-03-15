@@ -16,7 +16,7 @@ SYMBOLTABLE* getSymbolTable ()
   }
 
   symboltable -> name = NULL;
-  symboltable -> indexmap = getNewTrie ();
+  symboltable -> indexmap = getNewTrie ( TR_INT_TYPE );
 
   // Set symbol table entries to sentinel value
   symboltable -> num_entries = -1;
@@ -255,28 +255,27 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
   if ( indexlocator == NULL )
   {
     indexlocator = insertString ( symboltable -> indexmap, toinsert );
-    indexlocator -> value = symboltable -> size++;
+    indexlocator -> data . int_val = symboltable -> size++;
+    int foundval = indexlocator -> data . int_val;
 
-    symboltable -> entries [ indexlocator -> value ] = getStack ( STACK_GENERIC_TYPE );
-    symboltable -> entries [ indexlocator -> value ] =
-      setStackGenericSize ( symboltable -> entries [ indexlocator -> value ],
-                            sizeof ( STBNODE ) );
+    symboltable -> entries [ foundval ] = getStack ( STACK_GENERIC_TYPE );
+    symboltable -> entries [ foundval ] = setStackGenericSize ( symboltable -> entries 
+                                                                [ foundval ], sizeof ( STBNODE ) );
   }
 
-  symboltable -> entries [ indexlocator -> value ] = push ( symboltable -> entries
-                                                            [ indexlocator -> value ],
-                                                            newnode );
+  symboltable -> entries [ indexlocator -> data . int_val ] = 
+    push ( symboltable -> entries [ indexlocator -> data . int_val ], newnode );
 
   // Push this index into the linked list for the current environment,
   // so that it will be popped on end
   LINKEDLIST *curenv = ( LINKEDLIST * ) top ( symboltable -> environments );
 
-  insertAtBack ( curenv, & ( indexlocator -> value ) );
+  insertAtBack ( curenv, & ( indexlocator -> data . int_val ) );
 
   // Return the index of the inserting value in the array of stacks
   // 'entries' in the symbol table, so it can be manipulated outside
   // the function at the user end
-  return indexlocator -> value;
+  return indexlocator -> data . int_val;
 }
 
 int checkNameExistence ( SYMBOLTABLE *symboltable, char *tocheck )
@@ -297,7 +296,7 @@ int checkNameExistence ( SYMBOLTABLE *symboltable, char *tocheck )
 
   if ( indexlocator == NULL )
     return FALSE;
-  else if ( isEmpty ( symboltable -> entries [ indexlocator -> value ] ) )
+  else if ( isEmpty ( symboltable -> entries [ indexlocator -> data . int_val ] ) )
     return FALSE;
 
   return TRUE;
@@ -340,7 +339,7 @@ STBNODE* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
   if ( indexlocator == NULL )
     return NULL;
 
-  return ( STBNODE * ) top ( symboltable -> entries [ indexlocator -> value ] );
+  return ( STBNODE * ) top ( symboltable -> entries [ indexlocator -> data . int_val ] );
 }
 
 STBNODE* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
