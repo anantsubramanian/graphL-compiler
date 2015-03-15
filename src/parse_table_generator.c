@@ -136,7 +136,7 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       // Pushing a Rule to the Trie
       ruleno++;
       temp = insertString ( gramrules , token );
-      temp = setValue ( temp , ruleno );
+      temp = setValue ( gramrules , temp , &(ruleno) );
       tokencounter = 0;
 
       // Inserting into Non-Terminals Trie
@@ -152,7 +152,8 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
         // Write non terminal to index file
         fprintf ( ntmapfile, "%d %s\n", nonterminalcount, nttoken );
 
-        temp = setValue ( temp , nonterminalcount++ );
+        temp = setValue ( nonterm , temp , &(nonterminalcount) );
+        nonterminalcount++;
       }
 
       // Inserting Non-Terminals into the MixedBag Trie
@@ -160,7 +161,8 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
       if ( temp == NULL )
       {
         temp = insertString ( mixedbag , nttoken );
-        temp = setValue ( temp , mixcounter++ );
+        temp = setValue ( mixedbag , temp , &(mixcounter) );
+        mixcounter++;
       }
 
       nttoken = strtok ( NULL, "-" );
@@ -193,13 +195,15 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
             // Write terminal to index file
             fprintf ( tmapfile, "%d %s\n", terminalcount, ttoken );
 
-            temp = setValue ( temp , terminalcount++ );
+            temp = setValue ( terminals , temp , &(terminalcount) );
+            terminalcount++;
           }
           temp = findString ( mixedbag , ttoken );
           if ( temp == NULL )
           {
             temp = insertString ( mixedbag , ttoken );
-            temp = setValue ( temp , mixcounter++ );
+            temp = setValue ( mixedbag , temp , &(mixcounter) );
+            mixcounter++;
           }
         }
 
@@ -216,7 +220,8 @@ void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [],
   // Write non terminal to index file
   fprintf ( tmapfile, "%d e\n", terminalcount );
 
-  temp = setValue ( temp , terminalcount++ );
+  temp = setValue ( terminals , temp , &(terminalcount) );
+  terminalcount++;
 
   // Assign values to be returned
   tokencounts [0] = terminalcount;
@@ -293,12 +298,12 @@ void populateFirstSets ( FILE *firstsfile, int blocksize, LINKEDLIST* firsts [],
         fprintf ( stderr , "Token not Found.\n" );
       else
       {
-        firsts [ temp -> value ] = getLinkedList ( LL_STRING_TYPE );
+        firsts [ temp -> data.int_val ] = getLinkedList ( LL_STRING_TYPE );
         finalterms = strtok ( NULL , " " );
 
         while ( finalterms != NULL)
         {
-          firsts [ temp -> value ] = insertAtBack ( firsts [ temp -> value ] , finalterms );
+          firsts [ temp -> data.int_val ] = insertAtBack ( firsts [ temp -> data.int_val ] , finalterms );
           finalterms = strtok ( NULL , " " );
         }
       }
@@ -402,7 +407,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
     {
       ruleno++;
       temp = findString ( gramrules , token );
-      nodevalue = temp -> value;
+      nodevalue = temp -> data.int_val;
       tokencounter = 0;
 
       //Finding Non-Terminals index
@@ -410,7 +415,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
       nttoken [ marker - 1 ] = '\0';
 
       temp = findString ( nonterm , nttoken );
-      ntvalue = temp -> value;
+      ntvalue = temp -> data.int_val;
 
       //Getting the RHS of the Non-Terminal and populating Parse Table
       if ( getIterator ( ruleLists [ nodevalue ], &currnode ) == NULL )
@@ -427,7 +432,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         if ( val[0] == 'e' )
         {
           temp = findString ( terminals , "e" );
-          tvalue = temp -> value;
+          tvalue = temp -> data.int_val;
           parseTable [ ntvalue ] [ tvalue ] = ruleno;
           continue;
         }
@@ -435,13 +440,13 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
         if ( val[0] == 'T' )
         {
           temp = findString ( terminals , val );
-          tvalue = temp -> value;
+          tvalue = temp -> data.int_val;
           parseTable [ ntvalue ] [ tvalue ] = ruleno;
           break;
         }
 
         temp = findString ( mixedbag , val );
-        ntindex = temp -> value;
+        ntindex = temp -> data.int_val;
 
         //Getting the Firsts of the respective non-terminal
         if ( getIterator ( firsts [ntindex], &firstnode ) == NULL )
@@ -462,7 +467,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
           }
 
           temp = findString ( terminals , val );
-          tvalue = temp -> value;
+          tvalue = temp -> data.int_val;
 
           parseTable [ ntvalue ] [ tvalue ] = ruleno;
         }
@@ -473,7 +478,7 @@ int **populateParseTable ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLis
           if ( ! hasNext ( &currnode ) )
           {
             temp = findString ( terminals , "e" );
-            tvalue = temp -> value;
+            tvalue = temp -> data.int_val;
             parseTable [ ntvalue ] [ tvalue ] = ruleno;
           }
 
@@ -540,16 +545,16 @@ int main ( )
 
   TRIE *gramrules = NULL, *nonterm = NULL, *terminals = NULL, *mixedbag = NULL;
 
-  gramrules = getNewTrie();
+  gramrules = getNewTrie( TR_INT_TYPE );
   gramrules = setTrieName( gramrules , RULE_TRIE_NAME );
 
-  nonterm = getNewTrie();
+  nonterm = getNewTrie( TR_INT_TYPE );
   nonterm = setTrieName( nonterm , NT_TRIE_NAME );
 
-  terminals = getNewTrie();
+  terminals = getNewTrie( TR_INT_TYPE );
   terminals = setTrieName( terminals , T_TRIE_NAME );
 
-  mixedbag = getNewTrie();
+  mixedbag = getNewTrie( TR_INT_TYPE );
   mixedbag = setTrieName( mixedbag , TNT_TRIE_NAME );
 
   int tokencounts [ 3 ];

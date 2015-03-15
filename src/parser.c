@@ -70,7 +70,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
       token [ tokenindex ] = '\0';
       TNODE *temp = NULL;
       temp = insertString ( trie, token );
-      temp -> value = value;
+      temp -> data.int_val = value;
       *count = value;
       value = 0;
       torval = 0;
@@ -424,7 +424,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   int charsread = 0;
   int tokenindex = 0;
 
-  int epscolumn = findString ( terminals, "e" ) -> value;
+  int epscolumn = findString ( terminals, "e" ) -> data.int_val;
 
   int value = 0;
   int linenum = 0;
@@ -440,7 +440,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int newlineterm = newlinenode -> value;
+  int newlineterm = newlinenode -> data.int_val;
 
   TNODE* identifiernode = NULL;
   if ( ( identifiernode = findString ( terminals, IDENTIFIER_SYMBOL ) ) == NULL )
@@ -449,7 +449,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int identifierterm = identifiernode -> value;
+  int identifierterm = identifiernode -> data.int_val;
 
   TNODE* stringlitnode = NULL;
   if ( ( stringlitnode = findString ( terminals, STRINGLIT_SYMBOL ) ) == NULL )
@@ -458,7 +458,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int stringlitterm = stringlitnode -> value;
+  int stringlitterm = stringlitnode -> data.int_val;
 
   TNODE* floatlitnode = NULL;
   if ( ( floatlitnode = findString ( terminals, FLOATLIT_SYMBOL ) ) == NULL )
@@ -467,7 +467,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int floatlitterm = floatlitnode -> value;
+  int floatlitterm = floatlitnode -> data.int_val;
 
   TNODE* intlitnode = NULL;
   if ( ( intlitnode = findString ( terminals, INTLIT_SYMBOL ) ) == NULL )
@@ -476,7 +476,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int intlitterm = intlitnode -> value;
+  int intlitterm = intlitnode -> data.int_val;
 
   while ( TRUE )
   {
@@ -520,7 +520,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           free ( topval );
           topval = NULL;
 
-          int nontermval = nonterm -> value;
+          int nontermval = nonterm -> data.int_val;
           if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
           {
             fprintf ( parseerr, "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
@@ -548,7 +548,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         exit (-1 );
       }
 
-      int column = tomatch -> value;
+      int column = tomatch -> data.int_val;
 
       if ( in_error_state )
       {
@@ -603,7 +603,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         if ( current != NULL )
         {
           // Top of stack is a non-terminal
-          int nontermindex = current -> value;
+          int nontermindex = current -> data.int_val;
 
           if ( parseTable [ nontermindex ] [ column ] != NO_TRANSITION )
           {
@@ -663,7 +663,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                 continue;
 
               // If synchronization newline is found, break
-              if ( temp -> value == newlineterm )
+              if ( temp -> data.int_val == newlineterm )
                 break;
             }
 
@@ -698,7 +698,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             exit (-1);
           }
-          int stackterminal = current -> value;
+          int stackterminal = current -> data.int_val;
 
           if ( stackterminal != column )
           {
@@ -751,7 +751,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                 continue;
 
               // If synchronization newline is found, break
-              if ( temp -> value == newlineterm )
+              if ( temp -> data.int_val == newlineterm )
                 break;
             }
 
@@ -824,8 +824,8 @@ int main ( int argc, char *argv[] )
   int terminalscount = 0, nonterminalscount = 0;
   char **terminalnames = NULL;
 
-  terminals = getNewTrie ();
-  nonterminals = getNewTrie ();
+  terminals = getNewTrie ( TR_INT_TYPE );
+  nonterminals = getNewTrie ( TR_INT_TYPE );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
   FILE *tnamemapfile = NULL;
