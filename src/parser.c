@@ -824,8 +824,8 @@ int main ( int argc, char *argv[] )
   int terminalscount = 0, nonterminalscount = 0;
   char **terminalnames = NULL;
 
-  terminals = getNewTrie ( 1 );
-  nonterminals = getNewTrie ( 1 );
+  terminals = getNewTrie ( TR_INT_TYPE );
+  nonterminals = getNewTrie ( TR_INT_TYPE );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
   FILE *tnamemapfile = NULL;

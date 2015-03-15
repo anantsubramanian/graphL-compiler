@@ -154,8 +154,8 @@ int main ( )
   TRIE *terminals = NULL, *nonterminals = NULL;
   int terminalscount = 0, nonterminalscount = 0;
 
-  terminals = getNewTrie ( 1 );
-  nonterminals = getNewTrie ( 1 );
+  terminals = getNewTrie ( TR_INT_TYPE );
+  nonterminals = getNewTrie ( TR_INT_TYPE );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
 

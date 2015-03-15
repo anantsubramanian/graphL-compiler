@@ -545,16 +545,16 @@ int main ( )
 
   TRIE *gramrules = NULL, *nonterm = NULL, *terminals = NULL, *mixedbag = NULL;
 
-  gramrules = getNewTrie( 1 );
+  gramrules = getNewTrie( TR_INT_TYPE );
   gramrules = setTrieName( gramrules , RULE_TRIE_NAME );
 
-  nonterm = getNewTrie( 1 );
+  nonterm = getNewTrie( TR_INT_TYPE );
   nonterm = setTrieName( nonterm , NT_TRIE_NAME );
 
-  terminals = getNewTrie( 1 );
+  terminals = getNewTrie( TR_INT_TYPE );
   terminals = setTrieName( terminals , T_TRIE_NAME );
 
-  mixedbag = getNewTrie( 1 );
+  mixedbag = getNewTrie( TR_INT_TYPE );
   mixedbag = setTrieName( mixedbag , TNT_TRIE_NAME );
 
   int tokencounts [ 3 ];

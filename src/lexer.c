@@ -32,7 +32,7 @@ int main ( int argc, char *argv[] )
   dfa = initializeFromFile ( dfa, DFA_PATH );
 
   TRIE* dictionary = NULL;
-  dictionary = getNewTrie( 1 );
+  dictionary = getNewTrie( TR_INT_TYPE );
   dictionary = setTrieName ( dictionary, DICTNAME );
   int tokenid = 0;
 
