@@ -32,7 +32,7 @@ int main ( int argc, char *argv[] )
   dfa = initializeFromFile ( dfa, DFA_PATH );
 
   TRIE* dictionary = NULL;
-  dictionary = getNewTrie();
+  dictionary = getNewTrie( 1 );
   dictionary = setTrieName ( dictionary, DICTNAME );
   int tokenid = 0;
 
@@ -165,10 +165,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, floatorint );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_INTLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -180,10 +181,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, floatorint );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_FLOATLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -195,10 +197,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, stringliteral );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, stringliteral );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_STRINGLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -210,10 +213,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, identifier );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, identifier );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_IDEN,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }

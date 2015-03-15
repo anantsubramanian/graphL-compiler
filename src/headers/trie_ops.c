@@ -71,7 +71,7 @@ TRIE* setTrieName ( TRIE *trie, const char *name )
   return trie;
 }
 
-TRIE* setGenericSize ( TRIE *trie, unsigned int size )
+TRIE* setTrieGenericSize ( TRIE *trie, unsigned int size )
 {
   if ( trie == NULL )
   {

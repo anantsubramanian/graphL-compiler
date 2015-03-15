@@ -30,7 +30,7 @@ typedef struct trie_struct
 
 extern TRIE* getNewTrie ( int );
 
-extern TRIE* setGenericSize ( TRIE * , unsigned int );
+extern TRIE* setTrieGenericSize ( TRIE * , unsigned int );
 
 extern TRIE* setTrieName ( TRIE * , const char * );
 

@@ -53,7 +53,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
       token [ tokenindex ] = '\0';
       TNODE *temp = NULL;
       temp = insertString ( trie, token );
-      temp -> value = value;
+      temp -> data.int_val = value;
       *count = value;
       value = 0;
       torval = 0;
@@ -154,8 +154,8 @@ int main ( )
   TRIE *terminals = NULL, *nonterminals = NULL;
   int terminalscount = 0, nonterminalscount = 0;
 
-  terminals = getNewTrie ();
-  nonterminals = getNewTrie ();
+  terminals = getNewTrie ( 1 );
+  nonterminals = getNewTrie ( 1 );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
 
