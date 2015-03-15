@@ -154,7 +154,6 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
 
   symboltable -> environments = pop ( symboltable -> environments );
   symboltable -> cur_scope --;
-  symboltable -> cur_subscope --;
 
   return symboltable;
 }
