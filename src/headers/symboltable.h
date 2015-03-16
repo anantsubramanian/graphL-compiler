@@ -39,6 +39,7 @@ typedef struct variable_node
   int decl_line;
   int refr_line;
   int value;
+  void *complexdata;
 } VARIABLE;
 
 typedef struct function_node
@@ -85,6 +86,36 @@ typedef struct symbol_table
   STACK *environments;
 } SYMBOLTABLE;
 
+typedef struct vertex_node
+{
+  int int_val;
+  double float_val;
+  char *string_val;
+  LINKEDLIST *adjacent;
+} VERTEX;
+
+typedef struct edge_node
+{
+  int int_val;
+  double float_val;
+  char *string_val;
+  double weight;
+  VARIABLE *source;
+  VARIABLE *dest;
+} EDGE;
+
+typedef struct tree_node
+{
+  VARIABLE *root;
+  LINKEDLIST *vertexlist;
+  LINKEDLIST *edgelist;
+} TREE;
+
+typedef struct graph_node
+{
+  LINKEDLIST *vertexlist;
+  LINKEDLIST *edgelist;
+} GRAPH;
 
 // Begin function prototypes
 

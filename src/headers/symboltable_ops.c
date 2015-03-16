@@ -259,11 +259,11 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
     int foundval = indexlocator -> data . int_val;
 
     symboltable -> entries [ foundval ] = getStack ( STACK_GENERIC_TYPE );
-    symboltable -> entries [ foundval ] = setStackGenericSize ( symboltable -> entries 
+    symboltable -> entries [ foundval ] = setStackGenericSize ( symboltable -> entries
                                                                 [ foundval ], sizeof ( STBNODE ) );
   }
 
-  symboltable -> entries [ indexlocator -> data . int_val ] = 
+  symboltable -> entries [ indexlocator -> data . int_val ] =
     push ( symboltable -> entries [ indexlocator -> data . int_val ], newnode );
 
   // Push this index into the linked list for the current environment,
