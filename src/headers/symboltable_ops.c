@@ -16,7 +16,7 @@ SYMBOLTABLE* getSymbolTable ()
   }
 
   symboltable -> name = NULL;
-  symboltable -> indexmap = getNewTrie ( TR_INT_TYPE );
+  symboltable -> indexmap = getNewTrie ( TRIE_INT_TYPE );
 
   // Set symbol table entries to sentinel value
   symboltable -> num_entries = -1;
@@ -148,6 +148,11 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
   while ( hasNext ( &iterator ) )
   {
     getNext ( curenv, &iterator );
+    if ( isEmpty ( symboltable -> entries [ iterator.data.int_val ] ) )
+    {
+      fprintf ( stderr, "Failed to close environment, one of the current env variables doesn't exist\n" );
+      return NULL;
+    }
     symboltable -> entries [ iterator.data.int_val ] = pop ( symboltable -> entries
                                                              [ iterator.data.int_val ] );
   }
@@ -158,7 +163,7 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
   return symboltable;
 }
 
-int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
+int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_type )
 {
   if ( symboltable == NULL )
   {
@@ -172,7 +177,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
     return -1;
   }
 
-  if ( value_type < N_VAR_TYPE || value_type > N_LIT_TYPE )
+  if ( value_type < ENTRY_VAR_TYPE || value_type > ENTRY_LIT_TYPE )
   {
     fprintf ( stderr, "Invalid type of data object being inserted in symbol table\n" );
     return -1;
@@ -184,21 +189,21 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
     return -1;
   }
 
-  STBNODE *newnode = NULL;
-  newnode = malloc ( sizeof ( STBNODE ) );
+  STBENTRY *newentry = NULL;
+  newentry = malloc ( sizeof ( STBENTRY ) );
 
-  if ( newnode == NULL )
+  if ( newentry == NULL )
   {
     fprintf ( stderr, "Failed to allocate memory for symbol table node during insertion\n" );
     return -1;
   }
 
   // Set the type of the new node
-  newnode -> node_type = value_type;
+  newentry -> entry_type = value_type;
 
-  if ( value_type == N_VAR_TYPE )
+  if ( value_type == ENTRY_VAR_TYPE )
   {
-    VARIABLE *varobj = & ( newnode -> data . var_data );
+    VARIABLE *varobj = & ( newentry -> data . var_data );
     varobj -> name = NULL;
     int len = strlen ( toinsert );
 
@@ -218,9 +223,9 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
     varobj -> refr_line = -1;
     varobj -> value = -1;
   }
-  else if ( value_type == N_FUNC_TYPE )
+  else if ( value_type == ENTRY_FUNC_TYPE )
   {
-    FUNCTION *funcobj = & ( newnode -> data . func_data );
+    FUNCTION *funcobj = & ( newentry -> data . func_data );
     funcobj -> name = NULL;
     int len = strlen ( toinsert );
 
@@ -238,11 +243,11 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
     funcobj -> decl_line = -1;
     funcobj -> refr_line = -1;
   }
-  else if ( value_type == N_LIT_TYPE )
+  else if ( value_type == ENTRY_LIT_TYPE )
   {
     // The onus of converting the value and assigning it is on the API
     // user for integer and float literals
-    LITERAL *litobj = & ( newnode -> data . lit_data );
+    LITERAL *litobj = & ( newentry -> data . lit_data );
     litobj -> lit_type = -1;
     litobj -> data . int_value = 0;
     litobj -> data . double_val = 0;
@@ -260,11 +265,11 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, int value_type )
 
     symboltable -> entries [ foundval ] = getStack ( STACK_GENERIC_TYPE );
     symboltable -> entries [ foundval ] = setStackGenericSize ( symboltable -> entries
-                                                                [ foundval ], sizeof ( STBNODE ) );
+                                                                [ foundval ], sizeof ( STBENTRY ) );
   }
 
   symboltable -> entries [ indexlocator -> data . int_val ] =
-    push ( symboltable -> entries [ indexlocator -> data . int_val ], newnode );
+    push ( symboltable -> entries [ indexlocator -> data . int_val ], newentry );
 
   // Push this index into the linked list for the current environment,
   // so that it will be popped on end
@@ -318,7 +323,7 @@ int checkIndexExistence ( SYMBOLTABLE *symboltable, unsigned int index )
   return TRUE;
 }
 
-STBNODE* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
+STBENTRY* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
 {
   if ( symboltable == NULL )
   {
@@ -339,10 +344,10 @@ STBNODE* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
   if ( indexlocator == NULL )
     return NULL;
 
-  return ( STBNODE * ) top ( symboltable -> entries [ indexlocator -> data . int_val ] );
+  return ( STBENTRY * ) top ( symboltable -> entries [ indexlocator -> data . int_val ] );
 }
 
-STBNODE* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
+STBENTRY* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
 {
   if ( symboltable == NULL )
   {
@@ -356,6 +361,6 @@ STBNODE* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
     return NULL;
   }
 
-  return ( STBNODE * ) top ( symboltable -> entries [ index ] );
+  return ( STBENTRY * ) top ( symboltable -> entries [ index ] );
 }
 

@@ -4,36 +4,39 @@
 #define TRUE 1
 #define FALSE 0
 
-// Begin data types
+typedef enum data_types
+{
+  D_INT_TYPE,
+  D_FLOAT_TYPE,
+  D_STRING_TYPE,
+  D_VERTEX_TYPE,
+  D_EDGE_TYPE,
+  D_TREE_TYPE,
+  D_GRAPH_TYPE,
+  D_NOTHING_TYPE
+} DATATYPE;
 
-#define D_INT_TYPE 1
-#define D_FLOAT_TYPE 2
-#define D_STRING_TYPE 3
-#define D_VERTEX_TYPE 4
-#define D_EDGE_TYPE 5
-#define D_TREE_TYPE 6
-#define D_GRAPH_TYPE 7
-#define D_NOTHING_TYPE 8
+typedef enum variable_types
+{
+  V_GLOBAL_TYPE,
+  V_LOCAL_TYPE,
+  V_PARAM_TYPE
+} VARIABLETYPE;
 
-// Begin variable types
-
-#define V_GLOBAL_TYPE 1
-#define V_LOCAL_TYPE 2
-#define V_PARAM_TYPE 3
-
-// Begin stbnode types
-
-#define N_VAR_TYPE 1
-#define N_FUNC_TYPE 2
-#define N_LIT_TYPE 3
+typedef enum st_entry_type
+{
+  ENTRY_VAR_TYPE,
+  ENTRY_FUNC_TYPE,
+  ENTRY_LIT_TYPE
+} STB_ENTRYTYPE;
 
 // Begin type definitions
 
-typedef struct variable_node
+typedef struct variable_entry
 {
   char *name;
-  int data_type;
-  int var_type;
+  DATATYPE data_type;
+  VARIABLETYPE var_type;
   int scope_level;
   int scope_sublevel;
   int decl_line;
@@ -42,19 +45,19 @@ typedef struct variable_node
   void *complexdata;
 } VARIABLE;
 
-typedef struct function_node
+typedef struct function_entry
 {
   char *name;
   int num_params;
   int *params;
-  int ret_type;
+  DATATYPE ret_type;
   int decl_line;
   int refr_line;
 } FUNCTION;
 
-typedef struct literal_node
+typedef struct literal_entry
 {
-  int lit_type;
+  DATATYPE lit_type;
   union
   {
     int int_value;
@@ -63,16 +66,16 @@ typedef struct literal_node
   } data;
 } LITERAL;
 
-typedef struct symbolt_node
+typedef struct symboltable_entry
 {
-  int node_type;
+  STB_ENTRYTYPE entry_type;
   union
   {
     VARIABLE var_data;
     FUNCTION func_data;
     LITERAL lit_data;
   } data;
-} STBNODE;
+} STBENTRY;
 
 typedef struct symbol_table
 {
@@ -86,7 +89,7 @@ typedef struct symbol_table
   STACK *environments;
 } SYMBOLTABLE;
 
-typedef struct vertex_node
+typedef struct vertex_entry
 {
   int int_val;
   double float_val;
@@ -94,7 +97,7 @@ typedef struct vertex_node
   LINKEDLIST *adjacent;
 } VERTEX;
 
-typedef struct edge_node
+typedef struct edge_entry
 {
   int int_val;
   double float_val;
@@ -104,14 +107,14 @@ typedef struct edge_node
   VARIABLE *dest;
 } EDGE;
 
-typedef struct tree_node
+typedef struct tree_entry
 {
   VARIABLE *root;
   LINKEDLIST *vertexlist;
   LINKEDLIST *edgelist;
 } TREE;
 
-typedef struct graph_node
+typedef struct graph_entry
 {
   LINKEDLIST *vertexlist;
   LINKEDLIST *edgelist;
@@ -129,13 +132,13 @@ extern SYMBOLTABLE* openEnv ( SYMBOLTABLE * );
 
 extern SYMBOLTABLE* closeEnv ( SYMBOLTABLE * );
 
-extern int addEntry ( SYMBOLTABLE * , char * , int );
+extern int addEntry ( SYMBOLTABLE * , char * , STB_ENTRYTYPE );
 
 extern int checkNameExistence ( SYMBOLTABLE * , char * );
 
 extern int checkIndexExistence ( SYMBOLTABLE * , unsigned int );
 
-extern STBNODE* getEntryByName ( SYMBOLTABLE * , char * );
+extern STBENTRY* getEntryByName ( SYMBOLTABLE * , char * );
 
-extern STBNODE* getEntryByIndex ( SYMBOLTABLE * , unsigned int );
+extern STBENTRY* getEntryByIndex ( SYMBOLTABLE * , unsigned int );
 
