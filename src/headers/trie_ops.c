@@ -14,7 +14,7 @@ TRIE* getNewTrie ( TRIE_TYPE data_type )
     return NULL;
   }
 
-  if ( data_type < TRIE_INT_TYPE || data_type > TRIE_GENERIC_TYPE )
+  if ( data_type <= TRIE_TYPE_FIRST || data_type >= TRIE_TYPE_LAST )
   {
     fprintf ( stderr, "Invalid type for Trie\n" );
     return NULL;

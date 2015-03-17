@@ -13,6 +13,12 @@ STACK* getStack ( STACK_TYPE data_type )
     return NULL;
   }
 
+  if ( data_type <= STACK_TYPE_FIRST || data_type >= STACK_TYPE_LAST )
+  {
+    fprintf ( stderr, "Invalid type provided while creating stack\n" );
+    return NULL;
+  }
+
   if ( data_type == STACK_INT_TYPE )
     s -> stack = getLinkedList ( LL_INT_TYPE );
   else if ( data_type == STACK_DOUBLE_TYPE )
@@ -21,6 +27,11 @@ STACK* getStack ( STACK_TYPE data_type )
     s -> stack = getLinkedList ( LL_STRING_TYPE );
   else if ( data_type == STACK_GENERIC_TYPE )
     s -> stack = getLinkedList ( LL_GENERIC_TYPE );
+  else
+  {
+    fprintf ( stderr, "Invalid type provided for stack\n" );
+    return NULL;
+  }
 
   if ( s -> stack == NULL )
   {

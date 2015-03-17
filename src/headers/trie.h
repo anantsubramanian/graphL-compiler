@@ -3,10 +3,12 @@
 
 typedef enum trie_type
 {
+  TRIE_TYPE_FIRST,
   TRIE_INT_TYPE,
   TRIE_DOUBLE_TYPE,
   TRIE_STRING_TYPE,
-  TRIE_GENERIC_TYPE
+  TRIE_GENERIC_TYPE,
+  TRIE_TYPE_LAST
 } TRIE_TYPE;
 
 typedef struct trie_node

@@ -14,7 +14,7 @@ LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE data_type )
     return NULL;
   }
 
-  if ( data_type < LL_INT_TYPE || data_type > LL_GENERIC_TYPE )
+  if ( data_type <= LL_TYPE_FIRST || data_type >= LL_TYPE_LAST )
   {
     fprintf ( stderr, "Invalid type for linked list\n" );
     return NULL;

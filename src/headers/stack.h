@@ -5,10 +5,12 @@
 
 typedef enum stack_type
 {
+  STACK_TYPE_FIRST,
   STACK_INT_TYPE,
   STACK_DOUBLE_TYPE,
   STACK_STRING_TYPE,
-  STACK_GENERIC_TYPE
+  STACK_GENERIC_TYPE,
+  STACK_TYPE_LAST
 } STACK_TYPE;
 
 typedef struct stack_struct

@@ -3,10 +3,12 @@
 
 typedef enum linkedlist_type
 {
+  LL_TYPE_FIRST,
   LL_INT_TYPE,
   LL_DOUBLE_TYPE,
   LL_STRING_TYPE,
-  LL_GENERIC_TYPE
+  LL_GENERIC_TYPE,
+  LL_TYPE_LAST
 } LINKEDLIST_TYPE;
 
 typedef struct linkedlist_node

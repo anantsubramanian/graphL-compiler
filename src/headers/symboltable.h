@@ -6,6 +6,7 @@
 
 typedef enum data_types
 {
+  D_TYPE_FIRST,
   D_INT_TYPE,
   D_FLOAT_TYPE,
   D_STRING_TYPE,
@@ -13,21 +14,26 @@ typedef enum data_types
   D_EDGE_TYPE,
   D_TREE_TYPE,
   D_GRAPH_TYPE,
-  D_NOTHING_TYPE
+  D_NOTHING_TYPE,
+  D_TYPE_LAST
 } DATATYPE;
 
 typedef enum variable_types
 {
+  V_TYPE_FIRST,
   V_GLOBAL_TYPE,
   V_LOCAL_TYPE,
-  V_PARAM_TYPE
+  V_PARAM_TYPE,
+  V_TYPE_LAST
 } VARIABLETYPE;
 
 typedef enum st_entry_type
 {
+  ENTRY_TYPE_FIRST,
   ENTRY_VAR_TYPE,
   ENTRY_FUNC_TYPE,
-  ENTRY_LIT_TYPE
+  ENTRY_LIT_TYPE,
+  ENTRY_TYPE_LAST
 } STB_ENTRYTYPE;
 
 // Begin type definitions

@@ -4,9 +4,11 @@
 
 typedef enum dfa_state_property
 {
+  DFA_STATE_PROPERTY_FIRST,
   NONE,
   TRAP,
-  ERROR
+  ERROR,
+  DFA_STATE_PROPERTY_LAST
 } DFA_STATE_PROPERTY;
 
 typedef struct state_struct
