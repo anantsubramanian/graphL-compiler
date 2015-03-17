@@ -5,29 +5,29 @@ TK_GLOBAL <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,v,1> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,w,1> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,farthest,1> 
 e 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_TREE 
-TK_IDEN 
+<TK_IDEN,T,2> 
 e 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,maximum,3> 
 e 
 e 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,diameter,5> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -36,14 +36,14 @@ TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,maximum,8> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,8> 
 e 
 e 
 e 
@@ -52,13 +52,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,w,10> 
 TK_IN <iterable> 
 <iterop> <operatorparams> 
 TK_BFT 
 TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
-TK_IDEN 
-TK_IDEN 
+<TK_IDEN,T,10> 
+<TK_IDEN,v,10> 
 TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
 <possiblestmts> <statements> 
 <validconditional> 
@@ -83,7 +83,7 @@ TK_GT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,maximum,12> 
 e 
 e 
 e 
@@ -96,7 +96,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,maximum,14> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -111,7 +111,7 @@ e
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,farthest,15> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -119,7 +119,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,w,15> 
 e 
 e 
 e 
@@ -132,14 +132,14 @@ e
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,maximum,19> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,19> 
 e 
 e 
 e 
@@ -148,20 +148,20 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,w,21> 
 TK_IN <iterable> 
 <iterop> <operatorparams> 
 TK_BFT 
 TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
-TK_IDEN 
-TK_IDEN 
+<TK_IDEN,T,21> 
+<TK_IDEN,farthest,21> 
 TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,maximum,23> 
 e 
 <exp> 
 <mulexp> <exp1> 

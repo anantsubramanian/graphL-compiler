@@ -9,9 +9,9 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_GRAPH 
-TK_IDEN 
+<TK_IDEN,G,1> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,G2,1> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -20,7 +20,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,v,2> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -29,21 +29,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_EDGE 
-TK_IDEN 
+<TK_IDEN,e1,3> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,e2,3> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,e3,3> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,v,5> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,G,5> 
 e 
 TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
 <possiblestmts> <statements> 
@@ -51,7 +51,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,G2,7> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -59,7 +59,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,G2,7> 
 e 
 e 
 e 
@@ -69,7 +69,7 @@ TK_PLUS <exp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,7> 
 e 
 e 
 e 
@@ -80,10 +80,10 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,e1,10> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,G,10> 
 e 
 TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
 <possiblestmts> <statements> 
@@ -91,10 +91,10 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,e2,12> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,G,12> 
 e 
 TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
 <possiblestmts> <statements> 
@@ -112,7 +112,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,14> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_DEST <primitiveval> 
@@ -127,7 +127,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e2,14> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_SOURCE <primitiveval> 
@@ -144,16 +144,16 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e3,16> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,16> 
 TK_MEMBEROP <endassignable> 
 TK_SOURCE <primitiveval> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e2,16> 
 TK_MEMBEROP <endassignable> 
 TK_DEST <primitiveval> 
 e 
@@ -162,7 +162,7 @@ e
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,G2,17> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -170,7 +170,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,G2,17> 
 e 
 e 
 e 
@@ -180,7 +180,7 @@ TK_PLUS <exp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e3,17> 
 e 
 e 
 e 

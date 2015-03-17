@@ -5,32 +5,32 @@ TK_GLOBAL <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_TREE 
-TK_IDEN 
+<TK_IDEN,T,1> 
 e 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,u,2> 
 e 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_EDGE 
-TK_IDEN 
+<TK_IDEN,e1,3> 
 e 
 <globaldefine> TK_NEWLINE <globaldefines> 
 TK_GLOBAL <defineargs> 
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,v,4> 
 e 
 e 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight1,6> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -41,7 +41,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,9> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -50,21 +50,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,10> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,11> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,11> 
 e 
 e 
 e 
@@ -73,13 +73,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,13> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,13> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,13> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -89,14 +89,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,15> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,15> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,15> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -115,7 +115,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,17> 
 e 
 e 
 e 
@@ -126,7 +126,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,17> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -141,7 +141,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,19> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -151,7 +151,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,19> 
 e 
 e 
 e 
@@ -168,13 +168,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,25> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,25> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,25> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -184,14 +184,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,27> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,27> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,27> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -215,7 +215,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,29> 
 e 
 e 
 e 
@@ -226,7 +226,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,29> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -243,7 +243,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,31> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -251,7 +251,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,31> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -265,7 +265,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight2,40> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -276,7 +276,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,43> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -285,21 +285,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,44> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,45> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,45> 
 e 
 e 
 e 
@@ -308,13 +308,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,47> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,47> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,47> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -324,14 +324,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,49> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,49> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,49> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -350,7 +350,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,51> 
 e 
 e 
 e 
@@ -361,7 +361,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,51> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -376,7 +376,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,53> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -386,7 +386,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,53> 
 e 
 e 
 e 
@@ -403,13 +403,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,59> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,59> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,59> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -419,14 +419,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,61> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,61> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,61> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -450,7 +450,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,63> 
 e 
 e 
 e 
@@ -461,7 +461,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,63> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -478,7 +478,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,65> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -486,7 +486,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,65> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -500,7 +500,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight3,74> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -511,7 +511,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,77> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -520,21 +520,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,78> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,79> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,79> 
 e 
 e 
 e 
@@ -543,13 +543,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,81> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,81> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,81> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -559,14 +559,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,83> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,83> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,83> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -585,7 +585,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,85> 
 e 
 e 
 e 
@@ -596,7 +596,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,85> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -611,7 +611,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,87> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -621,7 +621,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,87> 
 e 
 e 
 e 
@@ -638,13 +638,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,93> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,93> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,93> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -654,14 +654,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,95> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,95> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,95> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -685,7 +685,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,97> 
 e 
 e 
 e 
@@ -696,7 +696,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,97> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -713,7 +713,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,99> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -721,7 +721,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,99> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -735,7 +735,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight4,108> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -746,7 +746,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,111> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -755,21 +755,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,112> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,113> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,113> 
 e 
 e 
 e 
@@ -778,13 +778,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,115> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,115> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,115> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -794,14 +794,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,117> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,117> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,117> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -820,7 +820,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,119> 
 e 
 e 
 e 
@@ -831,7 +831,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,119> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -846,7 +846,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,121> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -856,7 +856,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,121> 
 e 
 e 
 e 
@@ -873,13 +873,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,127> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,127> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,127> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -889,14 +889,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,129> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,129> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,129> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -920,7 +920,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,131> 
 e 
 e 
 e 
@@ -931,7 +931,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,131> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -948,7 +948,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,133> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -956,7 +956,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,133> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -970,7 +970,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight5,142> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -981,7 +981,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,145> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -990,21 +990,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,146> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,147> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,147> 
 e 
 e 
 e 
@@ -1013,13 +1013,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,149> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,149> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,149> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1029,14 +1029,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,151> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,151> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,151> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1055,7 +1055,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,153> 
 e 
 e 
 e 
@@ -1066,7 +1066,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,153> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1081,7 +1081,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,155> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -1091,7 +1091,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,155> 
 e 
 e 
 e 
@@ -1108,13 +1108,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,161> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,161> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,161> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1124,14 +1124,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,163> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,163> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,163> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1155,7 +1155,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,165> 
 e 
 e 
 e 
@@ -1166,7 +1166,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,165> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1183,7 +1183,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,167> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -1191,7 +1191,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,167> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1205,7 +1205,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight6,176> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -1216,7 +1216,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,179> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -1225,21 +1225,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,180> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,181> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,181> 
 e 
 e 
 e 
@@ -1248,13 +1248,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,183> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,183> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,183> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1264,14 +1264,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,185> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,185> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,185> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1290,7 +1290,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,187> 
 e 
 e 
 e 
@@ -1301,7 +1301,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,187> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1316,7 +1316,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,189> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -1326,7 +1326,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,189> 
 e 
 e 
 e 
@@ -1343,13 +1343,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,195> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,195> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,195> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1359,14 +1359,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,197> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,197> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,197> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1390,7 +1390,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,199> 
 e 
 e 
 e 
@@ -1401,7 +1401,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,199> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1418,7 +1418,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,201> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -1426,7 +1426,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,201> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1440,7 +1440,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight7,210> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -1451,7 +1451,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,213> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -1460,21 +1460,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,214> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,215> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,215> 
 e 
 e 
 e 
@@ -1483,13 +1483,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,217> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,217> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,217> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1499,14 +1499,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,219> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,219> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,219> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1525,7 +1525,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,221> 
 e 
 e 
 e 
@@ -1536,7 +1536,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,221> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1551,7 +1551,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,223> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -1561,7 +1561,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,223> 
 e 
 e 
 e 
@@ -1578,13 +1578,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,229> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,229> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,229> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1594,14 +1594,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,231> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,231> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,231> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1625,7 +1625,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,233> 
 e 
 e 
 e 
@@ -1636,7 +1636,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,233> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1653,7 +1653,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,235> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -1661,7 +1661,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,235> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1675,7 +1675,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight8,244> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -1686,7 +1686,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,247> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -1695,21 +1695,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,248> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,249> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,249> 
 e 
 e 
 e 
@@ -1718,13 +1718,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,251> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,251> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,251> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1734,14 +1734,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,253> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,253> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,253> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1760,7 +1760,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,255> 
 e 
 e 
 e 
@@ -1771,7 +1771,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,255> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1786,7 +1786,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,257> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -1796,7 +1796,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,257> 
 e 
 e 
 e 
@@ -1813,13 +1813,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,263> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,263> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,263> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1829,14 +1829,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,265> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,265> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,265> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1860,7 +1860,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,267> 
 e 
 e 
 e 
@@ -1871,7 +1871,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,267> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1888,7 +1888,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,269> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -1896,7 +1896,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,269> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -1910,7 +1910,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight9,278> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -1921,7 +1921,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,281> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -1930,21 +1930,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,282> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,283> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,283> 
 e 
 e 
 e 
@@ -1953,13 +1953,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,285> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,285> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,285> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1969,14 +1969,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,287> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,287> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,287> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -1995,7 +1995,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,289> 
 e 
 e 
 e 
@@ -2006,7 +2006,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,289> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2021,7 +2021,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,291> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -2031,7 +2031,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,291> 
 e 
 e 
 e 
@@ -2048,13 +2048,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,297> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,297> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,297> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2064,14 +2064,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,299> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,299> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,299> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2095,7 +2095,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,301> 
 e 
 e 
 e 
@@ -2106,7 +2106,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,301> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2123,7 +2123,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,303> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -2131,7 +2131,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,303> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2145,7 +2145,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight10,312> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -2156,7 +2156,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,315> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -2165,21 +2165,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,316> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,317> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,317> 
 e 
 e 
 e 
@@ -2188,13 +2188,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,319> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,319> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,319> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2204,14 +2204,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,321> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,321> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,321> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2230,7 +2230,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,323> 
 e 
 e 
 e 
@@ -2241,7 +2241,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,323> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2256,7 +2256,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,325> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -2266,7 +2266,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,325> 
 e 
 e 
 e 
@@ -2283,13 +2283,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,331> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,331> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,331> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2299,14 +2299,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,333> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,333> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,333> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2330,7 +2330,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,335> 
 e 
 e 
 e 
@@ -2341,7 +2341,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,335> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2358,7 +2358,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,337> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -2366,7 +2366,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,337> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2380,7 +2380,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight11,346> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -2391,7 +2391,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,349> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -2400,21 +2400,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,350> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,351> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,351> 
 e 
 e 
 e 
@@ -2423,13 +2423,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,353> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,353> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,353> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2439,14 +2439,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,355> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,355> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,355> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2465,7 +2465,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,357> 
 e 
 e 
 e 
@@ -2476,7 +2476,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,357> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2491,7 +2491,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,359> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -2501,7 +2501,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,359> 
 e 
 e 
 e 
@@ -2518,13 +2518,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,365> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,365> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,365> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2534,14 +2534,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,367> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,367> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,367> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2565,7 +2565,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,369> 
 e 
 e 
 e 
@@ -2576,7 +2576,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,369> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2593,7 +2593,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,371> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -2601,7 +2601,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,371> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2615,7 +2615,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight12,380> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -2626,7 +2626,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,383> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -2635,21 +2635,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,384> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,385> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,385> 
 e 
 e 
 e 
@@ -2658,13 +2658,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,387> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,387> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,387> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2674,14 +2674,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,389> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,389> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,389> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2700,7 +2700,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,391> 
 e 
 e 
 e 
@@ -2711,7 +2711,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,391> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2726,7 +2726,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,393> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -2736,7 +2736,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,393> 
 e 
 e 
 e 
@@ -2753,13 +2753,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,399> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,399> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,399> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2769,14 +2769,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,401> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,401> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,401> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2800,7 +2800,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,403> 
 e 
 e 
 e 
@@ -2811,7 +2811,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,403> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2828,7 +2828,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,405> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -2836,7 +2836,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,405> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2850,7 +2850,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight13,414> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -2861,7 +2861,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,417> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -2870,21 +2870,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,418> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,419> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,419> 
 e 
 e 
 e 
@@ -2893,13 +2893,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,421> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,421> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,421> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2909,14 +2909,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,423> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,423> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,423> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -2935,7 +2935,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,425> 
 e 
 e 
 e 
@@ -2946,7 +2946,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,425> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -2961,7 +2961,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,427> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -2971,7 +2971,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,427> 
 e 
 e 
 e 
@@ -2988,13 +2988,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,433> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,433> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,433> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3004,14 +3004,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,435> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,435> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,435> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3035,7 +3035,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,437> 
 e 
 e 
 e 
@@ -3046,7 +3046,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,437> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3063,7 +3063,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,439> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -3071,7 +3071,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,439> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3085,7 +3085,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight14,448> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -3096,7 +3096,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,451> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -3105,21 +3105,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,452> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,453> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,453> 
 e 
 e 
 e 
@@ -3128,13 +3128,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,455> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,455> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,455> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3144,14 +3144,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,457> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,457> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,457> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3170,7 +3170,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,459> 
 e 
 e 
 e 
@@ -3181,7 +3181,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,459> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3196,7 +3196,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,461> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -3206,7 +3206,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,461> 
 e 
 e 
 e 
@@ -3223,13 +3223,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,467> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,467> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,467> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3239,14 +3239,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,469> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,469> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,469> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3270,7 +3270,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,471> 
 e 
 e 
 e 
@@ -3281,7 +3281,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,471> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3298,7 +3298,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,473> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -3306,7 +3306,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,473> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3320,7 +3320,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight15,482> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -3331,7 +3331,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,485> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -3340,21 +3340,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,486> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,487> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,487> 
 e 
 e 
 e 
@@ -3363,13 +3363,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,489> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,489> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,489> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3379,14 +3379,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,491> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,491> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,491> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3405,7 +3405,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,493> 
 e 
 e 
 e 
@@ -3416,7 +3416,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,493> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3431,7 +3431,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,495> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -3441,7 +3441,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,495> 
 e 
 e 
 e 
@@ -3458,13 +3458,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,501> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,501> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,501> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3474,14 +3474,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,503> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,503> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,503> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3505,7 +3505,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,505> 
 e 
 e 
 e 
@@ -3516,7 +3516,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,505> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3533,7 +3533,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,507> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -3541,7 +3541,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,507> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3555,7 +3555,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight16,516> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -3566,7 +3566,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,519> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -3575,21 +3575,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,520> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,521> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,521> 
 e 
 e 
 e 
@@ -3598,13 +3598,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,523> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,523> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,523> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3614,14 +3614,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,525> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,525> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,525> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3640,7 +3640,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,527> 
 e 
 e 
 e 
@@ -3651,7 +3651,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,527> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3666,7 +3666,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,529> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -3676,7 +3676,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,529> 
 e 
 e 
 e 
@@ -3693,13 +3693,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,535> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,535> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,535> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3709,14 +3709,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,537> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,537> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,537> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3740,7 +3740,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,539> 
 e 
 e 
 e 
@@ -3751,7 +3751,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,539> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3768,7 +3768,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,541> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -3776,7 +3776,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,541> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3790,7 +3790,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight17,550> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -3801,7 +3801,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,553> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -3810,21 +3810,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,554> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,555> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,555> 
 e 
 e 
 e 
@@ -3833,13 +3833,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,557> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,557> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,557> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3849,14 +3849,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,559> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,559> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,559> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3875,7 +3875,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,561> 
 e 
 e 
 e 
@@ -3886,7 +3886,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,561> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -3901,7 +3901,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,563> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -3911,7 +3911,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,563> 
 e 
 e 
 e 
@@ -3928,13 +3928,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,569> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,569> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,569> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3944,14 +3944,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,571> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,571> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,571> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -3975,7 +3975,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,573> 
 e 
 e 
 e 
@@ -3986,7 +3986,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,573> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4003,7 +4003,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,575> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -4011,7 +4011,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,575> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4025,7 +4025,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight18,584> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -4036,7 +4036,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,587> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -4045,21 +4045,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,588> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,589> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,589> 
 e 
 e 
 e 
@@ -4068,13 +4068,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,591> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,591> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,591> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4084,14 +4084,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,593> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,593> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,593> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4110,7 +4110,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,595> 
 e 
 e 
 e 
@@ -4121,7 +4121,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,595> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4136,7 +4136,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,597> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -4146,7 +4146,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,597> 
 e 
 e 
 e 
@@ -4163,13 +4163,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,603> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,603> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,603> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4179,14 +4179,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,605> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,605> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,605> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4210,7 +4210,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,607> 
 e 
 e 
 e 
@@ -4221,7 +4221,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,607> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4238,7 +4238,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,609> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -4246,7 +4246,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,609> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4260,7 +4260,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight19,618> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -4271,7 +4271,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,621> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -4280,21 +4280,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,622> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,623> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,623> 
 e 
 e 
 e 
@@ -4303,13 +4303,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,625> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,625> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,625> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4319,14 +4319,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,627> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,627> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,627> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4345,7 +4345,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,629> 
 e 
 e 
 e 
@@ -4356,7 +4356,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,629> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4371,7 +4371,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,631> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -4381,7 +4381,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,631> 
 e 
 e 
 e 
@@ -4398,13 +4398,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,637> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,637> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,637> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4414,14 +4414,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,639> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,639> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,639> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4445,7 +4445,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,641> 
 e 
 e 
 e 
@@ -4456,7 +4456,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,641> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4473,7 +4473,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,643> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -4481,7 +4481,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,643> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4495,7 +4495,7 @@ e
 TK_RETURN <returnable> 
 TK_NOTHING 
 TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-TK_IDEN 
+<TK_IDEN,edgeWeight20,652> 
 e 
 TK_NOTHING 
 TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
@@ -4506,7 +4506,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,answer,655> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -4515,21 +4515,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,z,656> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,657> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,657> 
 e 
 e 
 e 
@@ -4538,13 +4538,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,659> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,659> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,659> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4554,14 +4554,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,661> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,661> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,661> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4580,7 +4580,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,663> 
 e 
 e 
 e 
@@ -4591,7 +4591,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,663> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4606,7 +4606,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,z,665> 
 TK_MEMBEROP <endassignable> 
 <primitivetype> 
 TK_INT 
@@ -4616,7 +4616,7 @@ TK_INT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,665> 
 e 
 e 
 e 
@@ -4633,13 +4633,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,671> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,671> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,671> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4649,14 +4649,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,673> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,673> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,673> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -4680,7 +4680,7 @@ TK_CROPENPAREN <boolexp> TK_CRCLOSEPAREN
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,675> 
 e 
 e 
 e 
@@ -4691,7 +4691,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,675> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -4708,7 +4708,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,answer,677> 
 e 
 <exp> 
 <mulexp> <exp1> 
@@ -4716,7 +4716,7 @@ e
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,677> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 

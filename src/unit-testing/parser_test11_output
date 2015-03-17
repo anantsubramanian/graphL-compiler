@@ -1,10 +1,180 @@
-Error at line 4: 
-	a 'Newline' not expected at this point
-Error at line 5: Function diameter() => Nothing:
-	Expected "->" but got = instead
-Error at line 19:   End
-	Expected "Begin" but got End instead
-Error at line 27:   return Nothing
-	Expected "End" but got return instead
-Error at line 30:
-	Unexpected end to input program.
+<program> 
+<globaldefines> <fndefines> <statements> 
+<globaldefine> TK_NEWLINE <globaldefines> 
+TK_GLOBAL <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_VERTEX 
+<TK_IDEN,v,1> 
+TK_COMMA <identifier> <moreidens> 
+<TK_IDEN,w,1> 
+TK_COMMA <identifier> <moreidens> 
+<TK_IDEN,farthest,1> 
+e 
+<globaldefine> TK_NEWLINE <globaldefines> 
+TK_GLOBAL <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_TREE 
+<TK_IDEN,T,2> 
+e 
+<globaldefine> TK_NEWLINE <globaldefines> 
+TK_GLOBAL <defineargs> 
+<datatype> <identifier> <moreidens> 
+<primitivetype> 
+TK_INT 
+<TK_IDEN,maximum,3> 
+TK_COMMA <identifier> <moreidens> 
+e 
+TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
+<TK_IDEN,diameter,5> 
+e 
+TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,maximum,8> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,0,8> 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<iteration> 
+TK_FOR <loop> TK_COLON <block> 
+<identifier> <loop1> 
+<TK_IDEN,w,10> 
+TK_IN <iterable> 
+<iterop> <operatorparams> 
+TK_BFT 
+TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
+<TK_IDEN,T,10> 
+<TK_IDEN,v,10> 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validconditional> 
+<ifblock> TK_NEWLINE <elseifblock> 
+<ifstmt> TK_COLON <block> 
+TK_IF <boolexp> 
+<expor> <boolexp1> 
+<expand> <expor1> 
+<expnot> 
+<boolresult> 
+<exp> <relop> <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+TK_DEPTH 
+e 
+e 
+e 
+TK_GT 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,maximum,12> 
+e 
+e 
+e 
+e 
+e 
+e 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,maximum,14> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+TK_DEPTH 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,farthest,15> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,w,15> 
+e 
+e 
+e 
+e 
+e 
+TK_ELSE <elseifblock1> 
+TK_COLON <block> TK_NEWLINE 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,maximum,21> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,0,21> 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<iteration> 
+TK_FOR <loop> TK_COLON <block> 
+<identifier> <loop1> 
+<TK_IDEN,w,23> 
+TK_IN <iterable> 
+<iterop> <operatorparams> 
+TK_BFT 
+TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
+<TK_IDEN,T,23> 
+<TK_IDEN,farthest,23> 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,maximum,25> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+TK_DEPTH 
+e 
+e 
+e 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 

@@ -432,6 +432,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
   int in_error_state = FALSE;
   int errorcount = 0;
+  TNODE* tempnode = NULL;
 
   TNODE* newlinenode = NULL;
   if ( ( newlinenode = findString ( terminals, NEWLINE_SYMBOL ) ) == NULL )
@@ -614,8 +615,18 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
             while ( hasNext ( &iterator ) )
             {
               getNext ( requiredRule, &iterator );
-              fprintf ( parseout, "%s ", iterator.data.string_val );
+
+              if ( ( tempnode = findString ( terminals, iterator.data.string_val ) )  != NULL )
+              {
+                if ( tempnode -> data.int_val == identifierterm || tempnode -> data.int_val == stringlitterm || tempnode -> data.int_val == intlitterm || tempnode -> data.int_val == floatlitterm)
+                  fprintf ( parseout, "<%s,%s,%d> ", iterator.data.string_val , attributes [ value ] , linenum );
+                else
+                  fprintf ( parseout, "%s " , iterator.data.string_val );
+              }
+              else
+                fprintf ( parseout, "%s ", iterator.data.string_val );
             }
+
             fprintf ( parseout, "\n" );
 
             stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );

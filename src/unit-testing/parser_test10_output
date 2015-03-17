@@ -1,12 +1,84 @@
-Error at line 3: Define e1
-	an Identifier e1 not expected at this point
-Error at line 6: Let v be be 5
-	be not expected at this point
-Error at line 11: 
-	Expected "]" but got a 'Newline' instead
-Error at line 13:   Begin
-	Expected "End" but got Begin instead
-Error at line 14:     Print " Found an edge ")
-	Expected "(" but got a String literal " Found an edge " instead
-Error at line 16:   End
-	Trailing characters at the end of the program
+<program> 
+<globaldefines> <fndefines> <statements> 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_TREE 
+<TK_IDEN,T,1> 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<complextype> 
+TK_VERTEX 
+<TK_IDEN,u,2> 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<primitivetype> 
+TK_INT 
+<TK_IDEN,v,4> 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,v,6> 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<iteration> 
+TK_FOR <loop> TK_COLON <block> 
+<identifier> <loop1> 
+<TK_IDEN,u,8> 
+TK_IN <iterable> 
+<identifier> <iterable1> 
+<TK_IDEN,T,8> 
+TK_ADJACENT TK_TO <assignable> 
+<identifier> <assignable1> 
+<TK_IDEN,T,8> 
+TK_MEMBEROP <endassignable> 
+TK_ROOT <primitiveval> 
+e 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,e1,10> 
+e 
+TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
+<identifier> <assignable1> 
+<TK_IDEN,u,10> 
+e 
+<identifier> <assignable1> 
+<TK_IDEN,T,10> 
+TK_MEMBEROP <endassignable> 
+TK_ROOT <primitiveval> 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<output> 
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<breakstmt> 
+TK_BREAK 
+e 

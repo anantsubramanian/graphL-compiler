@@ -1,8 +1,190 @@
-Error at line 1: Define Int a,b,c,,d
-	, not expected at this point
-Error at line 3: Let a be 2 * 3 ++ 5
-	+ not expected at this point
-Error at line 17:   Print(" Precedence Fails" )
-	Expected "Begin" but got Print instead
-Error at line 20: End
-	Trailing characters at the end of the program
+<program> 
+<globaldefines> <fndefines> <statements> 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<definestmt> 
+TK_DEFINE <defineargs> 
+<datatype> <identifier> <moreidens> 
+<primitivetype> 
+TK_INT 
+<TK_IDEN,a,1> 
+TK_COMMA <identifier> <moreidens> 
+<TK_IDEN,b,1> 
+TK_COMMA <identifier> <moreidens> 
+<TK_IDEN,c,1> 
+TK_COMMA <identifier> <moreidens> 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,a,3> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,2,3> 
+e 
+TK_MUL <mulexp> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,3,3> 
+e 
+e 
+TK_PLUS <exp> 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<letstmt> 
+TK_LET <assignable> TK_BE <equatable> 
+<identifier> <assignable1> 
+<TK_IDEN,b,4> 
+e 
+<exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,2,4> 
+e 
+TK_MUL <mulexp> 
+<modexp> <mulexp1> 
+TK_OPENPAREN <exp> TK_CLOSEPAREN 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,3,4> 
+e 
+e 
+TK_PLUS <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,5,4> 
+e 
+e 
+e 
+e 
+e 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<input> 
+TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN 
+<identifier> <assignable1> 
+<TK_IDEN,c,6> 
+e 
+<possiblestmts> <statements> 
+<validconditional> 
+<ifblock> TK_NEWLINE <elseifblock> 
+<ifstmt> TK_COLON <block> 
+TK_IF <boolexp> 
+<expor> <boolexp1> 
+<expand> <expor1> 
+<expnot> 
+<boolresult> 
+<exp> <relop> <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,c,8> 
+e 
+e 
+e 
+e 
+TK_LT 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,0,8> 
+e 
+e 
+e 
+e 
+e 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<output> 
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
+<literal> 
+<TK_STRINGLIT," End Program ",10> 
+e 
+TK_ELSE <elseifblock1> 
+<validconditional> 
+<ifblock> TK_NEWLINE <elseifblock> 
+<ifstmt> TK_COLON <block> 
+TK_IF <boolexp> 
+<expor> <boolexp1> 
+<expand> <expor1> 
+<expnot> 
+<boolresult> 
+<exp> <relop> <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,c,12> 
+e 
+e 
+e 
+e 
+TK_GTE 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<literal> 
+<TK_INTLIT,0,12> 
+e 
+e 
+e 
+TK_AND <expor> 
+<expand> <expor1> 
+<expnot> 
+<boolresult> 
+<exp> <relop> <exp> 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,a,12> 
+e 
+e 
+e 
+e 
+TK_LT 
+<mulexp> <exp1> 
+<modexp> <mulexp1> 
+<baseexp> <modexp1> 
+<assignorfunc> 
+<identifier> <assignorfunc1> 
+<TK_IDEN,b,12> 
+e 
+e 
+e 
+e 
+e 
+e 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+<possiblestmts> <statements> 
+<validstatement> TK_NEWLINE 
+<output> 
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
+<literal> 
+<TK_STRINGLIT," Precedence Works",14> 
+e 
+TK_ELSE <elseifblock1> 
+TK_COLON <block> TK_NEWLINE 
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
+e 
+e 
