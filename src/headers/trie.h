@@ -1,9 +1,13 @@
 #define TRUE 1
 #define FALSE 0
-#define TR_INT_TYPE 1
-#define TR_DOUBLE_TYPE 2
-#define TR_STRING_TYPE 3
-#define TR_GENERIC_TYPE 4
+
+typedef enum trie_type
+{
+  TRIE_INT_TYPE,
+  TRIE_DOUBLE_TYPE,
+  TRIE_STRING_TYPE,
+  TRIE_GENERIC_TYPE
+} TRIE_TYPE;
 
 typedef struct trie_node
 {
@@ -23,12 +27,12 @@ typedef struct trie_node
 typedef struct trie_struct
 {
   TNODE *root;
-  int data_type;
+  TRIE_TYPE data_type;
   int generic_size;
   char *name;
 } TRIE;
 
-extern TRIE* getNewTrie ( int );
+extern TRIE* getNewTrie ( TRIE_TYPE );
 
 extern TRIE* setTrieGenericSize ( TRIE * , unsigned int );
 

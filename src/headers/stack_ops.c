@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "stack.h"
 
-STACK* getStack ( int data_type )
+STACK* getStack ( STACK_TYPE data_type )
 {
   STACK *s = NULL;
   s = malloc ( sizeof (STACK) );

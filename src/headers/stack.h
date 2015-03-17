@@ -2,20 +2,24 @@
 
 #define TRUE 1
 #define FALSE 0
-#define STACK_INT_TYPE 1
-#define STACK_DOUBLE_TYPE 2
-#define STACK_STRING_TYPE 3
-#define STACK_GENERIC_TYPE 4
+
+typedef enum stack_type
+{
+  STACK_INT_TYPE,
+  STACK_DOUBLE_TYPE,
+  STACK_STRING_TYPE,
+  STACK_GENERIC_TYPE
+} STACK_TYPE;
 
 typedef struct stack_struct
 {
   LINKEDLIST *stack;
-  int data_type;
+  STACK_TYPE data_type;
   int generic_size;
   int is_empty;
 } STACK;
 
-extern STACK* getStack ( int );
+extern STACK* getStack ( STACK_TYPE );
 
 extern STACK* setStackGenericSize ( STACK * , unsigned int );
 

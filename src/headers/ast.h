@@ -1,57 +1,61 @@
-#define AST_INT_TYPE 1
-#define AST_FLOAT_TYPE 2
-#define AST_STRING_TYPE 3
-#define AST_VERTEX_TYPE 4
-#define AST_EDGE_TYPE 5
-#define AST_GRAPH_TYPE 6
-#define AST_TREE_TYPE 7
+typedef enum ast_datatype
+{
+  AST_INT_TYPE,
+  AST_FLOAT_TYPE,
+  AST_STRING_TYPE,
+  AST_VERTEX_TYPE,
+  AST_EDGE_TYPE,
+  AST_GRAPH_TYPE,
+  AST_TREE_TYPE
+} AST_DATATYPE;
 
 typedef enum ast_type
 {
-  AST_PROGRAM_NODE             = 1,
-  AST_GLOBALDEFINES_NODE       = 2,
-  AST_GLOBALDEFINE_NODE        = 3,
-  AST_DATATYPE_NODE            = 4,
-  AST_VARIABLE_NODE            = 5,
-  AST_LET_NODE                 = 6,
-  AST_LITERAL_NODE             = 7,
-  AST_EDGELITERAL_NODE         = 8,
-  AST_FUNCTIONDEFINES_NODE     = 9,
-  AST_FUNCTION_NODE            = 10,
-  AST_QUALIFIEDPARAMETERS_NODE = 11,
-  AST_QUALIFIEDPARAMETER_NODE  = 12,
-  AST_BLOCK_NODE               = 13,
-  AST_RETURNSTMT_NODE          = 14,
-  AST_DEFINE_NODE              = 15,
-  AST_FOR_NODE                 = 16,
-  AST_READ_NODE                = 17,
-  AST_PRINT_NODE               = 18,
-  AST_FUNCTIONCALL_NODE        = 19,
-  AST_PARAMETER_NODE           = 20,
-  AST_IF_NODE                  = 21,
-  AST_ELSE_NODE                = 22,
-  AST_ELSEIF_NODE              = 23,
-  AST_BREAK_NODE               = 24,
-  AST_OREXP_NODE               = 25,
-  AST_ANDEXP_NODE              = 26,
-  AST_NOTEXP_NODE              = 27,
-  AST_LT_NODE                  = 28,
-  AST_GT_NODE                  = 29,
-  AST_LTE_NODE                 = 30,
-  AST_GTE_NODE                 = 31,
-  AST_EQ_NODE                  = 32,
-  AST_PLUS_NODE                = 33,
-  AST_MINUS_NODE               = 34,
-  AST_MUL_NODE                 = 35,
-  AST_DIV_NODE                 = 36,
-  AST_MOD_NODE                 = 37,
-  AST_DEPTH_NODE               = 38,
-  AST_BDFT_NODE                = 39
-} ASTNODETYPE;
+  AST_PROGRAM_NODE,
+  AST_MAINBODY_NODE,
+  AST_GLOBALDEFINES_NODE,
+  AST_GLOBALDEFINE_NODE,
+  AST_DATATYPE_NODE,
+  AST_VARIABLE_NODE,
+  AST_LET_NODE,
+  AST_LITERAL_NODE,
+  AST_EDGELITERAL_NODE,
+  AST_FUNCTIONDEFINES_NODE,
+  AST_FUNCTION_NODE,
+  AST_QUALIFIEDPARAMETERS_NODE,
+  AST_QUALIFIEDPARAMETER_NODE,
+  AST_BLOCK_NODE,
+  AST_RETURNSTMT_NODE,
+  AST_DEFINE_NODE,
+  AST_FOR_NODE,
+  AST_READ_NODE,
+  AST_PRINT_NODE,
+  AST_FUNCTIONCALL_NODE,
+  AST_PARAMETER_NODE,
+  AST_IF_NODE,
+  AST_ELSE_NODE,
+  AST_ELSEIF_NODE,
+  AST_BREAK_NODE,
+  AST_OREXP_NODE,
+  AST_ANDEXP_NODE,
+  AST_NOTEXP_NODE,
+  AST_LT_NODE,
+  AST_GT_NODE,
+  AST_LTE_NODE,
+  AST_GTE_NODE,
+  AST_EQ_NODE,
+  AST_PLUS_NODE,
+  AST_MINUS_NODE,
+  AST_MUL_NODE,
+  AST_DIV_NODE,
+  AST_MOD_NODE,
+  AST_DEPTH_NODE,
+  AST_BDFT_NODE,
+} AST_NODETYPE;
 
 typedef struct ast_node
 {
-  ASTNODETYPE node_type;
+  AST_NODETYPE node_type;
   char *name;
   int num_of_children;
   int child_id;
@@ -59,8 +63,8 @@ typedef struct ast_node
   struct ast_node **next;
   union
   {
-    int data_type;          // For DATATYPE node
-    int symboltable_index;  // For VARIABLE and LITERAL nodes
+    AST_DATATYPE data_type;     // For DATATYPE node
+    int symboltable_index;      // For VARIABLE and LITERAL nodes
   } extra_data;
 } ANODE;
 

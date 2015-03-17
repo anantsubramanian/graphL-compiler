@@ -1,9 +1,13 @@
 #define TRUE 1
 #define FALSE 0
-#define NONE 0
-#define TRAP 1
-#define ERROR 2
 #define TRANSITION_LIMIT 128
+
+typedef enum dfa_state_property
+{
+  NONE,
+  TRAP,
+  ERROR
+} DFA_STATE_PROPERTY;
 
 typedef struct state_struct
 {
@@ -41,7 +45,7 @@ extern STATE* getCurrentState ( DFA *dfa );
 
 extern STATE* peek ( DFA *dfa, char nextinp );
 
-extern STATE* setSpecialProperty ( STATE *state , int property );
+extern STATE* setSpecialProperty ( STATE *state , DFA_STATE_PROPERTY property );
 
 extern DFA* setCurrentState ( DFA *dfa, STATE *state );
 
@@ -53,5 +57,5 @@ extern STATE* resetTransition ( STATE *state, char input );
 
 extern DFA* initializeFromFile ( DFA *dfa, const char *filename );
 
-extern int getSpecialProperty ( STATE *state );
+extern DFA_STATE_PROPERTY getSpecialProperty ( STATE *state );
 

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "trie.h"
 
-TRIE* getNewTrie ( int data_type )
+TRIE* getNewTrie ( TRIE_TYPE data_type )
 {
   TRIE* trie = NULL;
   trie = malloc ( sizeof (TRIE) );
@@ -14,7 +14,7 @@ TRIE* getNewTrie ( int data_type )
     return NULL;
   }
 
-  if ( data_type < TR_INT_TYPE || data_type > TR_GENERIC_TYPE )
+  if ( data_type < TRIE_INT_TYPE || data_type > TRIE_GENERIC_TYPE )
   {
     fprintf ( stderr, "Invalid type for Trie\n" );
     return NULL;
@@ -198,15 +198,15 @@ TNODE* setValue ( TRIE * trie, TNODE *node, void * value )
     return NULL;
   }
 
-  if ( trie -> data_type == TR_INT_TYPE )
+  if ( trie -> data_type == TRIE_INT_TYPE )
   {
     node -> data . int_val = * ( (int *) value );
   }
-  else if ( trie -> data_type == TR_DOUBLE_TYPE )
+  else if ( trie -> data_type == TRIE_DOUBLE_TYPE )
   {
     node -> data . double_val = * ( (double *) value );
   }
-  else if ( trie -> data_type == TR_STRING_TYPE )
+  else if ( trie -> data_type == TRIE_STRING_TYPE )
   {
     char *strval = (char *) value;
     int len = strlen ( strval );

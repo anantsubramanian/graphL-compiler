@@ -177,7 +177,7 @@ STATE *getCurrentState ( DFA *dfa )
   return &( dfa->all_states[ dfa->current_state ] );
 }
 
-STATE *setSpecialProperty ( STATE *state, int property )
+STATE *setSpecialProperty ( STATE *state, DFA_STATE_PROPERTY property )
 {
   if ( state == NULL )
   {
@@ -185,7 +185,7 @@ STATE *setSpecialProperty ( STATE *state, int property )
     return NULL;
   }
 
-  if ( property < 0 || property > 2 )
+  if ( property < NONE || property > ERROR )
   {
     fprintf ( stderr, "Invalid property value for state\n" );
     return NULL;
@@ -642,7 +642,7 @@ STATE* peek ( DFA *dfa, char nextinp )
   return dfa->all_states[ dfa->current_state ].next_state[ (int) nextinp ];
 }
 
-int getSpecialProperty ( STATE *state )
+DFA_STATE_PROPERTY getSpecialProperty ( STATE *state )
 {
   if ( state == NULL )
   {

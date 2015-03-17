@@ -3,7 +3,7 @@
 #include <string.h>
 #include "linkedlist.h"
 
-LINKEDLIST* getLinkedList ( int data_type )
+LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE data_type )
 {
   LINKEDLIST *list = NULL;
   list = malloc ( sizeof ( LINKEDLIST ) );

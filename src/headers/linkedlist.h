@@ -1,9 +1,13 @@
 #define TRUE 1
 #define FALSE 0
-#define LL_INT_TYPE 1
-#define LL_DOUBLE_TYPE 2
-#define LL_STRING_TYPE 3
-#define LL_GENERIC_TYPE 4
+
+typedef enum linkedlist_type
+{
+  LL_INT_TYPE,
+  LL_DOUBLE_TYPE,
+  LL_STRING_TYPE,
+  LL_GENERIC_TYPE
+} LINKEDLIST_TYPE;
 
 typedef struct linkedlist_node
 {
@@ -20,12 +24,12 @@ typedef struct linkedlist_node
 typedef struct linkedlist
 {
   LNODE *head, *tail;
-  int data_type;
+  LINKEDLIST_TYPE data_type;
   int generic_size;
   char *name;
 } LINKEDLIST;
 
-extern LINKEDLIST* getLinkedList ( int );
+extern LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE );
 
 extern LINKEDLIST* setGenericSize ( LINKEDLIST * , unsigned int );
 
