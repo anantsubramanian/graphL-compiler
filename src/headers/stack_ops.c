@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "stack.h"
 
 STACK* getStack ( STACK_TYPE data_type )
@@ -173,6 +174,63 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
     else
       stack = push ( stack, (iterator.data.generic_val) );
   }
+
+  return stack;
+}
+
+STACK* pushReverseSpaceSeparatedWords ( STACK * stack, const char * wordlist )
+{
+  STACK *tempstack = NULL;
+  tempstack = getStack ( STACK_STRING_TYPE );
+
+  if ( stack == NULL )
+  {
+    fprintf ( stderr, "Attempting to push space separated words into non-existent stack\n" );
+    return NULL;
+  }
+
+  if ( wordlist == NULL )
+  {
+    fprintf ( stderr, "Attempting to push non-existent space separated word list on stack\n" );
+    return NULL;
+  }
+
+  if ( stack -> data_type != STACK_STRING_TYPE )
+  {
+    fprintf ( stderr, "Cannot insert space separated words list into non-string stack\n" );
+    return NULL;
+  }
+
+  int indx = 0;
+  int len = strlen ( wordlist );
+  char buffer [ len + 1 ];
+
+  do
+  {
+    while ( indx < len && wordlist [ indx ] <= 32 ) indx++;
+    if ( indx == len ) break;
+
+    int buffindx = 0;
+    while ( indx < len && wordlist [ indx ] > 32 )
+    {
+      buffer [ buffindx++ ] = wordlist [ indx ];
+      indx++;
+    }
+
+    buffer [ buffindx ] = '\0';
+
+    tempstack = push ( tempstack, buffer );
+  } while ( indx < len );
+
+  // Now reverse the contents by popping tempstack and pushing into stack
+  while ( !isEmpty ( tempstack ) )
+  {
+    stack = push ( stack, top ( tempstack ) );
+    tempstack = pop ( tempstack );
+  }
+
+  // We are done with tempstack, free the memory
+  free ( tempstack );
 
   return stack;
 }

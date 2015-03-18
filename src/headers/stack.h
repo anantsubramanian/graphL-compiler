@@ -35,3 +35,5 @@ extern void* top ( STACK * );
 
 extern STACK* insertFromLinkedList ( STACK * , LINKEDLIST * );
 
+extern STACK* pushReverseSpaceSeparatedWords ( STACK * , const char * );
+
