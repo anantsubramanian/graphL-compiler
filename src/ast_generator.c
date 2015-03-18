@@ -239,8 +239,8 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
 }
 
-AST* createAST ( FILE * parseroutput, int blocksize, AST *ast,
-                 TRIE *terminals )
+AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *auxdata,
+                 TRIE *nonterminals, TRIE *terminals )
 {
   ANODE *currnode = ast -> root;
 
@@ -300,16 +300,15 @@ int main ( )
     ********************************************************
    */
 
-
+  AST* ast = NULL;
+  ast = getNewAst ();
 
   TRIE *terminals = NULL, *nonterminals = NULL;
-  TRIE *nodetypemap = NULL;
   int terminalscount = 0, nonterminalscount = 0;
   int nodetypescount = 0;
 
   terminals = getNewTrie ( TRIE_INT_TYPE );
   nonterminals = getNewTrie ( TRIE_INT_TYPE );
-  nodetypemap = getNewTrie ( TRIE_INT_TYPE );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
   FILE *nodetypesfile = NULL;
@@ -326,7 +325,7 @@ int main ( )
 
   populateTrie ( tmapfile, blocksize, terminals, &terminalscount );
   populateTrie ( ntmapfile, blocksize, nonterminals, &nonterminalscount );
-  populateTrie ( nodetypesfile, blocksize, nodetypemap, &nodetypescount );
+  populateTrie ( nodetypesfile, blocksize, ast -> node_typemap, &nodetypescount );
 
   if ( fclose ( tmapfile ) != 0 )
     fprintf ( stderr, "Failed to close terminals index file\n" );
@@ -359,7 +358,7 @@ int main ( )
     return -1;
   }
 
-  getNodeInstructions ( instructionsfile, blocksize, instructions, auxdata, nodetypemap,
+  getNodeInstructions ( instructionsfile, blocksize, instructions, auxdata, ast -> node_typemap,
                         nonterminals, terminals );
 
   FILE *parseroutput = NULL;
@@ -371,10 +370,7 @@ int main ( )
     return -1;
   }
 
-  AST* ast = NULL;
-  ast = getNewAst ();
-
-  ast = createAST ( parseroutput, blocksize, ast, terminals );
+  ast = createAST ( parseroutput, blocksize, ast, auxdata, nonterminals, terminals );
 
   if ( fclose ( parseroutput ) != 0 )
   {

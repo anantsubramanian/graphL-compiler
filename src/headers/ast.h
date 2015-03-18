@@ -1,4 +1,4 @@
-#include "linkedlist.h"
+#include "stack.h"
 #include "trie.h"
 
 #define CREATE 8    // 1000b
