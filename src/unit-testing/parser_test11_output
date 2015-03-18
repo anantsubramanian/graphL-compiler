@@ -1,10 +1,10 @@
-Error at line 4: <TK_COMMA,1>
+Error at line 4: 
 	a 'Newline' not expected at this point
-Error at line 5: <TK_IDEN,1,1>
+Error at line 5: Function diameter() => Nothing:
 	Expected "->" but got = instead
-Error at line 19: <TK_IDEN,5,5>
+Error at line 19:   End
 	Expected "Begin" but got End instead
-Error at line 27: <TK_BEGIN,6>
+Error at line 27:   return Nothing
 	Expected "End" but got return instead
 Error at line 30:
 	Unexpected end to input program.

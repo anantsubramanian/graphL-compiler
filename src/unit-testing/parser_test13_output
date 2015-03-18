@@ -1,8 +1,8 @@
-Error at line 1: <TK_DEFINE,1>
+Error at line 1: Define Int a,b,c,,d
 	, not expected at this point
-Error at line 3: <TK_IDEN,0,1>
+Error at line 3: Let a be 2 * 3 ++ 5
 	+ not expected at this point
-Error at line 17: <TK_INTLIT,5,3>
+Error at line 17:   Print(" Precedence Fails" )
 	Expected "Begin" but got Print instead
-Error at line 20: <TK_INTLIT,6,3>
+Error at line 20: End
 	Trailing characters at the end of the program

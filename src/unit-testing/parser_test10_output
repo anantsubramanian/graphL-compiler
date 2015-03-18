@@ -1,12 +1,12 @@
-Error at line 3: <TK_IDEN,0,1>
+Error at line 3: Define e1
 	an Identifier e1 not expected at this point
-Error at line 6: <TK_VERTEX,2>
+Error at line 6: Let v be be 5
 	be not expected at this point
-Error at line 11: <TK_NEWLINE,4>
+Error at line 11: 
 	Expected "]" but got a 'Newline' instead
-Error at line 13: <TK_INT,4>
+Error at line 13:   Begin
 	Expected "End" but got Begin instead
-Error at line 14: <TK_IDEN,3,4>
+Error at line 14:     Print " Found an edge ")
 	Expected "(" but got a String literal " Found an edge " instead
-Error at line 16: <TK_LET,6>
+Error at line 16:   End
 	Trailing characters at the end of the program

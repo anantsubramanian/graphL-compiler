@@ -618,7 +618,10 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
               if ( ( tempnode = findString ( terminals, iterator.data.string_val ) )  != NULL )
               {
-                if ( tempnode -> data.int_val == identifierterm || tempnode -> data.int_val == stringlitterm || tempnode -> data.int_val == intlitterm || tempnode -> data.int_val == floatlitterm)
+                if ( tempnode -> data.int_val == identifierterm
+                     || tempnode -> data.int_val == stringlitterm
+                     || tempnode -> data.int_val == intlitterm
+                     || tempnode -> data.int_val == floatlitterm)
                   fprintf ( parseout, "<%s,%s,%d> ", iterator.data.string_val , attributes [ value ] , linenum );
                 else
                   fprintf ( parseout, "%s " , iterator.data.string_val );

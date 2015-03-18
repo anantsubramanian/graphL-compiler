@@ -3,11 +3,11 @@
 if [[ "$4" == "" ]]; then
   printf "\n\nTo avoid prompts during testing, considering running "
   printf "the script in the following way:\n\n"
-  printf "./run_unit_tests.sh numlex generatept? numparse numast\n"
+  printf "./run_unit_tests.sh numlex generatept? numparse numpst\n"
   printf "\nwhere:\n\tnumlex = Number of lexer test programs\n"
   printf "\tgeneratept? = 'y' if parse table needs to be generated/tested\n"
   printf "\tnumparse = Number of parser test programs\n"
-  printf "\tnumast = Number of AST generator test programs\n"
+  printf "\tnumpst = Number of Parse Tree generator test programs\n"
 fi
 
 # Start running unit tests
@@ -155,7 +155,7 @@ fi
 
 if [[ "$3" == "" ]]; then
   # Decide number of sample programs
-  printf "\nEnter the number of error-free programs in the testing folder: "
+  printf "\nEnter the number of parser test programs in the testing folder: "
   read numcases
 else
   # Argument 3 is the number of parser test programs
@@ -203,7 +203,7 @@ printf "\n-------------------------------------------------------\n\n"
 
 
 ##############################################
-#       Starting AST Generator Tests         #
+#    Starting Parse Tree Generator Tests     #
 ##############################################
 
 
@@ -212,12 +212,12 @@ if [[ "$4" == "" ]]; then
   printf "\nEnter the number of error-free parser tests in the testing folder: "
   read numcases
 else
-  # Argument 4 is the number of ast generator test programs
+  # Argument 4 is the number of pst generator test programs
   numcases=$4
 fi
 
 printf "\n\n-------------------------------------------------------\n"
-printf "Testing module AST generator:"
+printf "Testing module Parse Tree generator:"
 printf "\n-------------------------------------------------------\n\n"
 
 # Run required number of tests
@@ -226,12 +226,12 @@ for (( i = 1; i <= $numcases; i++ )); do
   printf "Running test $i... "
   cp unit-testing/parser_test${i}_output PARSEOUTPUT
 
-  result=$(./ast_generator 2>/dev/null)
+  result=$(./parsetree_generator 2>/dev/null)
 
-  if [[ "$result" != "AST successfully built" ]]; then
+  if [[ "$result" != "PARSETREE successfully built" ]]; then
     printf "FAILED!\n\n"
     printf "Errors reported:\n\n"
-    ./ast_generator
+    ./parsetree_generator
     printf "\n\n"
     exit
   fi
@@ -243,7 +243,7 @@ done
 
 printf "All tests passed!"
 printf "\n\n-------------------------------------------------------\n"
-printf "Testing module AST Generator complete."
+printf "Testing module Parse Tree Generator complete."
 printf "\n-------------------------------------------------------\n\n"
 
 # Done with all unit tests
