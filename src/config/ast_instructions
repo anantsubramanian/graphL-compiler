@@ -1,0 +1,87 @@
+# Lines with # are comments and are ignored
+# Format of instructions:
+#     *Top-of-the-stack*        *C(reate)/D(on't)*  *G(oto)/R(emain)*  *R(ead)/D(on't)*    *Type-of-AST-node*
+#
+# Start non-terminals
+<program>          CGR AST_PROGRAM_NODE
+<globaldefines>    CGR AST_GLOBALDEFINES_NODE
+<globaldefine>     CGR AST_GLOBALDEFINE_NODE
+<definestmt>       CGR AST_DEFINE_NODE
+<letstmt>          CGR AST_LET_NODE
+<assignable>       CGR AST_ASSIGNABLE_NODE
+<assignable1>      DRR
+<endassignable>    DRR
+<primitiveval>     DRR
+<datatype>         CGR AST_DATATYPE_NODE
+<identifier>       CGR AST_IDENTIFIER_NODE
+<fndefines>        CGR AST_FUNCTIONDEFINES_NODE
+<fnbody>           CGR AST_FUNCBODY_NODE
+<paramlist>        CGR AST_QUALIFIEDPARAMETERS_NODE
+<param>            CGR AST_QUALIFIEDPARAMETER_NODE
+<returntype>       CGR AST_RETURNTYPE_NODE
+<statements>       DPR
+<possiblestmts>    DRR
+<validstatement>   DRR
+<validconditional> DRR
+<input>            CGR AST_READ_NODE
+<output>           CGR AST_PRINT_NODE
+<boolresult>       CGR AST_COMPARE_NODE
+<boolexp>          CGR AST_BOOLEXP_NODE
+<exp>              CGR AST_EXP_NODE
+<mulexp>           DRR
+<modexp>           DRR
+<baseexp>          DRR
+<modexp1>          DRR
+<passedparams>     CGR AST_PASSEDPARAMS_NODE
+<exp1>             DCR e
+<boolexp1>         DCR e
+<expor1>           DRR
+<returnstmt>       CGR AST_RETURNSTMT_NODE
+<funcstmt>         CGR AST_FUNCTIONCALL_NODE
+<validconditional> CGR AST_IF_NODE
+<ifstmt>           DRR
+<block>            CGR AST_BLOCK_NODE
+<elseifblock>      DPR
+<elseifblock1>     DRR
+<iteration>        CGR AST_FOR_NODE
+<iterable>         DRR
+<iterop>           CGR AST_BDFT_NODE
+<operatorparams>   DRR
+#
+# Start terminals
+#
+TK_SQOPENPAREN     CGR AST_EDGECREATE_NODE
+TK_SQCLOSEPAREN    DPD
+TK_IDEN            DPD
+TK_INTLIT          CRD
+TK_FLOATLIT        CRD
+TK_STRINGLIT       CRD
+TK_AND             CGR AST_BOOLOP_NODE
+TK_OR              CGR AST_BOOLOP_NODE
+TK_NOT             CGR AST_BOOLOP_NODE
+TK_PLUS            CGR AST_AROP_NODE
+TK_MINUS           CGR AST_AROP_NODE
+TK_MUL             CGR AST_AROP_NODE
+TK_DIV             CGR AST_AROP_NODE
+TK_MODULO          CGR AST_AROP_NODE
+TK_DEPTH           CRD
+TK_CLOSEPAREN      DPD
+TK_ITERATIONS      DPD
+TK_IN              CRD AST_FORIN_NODE
+TK_BFT             DPD
+TK_DFT             DPD
+TK_ADJACENT        CRD AST_ADJTO_NODE
+TK_BE              DPD
+TK_COMMA           DCR <assignable>
+TK_DEST            CRD
+TK_SOURCE          CRD
+TK_DEST            CRD
+TK_WEIGHT          CRD
+TK_INT             DPD
+TK_FLOAT           DPD
+TK_STRING          DPD
+TK_VERTEX          DPD
+TK_EDGE            DPD
+TK_GRAPH           DPD
+TK_TREE            DPD
+TK_NOTHING         DCD TK_COLON
