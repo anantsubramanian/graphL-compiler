@@ -1,11 +1,11 @@
 #include "stack.h"
 #include "trie.h"
 
-#define CREATE 8    // 1000b
-#define GOTOCH 4    // 0100b
-#define PARENT 2    // 0010b
-#define CONDRD 6    // 0110b
-#define READ 1      // 0001b
+#define CREATE 16   // 10000b
+#define GOTOCH 8    // 01000b
+#define PARENT 4    // 00100b
+#define CONDRD 2    // 00010b
+#define READ 1      // 00001b
 
 typedef struct ast_node
 {

@@ -6,6 +6,7 @@
 <program>          CGR AST_PROGRAM_NODE
 <globaldefines>    CGR AST_GLOBALDEFINES_NODE
 <globaldefine>     CGR AST_GLOBALDEFINE_NODE
+<defineargs>       DRR
 <definestmt>       CGR AST_DEFINE_NODE
 <letstmt>          CGR AST_LET_NODE
 <assignable>       CGR AST_ASSIGNABLE_NODE
@@ -13,7 +14,10 @@
 <endassignable>    DRR
 <primitiveval>     DRR
 <datatype>         CGR AST_DATATYPE_NODE
+<complextype>      DRR
+<primitivetype>    DRR
 <identifier>       CGR AST_IDENTIFIER_NODE
+<moreidens>        DRR
 <fndefines>        CGR AST_FUNCTIONDEFINES_NODE
 <fnbody>           CGR AST_FUNCBODY_NODE
 <paramlist>        CGR AST_QUALIFIEDPARAMETERS_NODE

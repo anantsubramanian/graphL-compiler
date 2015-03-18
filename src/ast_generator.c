@@ -6,6 +6,8 @@
 
 #define BUFFERLEN 400
 #define INSTRLEN 5
+#define DIGSTART 48
+#define DIGEND 57
 #define NEWLINE '\n'
 #define COMMENT_START '#'
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
@@ -115,6 +117,60 @@ void printNodeType ( int type )
     case 29: printf ( "AST_ADJTO_NODE\n" );
             break;
   }
+}
+
+void extractTokenData ( char *inputtoken, char **token, char **name, int *linenumber )
+{
+  if ( inputtoken == NULL )
+  {
+    fprintf ( stderr, "Cannot extract non-existent token data\n" );
+    return;
+  }
+
+  int len = strlen ( inputtoken + 1 );
+
+  *token = malloc ( len * sizeof ( char ) );
+  *name = malloc ( len * sizeof ( char ) );
+  int i;
+
+  // Get token type
+
+  while ( i < len && inputtoken [i] != ',' ) i++;
+
+  if ( i == len )
+  {
+    fprintf ( stderr, "No auxiliary data seems to be present?\n" );
+    return;
+  }
+
+  inputtoken [i] = '\0';
+  strcpy ( *token, inputtoken + 1 );
+  i++;
+
+  int namestart = i;
+
+  // Get token name / value
+
+  while ( i < len && inputtoken [i] != ',' ) i++;
+
+  if ( i == len )
+  {
+    fprintf ( stderr, "Insufficient amount of auxiliary data\n" );
+    return;
+  }
+
+  inputtoken [i] = '\0';
+  strcpy ( *name, inputtoken + namestart );
+  i++;
+
+  // Get token line number
+  *linenumber = 0;
+
+  while ( i < len && inputtoken [i] >= DIGSTART && inputtoken [i] <= DIGEND )
+  {
+    *linenumber = ( (*linenumber) * 10 ) + ( inputtoken [i++] - DIGSTART );
+  }
+
 }
 
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
@@ -360,6 +416,19 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         char *topvalue = strdup ( ( char * ) top ( stack ) );
         stack = pop ( stack );
 
+        char *temptoken = NULL, *tokenname = NULL;
+        int linenumber = -1;
+        int hasLineNumber = 0;
+
+        // TODO: Anyway to make this jugaad cleaner?
+        if ( topvalue [0] == '<' && topvalue [1] == 'T' )
+        {
+          hasLineNumber = 1;
+          extractTokenData ( topvalue, &temptoken, &tokenname, &linenumber );
+          free ( topvalue );
+          topvalue = temptoken;
+        }
+
 
         if ( conditional_read == 1 )
         {
@@ -392,13 +461,14 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         // If there are no instructions for the current value, ignore it.
         if ( currentval == NULL )
         {
+          printf ( "*Ignoring %s*\n", topvalue );
           free ( topvalue );
           continue;
         }
 
         int instruction = currentval -> data . int_val;
 
-        if ( instruction & CREATE )
+        if ( (instruction & CREATE) == CREATE )
         {
           // If we have to create a node, examine the type of node to be created
           TNODE *typeofnode = findString ( auxdata, topvalue );
@@ -410,37 +480,44 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           }
 
           int type_to_create = typeofnode -> data . int_val;
+
+          printf ( "At node " );
+          printNodeType ( currnode -> node_type );
           currnode = addChild ( currnode, type_to_create, instruction );
 
-          printf ( "%s\n", topvalue );
+          printf ( "Got %s so creating: ", topvalue );
           printNodeType ( type_to_create );
           printf ( "\n\n" );
 
           // currnode is now either the same node, child, or parent depending on
           // the instruction. If the instruction says read, then we break.
-          if ( instruction & READ )
+          if ( (instruction & READ) == READ )
           {
             free ( topvalue );
             break;
           }
         }
-        else if ( instruction & GOTOCH )
+        else if ( (instruction & GOTOCH) == GOTOCH )
         {
           fprintf ( stderr, "Instruction says goto child, but no child was created. So which child?\n" );
           return NULL;
         }
-        else if ( instruction & PARENT )
+        else if ( (instruction & PARENT) == PARENT )
         {
+          printf ( "At node " );
+          printNodeType ( currnode -> node_type );
+          printf ( "Got %s so ", topvalue );
+          printf ( "Going to parent\n" );
           currnode = getParent ( currnode );
 
           // If the instruction says read, we should break
-          if ( instruction & READ )
+          if ( (instruction & READ) == READ )
           {
             free ( topvalue );
             break;
           }
         }
-        else if ( instruction & CONDRD )
+        else if ( (instruction & CONDRD) == CONDRD )
         {
           // Instruction is a conditional read
           // Set the conditional read flag and value so that
@@ -460,8 +537,12 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           free ( topvalue );
           break;
         }
-        else if ( instruction & READ )
+        else if ( (instruction & READ) == READ )
         {
+          printf ( "At node " );
+          printNodeType ( currnode -> node_type );
+          printf ( "Got %s so ", topvalue );
+          printf ( "Reading next input...\n" );
           free ( topvalue );
           break;
         }
