@@ -83,6 +83,8 @@ AST* addTypeMap ( AST *ast, const char *name, int value )
 
   insertedNode -> data . int_val = value;
 
+  ast -> num_types ++;
+
   return ast;
 }
 
