@@ -243,17 +243,17 @@ int createProperty ( char *instruction )
   int property = 0;
 
   if ( instruction [0] == 'C' )
-    property &= CREATE;
+    property |= CREATE;
 
   if ( instruction [1] == 'G' )
-    property &= GOTOCH;
+    property |= GOTOCH;
   else if ( instruction [1] == 'P' )
-    property &= PARENT;
+    property |= PARENT;
   else if ( instruction [1] == 'C' )
-    property &= CONDRD;
+    property |= CONDRD;
 
   if ( instruction [2] == 'R' )
-    property &= READ;
+    property |= READ;
 
   return property;
 }
