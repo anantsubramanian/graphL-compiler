@@ -180,7 +180,7 @@ int main ( )
 
   /*********************************************************
     *                                                      *
-    *        PHASE 2 : Build PARSETREE from parser output        *
+    *     PHASE 2 : Build PARSETREE from parser output     *
     *                                                      *
     ********************************************************
    */
