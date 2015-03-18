@@ -4,11 +4,12 @@
 #
 # Start non-terminals
 <program>          CGR AST_PROGRAM_NODE
-<globaldefines>    CGR AST_GLOBALDEFINES_NODE
+<globaldefines>    DPR
 <globaldefine>     CGR AST_GLOBALDEFINE_NODE
 <defineargs>       DRR
 <definestmt>       CGR AST_DEFINE_NODE
 <letstmt>          CGR AST_LET_NODE
+<equatable>        DRR
 <assignable>       CGR AST_ASSIGNABLE_NODE
 <assignable1>      DRR
 <endassignable>    DRR
@@ -18,7 +19,7 @@
 <primitivetype>    DRR
 <identifier>       CGR AST_IDENTIFIER_NODE
 <moreidens>        DRR
-<fndefines>        CGR AST_FUNCTIONDEFINES_NODE
+<fndefines>        DRR
 <fnbody>           CGR AST_FUNCBODY_NODE
 <paramlist>        CGR AST_QUALIFIEDPARAMETERS_NODE
 <param>            CGR AST_QUALIFIEDPARAMETER_NODE
@@ -50,16 +51,18 @@
 <iteration>        CGR AST_FOR_NODE
 <iterable>         DRR
 <iterop>           CGR AST_BDFT_NODE
+<literal>          DRR
 <operatorparams>   DRR
 #
 # Start terminals
 #
+TK_FUNCTION        CGD AST_FUNCTION_NODE
 TK_SQOPENPAREN     CGR AST_EDGECREATE_NODE
 TK_SQCLOSEPAREN    DPD
 TK_IDEN            DPD
-TK_INTLIT          CRD
-TK_FLOATLIT        CRD
-TK_STRINGLIT       CRD
+TK_INTLIT          CRD AST_LITERAL_NODE
+TK_FLOATLIT        CRD AST_LITERAL_NODE
+TK_STRINGLIT       CRD AST_LITERAL_NODE
 TK_AND             CGR AST_BOOLOP_NODE
 TK_OR              CGR AST_BOOLOP_NODE
 TK_NOT             CGR AST_BOOLOP_NODE
@@ -68,7 +71,7 @@ TK_MINUS           CGR AST_AROP_NODE
 TK_MUL             CGR AST_AROP_NODE
 TK_DIV             CGR AST_AROP_NODE
 TK_MODULO          CGR AST_AROP_NODE
-TK_DEPTH           CRD
+TK_DEPTH           CRD AST_DEPTH_NODE
 TK_CLOSEPAREN      DPD
 TK_ITERATIONS      DPD
 TK_IN              CRD AST_FORIN_NODE
@@ -76,11 +79,10 @@ TK_BFT             DPD
 TK_DFT             DPD
 TK_ADJACENT        CRD AST_ADJTO_NODE
 TK_BE              DPD
-TK_COMMA           DCR <assignable>
-TK_DEST            CRD
-TK_SOURCE          CRD
-TK_DEST            CRD
-TK_WEIGHT          CRD
+TK_COMMA           DCD <assignable>
+TK_DEST            CRD AST_DEST_NODE
+TK_SOURCE          CRD AST_SOURCE_NODE
+TK_WEIGHT          CRD AST_WEIGHT_NODE
 TK_INT             DPD
 TK_FLOAT           DPD
 TK_STRING          DPD

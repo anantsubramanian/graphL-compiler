@@ -27,7 +27,7 @@
 #define AST_ASSIGNABLE_NODE 5
 #define AST_DATATYPE_NODE 6
 #define AST_IDENTIFIER_NODE 7
-#define AST_FUNCTIONDEFINES_NODE 8
+#define AST_FUNCTION_NODE 8
 #define AST_FUNCBODY_NODE 9
 #define AST_QUALIFIEDPARAMETERS_NODE 10
 #define AST_QUALIFIEDPARAMETER_NODE 11
@@ -49,6 +49,11 @@
 #define AST_AROP_NODE 27
 #define AST_FORIN_NODE 28
 #define AST_ADJTO_NODE 29
+#define AST_LITERAL_NODE 30
+#define AST_DEPTH_NODE 31
+#define AST_DEST_NODE 32
+#define AST_SOURCE_NODE 33
+#define AST_WEIGHT_NODE 34
 
 // End AST node types #defines
 
@@ -72,50 +77,60 @@ void printNodeType ( int type )
             break;
     case 7: printf ( "AST_IDENTIFIER_NODE\n" );
             break;
-    case 8: printf ( "AST_FUNCTIONDEFINES_NODE\n" );
+    case 8: printf ( "AST_FUNCTION_NODE\n" );
             break;
     case 9: printf ( "AST_FUNCBODY_NODE\n" );
             break;
     case 10: printf ( "AST_QUALIFIEDPARAMETERS_NODE\n" );
-            break;
+             break;
     case 11: printf ( "AST_QUALIFIEDPARAMETER_NODE\n" );
-            break;
+             break;
     case 12: printf ( "AST_RETURNTYPE_NODE\n" );
-            break;
+             break;
     case 13: printf ( "AST_READ_NODE\n" );
-            break;
+             break;
     case 14: printf ( "AST_PRINT_NODE\n" );
-            break;
+             break;
     case 15: printf ( "AST_COMPARE_NODE\n" );
-            break;
+             break;
     case 16: printf ( "AST_BOOLEXP_NODE\n" );
-            break;
+             break;
     case 17: printf ( "AST_EXP_NODE\n" );
-            break;
+             break;
     case 18: printf ( "AST_PASSEDPARAMS_NODE\n" );
-            break;
+             break;
     case 19: printf ( "AST_RETURNSTMT_NODE\n" );
-            break;
+             break;
     case 20: printf ( "AST_FUNCTIONCALL_NODE\n" );
-            break;
+             break;
     case 21: printf ( "AST_IF_NODE\n" );
-            break;
+             break;
     case 22: printf ( "AST_BLOCK_NODE\n" );
-            break;
+             break;
     case 23: printf ( "AST_FOR_NODE\n" );
-            break;
+             break;
     case 24: printf ( "AST_BDFT_NODE\n" );
-            break;
+             break;
     case 25: printf ( "AST_EDGECREATE_NODE\n" );
-            break;
+             break;
     case 26: printf ( "AST_BOOLOP_NODE\n" );
-            break;
+             break;
     case 27: printf ( "AST_AROP_NODE\n" );
-            break;
+             break;
     case 28: printf ( "AST_FORIN_NODE\n" );
-            break;
+             break;
     case 29: printf ( "AST_ADJTO_NODE\n" );
-            break;
+             break;
+    case 30: printf ( "AST_LITERAL_NODE\n" );
+             break;
+    case 31: printf ( "AST_DEPTH_NODE\n" );
+             break;
+    case 32: printf ( "AST_DEST_NODE\n" );
+             break;
+    case 33: printf ( "AST_SOURCE_NODE\n" );
+             break;
+    case 34: printf ( "AST_WEIGHT_NODE\n" );
+             break;
   }
 }
 
@@ -382,6 +397,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int tokencounter = 0;
 
   int conditional_read = 0;
+  int conditional_pop = 0;
   int conditional_value = -1;
 
   while ( TRUE )
@@ -430,10 +446,11 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
 
 
-        if ( conditional_read == 1 )
+        if ( conditional_read == 1 || conditional_pop == 1 )
         {
           // If the previous value was a conditional read we may need to go to currnode's parent
           conditional_read = 0;
+          conditional_pop = 0;
 
           // The conditional read may be on a terminal or on a non-terminal. Check both.
           // Simplifying assumption - the IDs for the non-terminals and terminals are unique.
@@ -446,6 +463,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             currnode = getParent ( currnode );
           else if ( nontermval != NULL && nontermval -> data . int_val == conditional_value )
             currnode = getParent ( currnode );
+          else
+            printf ( "Conditional read unsuccessful\n" );
 
           // Don't break as the topvalue should be processed even on conditional read
           // but do reset the conditional_value
@@ -508,7 +527,11 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           printNodeType ( currnode -> node_type );
           printf ( "Got %s so ", topvalue );
           printf ( "Going to parent\n" );
-          currnode = getParent ( currnode );
+
+          if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
+            fprintf ( stderr, "Parent is null, so remaining at same node\n" );
+          else
+            currnode = getParent ( currnode );
 
           // If the instruction says read, we should break
           if ( (instruction & READ) == READ )
@@ -519,10 +542,18 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & CONDRD) == CONDRD )
         {
+          printf ( "At node " );
+          printNodeType ( currnode -> node_type );
+          printf ( "Got %s so ", topvalue );
+          printf ( "conditionally reading/popping next value %d\n", instruction );
           // Instruction is a conditional read
           // Set the conditional read flag and value so that
           // currnode will be changed to parent on that value
-          conditional_read = 1;
+
+          if ( (instruction & READ) == READ )
+            conditional_read = 1;
+          else
+            conditional_pop = 1;
 
           TNODE *cond_value = findString ( auxdata, topvalue );
           if ( cond_value == NULL )
@@ -533,9 +564,13 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
           conditional_value = cond_value -> data . int_val;
 
-          // Break so a read will occur
-          free ( topvalue );
-          break;
+          if ( (instruction & READ) == READ )
+          {
+            // Break so a read will occur
+            free ( topvalue );
+            break;
+          }
+          printf ( "Not breaking\n" );
         }
         else if ( (instruction & READ) == READ )
         {
