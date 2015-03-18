@@ -17,6 +17,7 @@ AST* getNewAst ()
   }
 
   ast -> name = NULL;
+  ast -> num_types = 0;
   ast -> root = malloc ( sizeof ( ANODE ) );
   if ( ast -> root == NULL )
   {
@@ -27,9 +28,8 @@ AST* getNewAst ()
   // Initialize root with parent as NULL
   initializeAstNode ( ast->root, NULL );
 
-  // Set root's num children to sentinel value
-  ast -> root -> num_of_children = -1;
-  ast -> root -> child_id = 0;
+  ast -> node_typemap = NULL;
+  ast -> node_typemap = getNewTrie ( TRIE_INT_TYPE );
 
   return ast;
 }
@@ -63,6 +63,52 @@ AST* setAstName ( AST *ast, const char *name )
   return ast;
 }
 
+AST* addTypeMap ( AST *ast, const char *name, int value )
+{
+  // Assumes mapping being added doesn't exist in the typemap
+  if ( ast == NULL )
+  {
+    fprintf ( stderr, "Cannot add type mapping to non-existent AST\n" );
+    return NULL;
+  }
+
+  if ( name == NULL )
+  {
+    fprintf ( stderr, "Cannot add type mapping for non-existent string\n" );
+    return NULL;
+  }
+
+  TNODE *insertedNode = NULL;
+  insertedNode = insertString ( ast -> node_typemap , name );
+
+  insertedNode -> data . int_val = value;
+
+  return ast;
+}
+
+int getMapValue ( AST *ast, const char *name )
+{
+  if ( ast == NULL )
+  {
+    fprintf ( stderr, "Cannot get type mapping from non-existent AST\n" );
+    return -1;
+  }
+
+  if ( name == NULL )
+  {
+    fprintf ( stderr, "Cannot get type mapping for non-existent string\n" );
+    return -1;
+  }
+
+  TNODE *foundNode = NULL;
+  foundNode = findString ( ast -> node_typemap, name );
+
+  if ( foundNode == NULL )
+    return -1;
+
+  return foundNode -> data . int_val;
+}
+
 ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
 {
   if ( node == NULL )
@@ -72,10 +118,25 @@ ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
   }
 
   node -> name = NULL;
-  node -> num_of_children = -1;
-  node -> child_id = -1;
+  node -> node_type = -1;
+  node -> num_of_children = 0;
   node -> parent = parent;
-  node -> next = NULL;
+  node -> children = getLinkedList ( LL_GENERIC_TYPE );
+  node -> children = setGenericSize ( node -> children, sizeof ( ANODE * ) );
+  node -> extra_data . data_type = 0;
+
+  return node;
+}
+
+ANODE* setNodeType ( ANODE *node, int type )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot set node type for non-existent node\n" );
+    return NULL;
+  }
+
+  node -> node_type = type;
 
   return node;
 }
@@ -111,210 +172,87 @@ ANODE* setAstNodeName ( ANODE *node, const char *str )
   return node;
 }
 
-ANODE* setNumChildren ( ANODE *node, int value )
+ANODE* getParent ( ANODE *node )
 {
   if ( node == NULL )
   {
-    fprintf ( stderr, "Attempting to set value of non-existent node\n" );
+    fprintf ( stderr, "Cannot get parent of non-existent node\n" );
     return NULL;
   }
 
-  if ( value <= 0 )
-    fprintf ( stderr, "Attempting to set AST node's num children <= 0\n" );
-
-  // If the node already has children, free them
-  if ( node -> num_of_children != -1 )
-  {
-    int i;
-    for ( i = 0; i < node -> num_of_children; i++ )
-    {
-      free ( node -> next [i] );
-      node -> next [i] = NULL;
-    }
-  }
-
-  node -> num_of_children = value;
-  return node;
+  return node -> parent;
 }
 
-ANODE* allocateChildren ( ANODE * node )
+ANODE* addChild ( ANODE *node, int type, int action )
 {
   if ( node == NULL )
   {
-    fprintf ( stderr, "Invalid location provided for iterator\n" );
+    fprintf ( stderr, "Cannot add child to non-existent node\n" );
     return NULL;
   }
 
-  if ( node -> num_of_children == -1 )
+  node -> num_of_children ++;
+
+  ANODE* newChild = NULL;
+  newChild = malloc ( sizeof ( ANODE ) );
+
+  if ( newChild == NULL )
   {
-  	fprintf ( stderr, "Set the number of children before calling for allocation\n" );
+    fprintf ( stderr, "Failed to allocate memory for AST child\n" );
     return NULL;
   }
 
-  if ( node -> num_of_children <= 0 )
+  newChild = initializeAstNode ( newChild, node );
+  newChild -> node_type = type;
+
+  // Copy the address data from the pointer to the created node
+  // into the linkedlist, i.e., a linked list of pointers
+  // of void type. Should be dereferenced as pointers of ANODE*
+  // type and then they are pointers to child nodes
+  node -> children = insertAtBack ( node -> children, & newChild );
+
+  if ( action & GOTOCH )
+    return newChild;
+  else if ( action & PARENT )
   {
-    fprintf ( stderr, "Cannot allocate negative number of children for AST node\n" );
-    return NULL;
-  }
-
-  // If next array has already been populated, free it
-  if ( node -> next != NULL )
-    free ( node -> next );
-
-  node -> next = malloc ( (node -> num_of_children) * sizeof (ANODE *) );
-
-  int i;
-  for( i = 0 ; i < node -> num_of_children ; i++)
-  {
-    node -> next [i] = NULL;
-    node -> next [i] = malloc ( sizeof ( ANODE ) );
-    if ( node -> next [i] == NULL )
-    {
-      fprintf ( stderr, "Failed to allocate memory for child" );
-      return NULL;
-    }
-
-    initializeAstNode ( node -> next [i], node );
-    node -> next [i] -> child_id = i;
-  }
-
-  return node;
-}
-
-ANODE* insertSpaceSeparatedWords ( ANODE * node, char * wordlist )
-{
-  if ( node == NULL )
-  {
-    fprintf ( stderr, "Attempting to insert space sep. words into non-existent node\n" );
-    return NULL;
-  }
-
-  int indx = 0, i = 0;
-  int nodecount = 0;
-  int len = 0, spacecount = 0;
-  int last_was_space = 0;
-
-  // Count spaces and maximum token length
-  while ( wordlist [i] != '\0' )
-  {
-    if ( wordlist [ i++ ] <= 32 )
-    {
-      last_was_space = 1;
-      spacecount++;
-      while ( wordlist [i] != '\0' && wordlist [ i ] <= 32 ) i++;
-    }
-    else
-      last_was_space = 0;
-
-    len++;
-  }
-
-  // Set the number of children as spaces / spaces + 1 depending on last char
-  node = setNumChildren ( node, last_was_space ? spacecount : spacecount + 1 );
-  node = allocateChildren ( node );
-
-  char buffer [ len + 1 ];
-
-  do
-  {
-    while ( indx < len && wordlist [ indx ] <= 32 ) indx++;
-    if ( indx == len ) break;
-
-    int buffindx = 0;
-    while ( indx < len && wordlist [ indx ] > 32 )
-    {
-      buffer [ buffindx++ ] = wordlist [ indx ];
-      indx++;
-    }
-    buffer [ buffindx ] = '\0';
-
-    setAstNodeName ( node -> next [nodecount++] , buffer );
-
-  } while ( indx < len );
-
-  return node;
-}
-
-ANODE* getLeftMostDesc ( ANODE *node )
-{
-  if ( node == NULL )
-  {
-    fprintf ( stderr, "Cannot get left-most descendent of a non-existent node\n" );
-    return NULL;
-  }
-
-  while ( node -> next != NULL )
-  {
-    node = node -> next [0];
-    if ( node == NULL )
-    {
-      fprintf ( stderr, "Potential error, tree might have been populated incorrectly\n" );
-      return NULL;
-    }
-  }
-
-  return node;
-}
-
-ANODE* getNextPreOrder ( ANODE *node )
-{
-  if ( node == NULL )
-  {
-    fprintf ( stderr, "Cannot get next pre-order of non-existent node\n" );
-    return NULL;
-  }
-
-  if ( node -> next == NULL )
-  {
-    // Is a leaf node
     if ( node -> parent == NULL )
-    {
-      fprintf ( stderr, "Leaf node has no parent? Either root or a weird tree\n" );
-      return NULL;
-    }
-
-    if ( node -> child_id < ( node -> parent -> num_of_children - 1 ) )
-    {
-      // Node has a sibling that should be visited next
-      int this_id = node -> child_id;
-      node = node -> parent;
-
-      // Return the left-most descendent of the next ordered sibling of node
-      return getLeftMostDesc ( node -> next [ this_id + 1 ] );
-    }
+      return node;
     else
-    {
-      // Node is a last leaf child, find its ancestor which is not a last child
-      // and get the left most desc of its next ordered sibling
-      do
-      {
-        node = node -> parent;
-        if ( node == NULL || node -> parent == NULL )
-        {
-          fprintf ( stderr, "No next pre order node exists\n" );
-          return NULL;
-        }
-
-        if ( node -> child_id < ( node -> parent -> num_of_children - 1 ) )
-        {
-          // Found the required ancestor
-          int this_id = node -> child_id;
-          node = node -> parent;
-
-          return getLeftMostDesc ( node -> next [ this_id + 1 ] );
-        }
-      } while ( TRUE );
-    }
+      return node -> parent;
   }
   else
+    return node;
+}
+
+int createProperty ( char *instruction )
+{
+  if ( instruction == NULL )
   {
-    fprintf ( stderr, "Passed node is an internal node, should be a leaf node\n" );
-    return NULL;
+    fprintf ( stderr, "Cannot get property from non-existent instruction string\n" );
+    return -1;
   }
 
-  // If for some reason this line gets exectued, then our programming system
-  // has broken down, C has failed us, so the return value is the least of our
-  // concerns..
-  return getLeftMostDesc ( node );
+  if ( strlen ( instruction ) < 3 )
+  {
+    fprintf ( stderr, "Cannot get property as the length of the instruction is not 3\n" );
+    return -1;
+  }
+
+  int property = 0;
+
+  if ( instruction [0] == 'C' )
+    property &= CREATE;
+
+  if ( instruction [1] == 'G' )
+    property &= GOTOCH;
+  else if ( instruction [1] == 'P' )
+    property &= PARENT;
+  else if ( instruction [1] == 'C' )
+    property &= CONDRD;
+
+  if ( instruction [2] == 'R' )
+    property &= READ;
+
+  return property;
 }
 
