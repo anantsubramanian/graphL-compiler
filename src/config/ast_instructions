@@ -12,7 +12,7 @@
 <assignable>       CGR AST_ASSIGNABLE_NODE
 <assignable1>      DCR e
 <endassignable>    CGR AST_ENDASSIGN_NODE
-<primitiveval>     DRR
+<primitiveval>     DCR e
 <datatype>         CGR AST_DATATYPE_NODE
 <complextype>      DRR
 <primitivetype>    DRR
@@ -60,7 +60,7 @@
 # Start terminals
 #
 TK_FUNCTION        CGD AST_FUNCTION_NODE
-TK_SQOPENPAREN     CGR AST_EDGECREATE_NODE
+TK_SQOPENPAREN     CGD AST_EDGECREATE_NODE
 TK_SQCLOSEPAREN    DPD
 TK_IDEN            DPD
 TK_INTLIT          CRD AST_LITERAL_NODE
@@ -92,7 +92,6 @@ TK_VERTEX          DPD
 TK_EDGE            DPD
 TK_GRAPH           DPD
 TK_TREE            DPD
-TK_NOTHING         DCD TK_COLON
 TK_MEMBEROP        CRD AST_MEMBEROP_NODE
 TK_BREAK           DPD
 @@@@
@@ -122,3 +121,7 @@ AST_FUNCTION_NODE             1 PD <fndefines>
 AST_EDGECREATE_NODE           1 PD TK_COMMA
 AST_PASSEDPARAMS_NODE         1 PD TK_CLOSEPAREN
 AST_EXP_NODE                  2 PD <statements>
+AST_AROP_NODE                 0 PR <exp>
+AST_EXP_NODE                  3 PR <exp>
+AST_ASSIGNABLE_NODE           1 PD TK_COMMA
+AST_ASSIGNABLE_NODE           1 PD TK_SQCLOSEPAREN
