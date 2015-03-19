@@ -16,6 +16,9 @@
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
 
+#define PROPERTY_PARENT 1
+#define PROPERTY_READ 2
+
 // A consistent mapping between these #defines and the AST_NODETYPES_FILE
 // must be maintained.
 
@@ -54,84 +57,91 @@
 #define AST_DEST_NODE 32
 #define AST_SOURCE_NODE 33
 #define AST_WEIGHT_NODE 34
+#define AST_ASSIGNFUNC_NODE 35
+#define AST_MEMBEROP_NODE 36
+#define AST_ROOT_NODE 37
+#define AST_ENDASSIGN_NODE 38
+#define AST_BREAK_NODE 39
 
 // End AST node types #defines
 
-void printNodeType ( int type )
+char nodeTypes[][30] = {
+
+  "AST_PROGRAM_NODE",
+  "AST_GLOBALDEFINES_NODE",
+  "AST_GLOBALDEFINE_NODE",
+  "AST_DEFINE_NODE",
+  "AST_LET_NODE",
+  "AST_ASSIGNABLE_NODE",
+  "AST_DATATYPE_NODE",
+  "AST_IDENTIFIER_NODE",
+  "AST_FUNCTION_NODE",
+  "AST_FUNCBODY_NODE",
+  "AST_QUALIFIEDPARAMETERS_NODE",
+  "AST_QUALIFIEDPARAMETER_NODE",
+  "AST_RETURNTYPE_NODE",
+  "AST_READ_NODE",
+  "AST_PRINT_NODE",
+  "AST_COMPARE_NODE",
+  "AST_BOOLEXP_NODE",
+  "AST_EXP_NODE",
+  "AST_PASSEDPARAMS_NODE",
+  "AST_RETURNSTMT_NODE",
+  "AST_FUNCTIONCALL_NODE",
+  "AST_IF_NODE",
+  "AST_BLOCK_NODE",
+  "AST_FOR_NODE",
+  "AST_BDFT_NODE",
+  "AST_EDGECREATE_NODE",
+  "AST_BOOLOP_NODE",
+  "AST_AROP_NODE",
+  "AST_FORIN_NODE",
+  "AST_ADJTO_NODE",
+  "AST_LITERAL_NODE",
+  "AST_DEPTH_NODE",
+  "AST_DEST_NODE",
+  "AST_SOURCE_NODE",
+  "AST_WEIGHT_NODE",
+  "AST_ASSIGNFUNC_NODE",
+  "AST_MEMBEROP_NODE",
+  "AST_ROOT_NODE",
+  "AST_ENDASSIGN_NODE",
+  "AST_BREAK_NODE",
+  ""
+};
+
+typedef struct property_data
 {
-  switch ( type )
+  int jumps;
+  int instruction;
+} PROPERTY;
+
+int makeTrieProperty ( char *instr )
+{
+  if ( instr == NULL )
   {
-    case 0: printf ( "AST_PROGRAM_NODE\n" );
-            break;
-    case 1: printf ( "AST_GLOBALDEFINES_NODE\n" );
-            break;
-    case 2: printf ( "AST_GLOBALDEFINE_NODE\n" );
-            break;
-    case 3: printf ( "AST_DEFINE_NODE\n" );
-            break;
-    case 4: printf ( "AST_LET_NODE\n" );
-            break;
-    case 5: printf ( "AST_ASSIGNABLE_NODE\n" );
-            break;
-    case 6: printf ( "AST_DATATYPE_NODE\n" );
-            break;
-    case 7: printf ( "AST_IDENTIFIER_NODE\n" );
-            break;
-    case 8: printf ( "AST_FUNCTION_NODE\n" );
-            break;
-    case 9: printf ( "AST_FUNCBODY_NODE\n" );
-            break;
-    case 10: printf ( "AST_QUALIFIEDPARAMETERS_NODE\n" );
-             break;
-    case 11: printf ( "AST_QUALIFIEDPARAMETER_NODE\n" );
-             break;
-    case 12: printf ( "AST_RETURNTYPE_NODE\n" );
-             break;
-    case 13: printf ( "AST_READ_NODE\n" );
-             break;
-    case 14: printf ( "AST_PRINT_NODE\n" );
-             break;
-    case 15: printf ( "AST_COMPARE_NODE\n" );
-             break;
-    case 16: printf ( "AST_BOOLEXP_NODE\n" );
-             break;
-    case 17: printf ( "AST_EXP_NODE\n" );
-             break;
-    case 18: printf ( "AST_PASSEDPARAMS_NODE\n" );
-             break;
-    case 19: printf ( "AST_RETURNSTMT_NODE\n" );
-             break;
-    case 20: printf ( "AST_FUNCTIONCALL_NODE\n" );
-             break;
-    case 21: printf ( "AST_IF_NODE\n" );
-             break;
-    case 22: printf ( "AST_BLOCK_NODE\n" );
-             break;
-    case 23: printf ( "AST_FOR_NODE\n" );
-             break;
-    case 24: printf ( "AST_BDFT_NODE\n" );
-             break;
-    case 25: printf ( "AST_EDGECREATE_NODE\n" );
-             break;
-    case 26: printf ( "AST_BOOLOP_NODE\n" );
-             break;
-    case 27: printf ( "AST_AROP_NODE\n" );
-             break;
-    case 28: printf ( "AST_FORIN_NODE\n" );
-             break;
-    case 29: printf ( "AST_ADJTO_NODE\n" );
-             break;
-    case 30: printf ( "AST_LITERAL_NODE\n" );
-             break;
-    case 31: printf ( "AST_DEPTH_NODE\n" );
-             break;
-    case 32: printf ( "AST_DEST_NODE\n" );
-             break;
-    case 33: printf ( "AST_SOURCE_NODE\n" );
-             break;
-    case 34: printf ( "AST_WEIGHT_NODE\n" );
-             break;
+    fprintf ( stderr, "Cannot make property from non-existent instruction\n" );
+    return -1;
   }
+
+  if ( strlen ( instr ) < 2 )
+  {
+    fprintf ( stderr, "Instruction should be 2 characters in length\n" );
+    return -1;
+  }
+
+  int result = 0;
+  if ( instr [0] == 'P' )
+    result |= PROPERTY_PARENT;
+  if ( instr [1] == 'R' )
+    result |= PROPERTY_READ;
+
+  return result;
+}
+
+char* getNodeTypeName ( int type )
+{
+  return nodeTypes [type];
 }
 
 void extractTokenData ( char *inputtoken, char **token, char **name, int *linenumber )
@@ -244,7 +254,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 
 void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instructions,
                            TRIE *auxdata, TRIE *nodetypemap, TRIE *nonterminals,
-                           TRIE *terminals )
+                           TRIE *terminals, TRIE *properties )
 {
   char c;
 
@@ -252,6 +262,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
   char token [ BUFFERLEN ];
   char instr [ INSTRLEN ];
   char extradata [ BUFFERLEN ];
+  int num_jumps = 0;
 
   int charindx = -1;
   int curbuff = -1;
@@ -264,6 +275,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
   int isfirst = 1;
   int incomment = 0;
+  int started_properties = 0;
   int prevspace = 0;
 
   while ( TRUE )
@@ -289,54 +301,93 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
     if ( c == NEWLINE )
     {
+      if ( token [0] == '@' )
+      {
+        started_properties = 1;
+        incomment = 0;
+        isfirst = 1;
+        toriore = 0;
+        tokencounter = 0;
+        continue;
+      }
       if ( incomment != 1 )
       {
-        // Is a valid line to parse, and not a comment
-        if ( toriore == 1 )
+        if ( started_properties == 0 )
         {
-          // No auxiliary data
-          instr [ instrcounter ] = '\0';
-
-          TNODE *temp = insertString ( instructions, token );
-          temp -> data . int_val = createProperty ( instr );
-        }
-        else
-        {
-          // Auxiliary data is there
-          extradata [ extracounter ] = '\0';
-
-          TNODE *temp = insertString ( instructions, token );
-          temp -> data . int_val = createProperty ( instr );
-
-          temp = insertString ( auxdata, token );
-
-          // Is the aux data a node type, a terminal or a non terminal?
-          TNODE *istype = findString ( nodetypemap, extradata );
-          TNODE *isterm = findString ( terminals, extradata );
-          TNODE *isntrm = findString ( nonterminals, extradata );
-
-          if ( istype != NULL )
+          // Parsing instructions and not properties
+          // Is a valid line to parse, and not a comment
+          if ( toriore == 1 )
           {
-            // Was a node type
-            temp -> data . int_val = istype -> data . int_val;
-          }
-          else if ( isterm != NULL )
-          {
-            // Was a terminal
-            temp -> data . int_val = isterm -> data . int_val;
-          }
-          else if ( isntrm != NULL )
-          {
-            // Was a non terminal
-            temp -> data . int_val = isntrm -> data . int_val;
+            // No auxiliary data
+            instr [ instrcounter ] = '\0';
+
+            TNODE *temp = insertString ( instructions, token );
+            temp -> data . int_val = createProperty ( instr );
           }
           else
           {
-            fprintf ( stderr, "Invalid auxiliary data in the instructions file\n" );
-            exit (-1);
+            // Auxiliary data is there
+            extradata [ extracounter ] = '\0';
+
+            TNODE *temp = insertString ( instructions, token );
+            temp -> data . int_val = createProperty ( instr );
+
+            temp = insertString ( auxdata, token );
+
+            // Is the aux data a node type, a terminal or a non terminal?
+            TNODE *istype = findString ( nodetypemap, extradata );
+            TNODE *isterm = findString ( terminals, extradata );
+            TNODE *isntrm = findString ( nonterminals, extradata );
+
+            if ( istype != NULL )
+            {
+              // Was a node type
+              temp -> data . int_val = istype -> data . int_val;
+            }
+            else if ( isterm != NULL )
+            {
+              // Was a terminal
+              temp -> data . int_val = isterm -> data . int_val;
+            }
+            else if ( isntrm != NULL )
+            {
+              // Was a non terminal
+              temp -> data . int_val = isntrm -> data . int_val;
+            }
+            else
+            {
+              fprintf ( stderr, "Invalid auxiliary data in the instructions file\n" );
+              exit (-1);
+            }
           }
+          printf ( "%s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
         }
-        printf ( "%s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
+        else
+        {
+          extradata [ extracounter ] = '\0';
+          printf ( "Property %s %d %s %s\n", token, num_jumps, instr, extradata );
+          // Parsing properties now
+          TNODE* nodeexists = findString ( properties, token );
+          TRIE* level2trie = NULL;
+          if ( nodeexists == NULL )
+          {
+            nodeexists = insertString ( properties, token );
+            nodeexists -> data . generic_val = getNewTrie ( TRIE_GENERIC_TYPE );
+            nodeexists -> data . generic_val = setTrieGenericSize ( (TRIE *) nodeexists -> data . generic_val, sizeof ( PROPERTY ) );
+          }
+
+          level2trie = (TRIE*) ( nodeexists -> data . generic_val );
+
+          TNODE* propertyexists = findString ( level2trie, extradata );
+          if ( propertyexists == NULL )
+            propertyexists = insertString ( level2trie, extradata );
+
+          PROPERTY temp;
+          temp . jumps = num_jumps;
+          temp . instruction = makeTrieProperty ( instr );
+
+          propertyexists = setValue ( level2trie, propertyexists, & temp );
+        }
       }
 
       incomment = 0;
@@ -358,27 +409,48 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
       {
         token [ tokencounter ] = '\0';
         instrcounter = 0;
+        num_jumps = 0;
         toriore = 1;
       }
-      else if ( toriore == 1 )
+      else if ( toriore == 1 && started_properties == 0 )
       {
         instr [ instrcounter ] = '\0';
         extracounter = 0;
         toriore = 2;
       }
+      else if ( toriore == 1 && started_properties == 1 )
+      {
+        instrcounter = 0;
+        toriore = 2;
+      }
+      else if ( toriore == 2 && started_properties == 1 )
+      {
+        instr [ instrcounter ] = '\0';
+        extracounter = 0;
+        toriore = 3;
+      }
     }
     else if ( toriore == 0 )
       token [ tokencounter++ ] = c, prevspace = 0, isfirst = 0;
-    else if ( toriore == 1 )
+    else if ( toriore == 1 && started_properties == 0 )
       instr [ instrcounter++ ] = c, prevspace = 0, isfirst = 0;
-    else if ( toriore == 2 )
+    else if ( toriore == 1 && started_properties == 1 )
+    {
+      num_jumps = num_jumps * 10 + c - 48;
+      prevspace = 0, isfirst = 0;
+    }
+    else if ( toriore == 2 && started_properties == 0 )
+      extradata [ extracounter++ ] = c, prevspace = 0, isfirst = 0;
+    else if ( toriore == 2 && started_properties == 1 )
+      instr [ instrcounter++ ] = c, prevspace = 0, isfirst = 0;
+    else if ( toriore == 3 )
       extradata [ extracounter++ ] = c, prevspace = 0, isfirst = 0;
   }
 
 }
 
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
-                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals )
+                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties )
 {
   // We start processing from the root node
   ANODE *currnode = ast -> root;
@@ -445,6 +517,36 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           topvalue = temptoken;
         }
 
+        // The current node properties override all of the other conditions so it must be tested
+        // first.
+        TNODE *hasproperties = findString ( properties, getNodeTypeName ( currnode -> node_type ) );
+        if ( hasproperties != NULL )
+        {
+          TRIE* trieToSearch = (TRIE *) hasproperties -> data . generic_val;
+          TNODE* jumps = findString ( trieToSearch, topvalue );
+
+          if ( jumps != NULL )
+          {
+            int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
+            int shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
+            printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
+                                                                topvalue, numberOfJumps );
+            while ( numberOfJumps > 0 )
+            {
+              if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
+                break;
+              currnode = getParent ( currnode );
+              numberOfJumps --;
+            }
+
+            if ( shouldRead == 1 )
+            {
+              free ( topvalue );
+              break;
+            }
+          }
+        }
+
 
         if ( conditional_read == 1 || conditional_pop == 1 )
         {
@@ -477,11 +579,18 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         // entering names and performing symbol table look-ups,
         // assigning data type for data type nodes, etc.
 
-        // If there are no instructions for the current value, ignore it.
+        // If there are no instructions for the current value, ignore it if terminal
+        // Read on non-terminals.
         if ( currentval == NULL )
         {
-          printf ( "*Ignoring %s*\n", topvalue );
+          printf ( "*No rule for %s*\n", topvalue );
+          TNODE *isnonterm = findString ( nonterminals, topvalue );
           free ( topvalue );
+
+          // Is a non-terminal...
+          if ( isnonterm != NULL )
+            break;
+
           continue;
         }
 
@@ -500,12 +609,10 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
           int type_to_create = typeofnode -> data . int_val;
 
-          printf ( "At node " );
-          printNodeType ( currnode -> node_type );
+          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
           currnode = addChild ( currnode, type_to_create, instruction );
 
-          printf ( "Got %s so creating: ", topvalue );
-          printNodeType ( type_to_create );
+          printf ( "Got %s so creating: %s\n", topvalue, getNodeTypeName ( type_to_create ) );
           printf ( "\n\n" );
 
           // currnode is now either the same node, child, or parent depending on
@@ -523,8 +630,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & PARENT) == PARENT )
         {
-          printf ( "At node " );
-          printNodeType ( currnode -> node_type );
+          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
           printf ( "Got %s so ", topvalue );
           printf ( "Going to parent\n" );
 
@@ -542,8 +648,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & CONDRD) == CONDRD )
         {
-          printf ( "At node " );
-          printNodeType ( currnode -> node_type );
+          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
           printf ( "Got %s so ", topvalue );
           printf ( "conditionally reading/popping next value %d\n", instruction );
           // Instruction is a conditional read
@@ -574,8 +679,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & READ) == READ )
         {
-          printf ( "At node " );
-          printNodeType ( currnode -> node_type );
+          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
           printf ( "Got %s so ", topvalue );
           printf ( "Reading next input...\n" );
           free ( topvalue );
@@ -652,9 +756,17 @@ int main ( )
    */
 
   TRIE *instructions = NULL, *auxdata = NULL;
+  // This Trie of Tries stores the nodes with special properties
+  // if findString ( properties, string ) exists then string has
+  // a special property
+  // if findString ( (TRIE*) findString ( properties, string ) -> data . generic_val, string2 )
+  // exists, then then string node has a property for string2..
+  TRIE *properties = NULL;
 
   instructions = getNewTrie ( TRIE_INT_TYPE );
   auxdata = getNewTrie ( TRIE_INT_TYPE );
+  properties = getNewTrie ( TRIE_GENERIC_TYPE );
+  properties = setTrieGenericSize ( properties, sizeof ( TRIE* ) );
 
   FILE *instructionsfile = NULL;
 
@@ -667,7 +779,7 @@ int main ( )
   }
 
   getNodeInstructions ( instructionsfile, blocksize, instructions, auxdata, ast -> node_typemap,
-                        nonterminals, terminals );
+                        nonterminals, terminals, properties );
 
   FILE *parseroutput = NULL;
   parseroutput = fopen ( PARSE_OUTPUT_FILE, "rb" );
@@ -678,7 +790,7 @@ int main ( )
     return -1;
   }
 
-  ast = createAST ( parseroutput, blocksize, ast, instructions, auxdata, nonterminals, terminals );
+  ast = createAST ( parseroutput, blocksize, ast, instructions, auxdata, nonterminals, terminals, properties );
 
   if ( fclose ( parseroutput ) != 0 )
   {

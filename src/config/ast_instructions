@@ -4,15 +4,14 @@
 #
 # Start non-terminals
 <program>          CGR AST_PROGRAM_NODE
-<globaldefines>    DPR
 <globaldefine>     CGR AST_GLOBALDEFINE_NODE
 <defineargs>       DRR
 <definestmt>       CGR AST_DEFINE_NODE
 <letstmt>          CGR AST_LET_NODE
 <equatable>        DRR
 <assignable>       CGR AST_ASSIGNABLE_NODE
-<assignable1>      DRR
-<endassignable>    DRR
+<assignable1>      DCR e
+<endassignable>    CGR AST_ENDASSIGN_NODE
 <primitiveval>     DRR
 <datatype>         CGR AST_DATATYPE_NODE
 <complextype>      DRR
@@ -24,7 +23,7 @@
 <paramlist>        CGR AST_QUALIFIEDPARAMETERS_NODE
 <param>            CGR AST_QUALIFIEDPARAMETER_NODE
 <returntype>       CGR AST_RETURNTYPE_NODE
-<statements>       DPR
+<statements>       DRR
 <possiblestmts>    DRR
 <validstatement>   DRR
 <validconditional> DRR
@@ -37,6 +36,7 @@
 <modexp>           DRR
 <baseexp>          DRR
 <modexp1>          DRR
+<mulexp1>          DRR
 <passedparams>     CGR AST_PASSEDPARAMS_NODE
 <exp1>             DCR e
 <boolexp1>         DCR e
@@ -46,13 +46,16 @@
 <validconditional> CGR AST_IF_NODE
 <ifstmt>           DRR
 <block>            CGR AST_BLOCK_NODE
-<elseifblock>      DPR
-<elseifblock1>     DRR
 <iteration>        CGR AST_FOR_NODE
+<loop>             DRR
+<loop1>            DRR
 <iterable>         DRR
 <iterop>           CGR AST_BDFT_NODE
 <literal>          DRR
 <operatorparams>   DRR
+<assignorfunc>     CGR AST_ASSIGNFUNC_NODE
+<assignorfunc1>    DCR e
+<breakstmt>        CGR AST_BREAK_NODE
 #
 # Start terminals
 #
@@ -72,14 +75,13 @@ TK_MUL             CGR AST_AROP_NODE
 TK_DIV             CGR AST_AROP_NODE
 TK_MODULO          CGR AST_AROP_NODE
 TK_DEPTH           CRD AST_DEPTH_NODE
-TK_CLOSEPAREN      DPD
+TK_CLOSEPAREN      DCD TK_RETURNSYM
 TK_ITERATIONS      DPD
 TK_IN              CRD AST_FORIN_NODE
 TK_BFT             DPD
 TK_DFT             DPD
 TK_ADJACENT        CRD AST_ADJTO_NODE
-TK_BE              DPD
-TK_COMMA           DCD <assignable>
+TK_ROOT            CRD AST_ROOT_NODE
 TK_DEST            CRD AST_DEST_NODE
 TK_SOURCE          CRD AST_SOURCE_NODE
 TK_WEIGHT          CRD AST_WEIGHT_NODE
@@ -91,3 +93,32 @@ TK_EDGE            DPD
 TK_GRAPH           DPD
 TK_TREE            DPD
 TK_NOTHING         DCD TK_COLON
+TK_MEMBEROP        CRD AST_MEMBEROP_NODE
+TK_BREAK           DPD
+@@@@
+#
+# Use marker symbol above to indicate end of instrs
+# Start special node properties
+#
+# Properties format:
+# AST_*_NODE              N(umber) P(arent)     Input-symbol
+AST_GLOBALDEFINE_NODE         1 PR <globaldefines>
+AST_DEFINE_NODE               1 PR <statements>
+AST_LET_NODE                  1 PR <statements>
+AST_READ_NODE                 1 PR <statements>
+AST_PRINT_NODE                1 PR <statements>
+AST_FOR_NODE                  1 PR <statements>
+AST_IF_NODE                   1 PD <statements>
+AST_FUNCTION_NODE             1 PD <statements>
+AST_BLOCK_NODE                1 PD TK_END
+AST_BOOLEXP_NODE              1 PD <block>
+AST_QUALIFIEDPARAMETER_NODE   1 PD <param>
+AST_QUALIFIEDPARAMETERS_NODE  1 PD <returntype>
+AST_RETURNTYPE_NODE           1 PD TK_COLON
+AST_EXP_NODE                  1 PD <relop>
+AST_COMPARE_NODE              1 PD TK_COLON
+AST_RETURNSTMT_NODE           2 PD TK_END
+AST_FUNCTION_NODE             1 PD <fndefines>
+AST_EDGECREATE_NODE           1 PD TK_COMMA
+AST_PASSEDPARAMS_NODE         1 PD TK_CLOSEPAREN
+AST_EXP_NODE                  2 PD <statements>
