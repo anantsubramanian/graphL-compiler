@@ -1,5 +1,9 @@
-#include "stack.h"
-#include "trie.h"
+#ifndef STACK_DEFINED
+  #include "stack.h"
+#endif
+#ifndef TRIE_DEFINED
+  #include "trie.h"
+#endif
 
 #define CREATE 16   // 10000b
 #define GOTOCH 8    // 01000b

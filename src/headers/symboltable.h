@@ -1,5 +1,9 @@
-#include "trie.h"
-#include "stack.h"
+#ifndef TRIE_DEFINED
+  #include "trie.h"
+#endif
+#ifndef STACK_DEFINED
+  #include "stack.h"
+#endif
 
 #define TRUE 1
 #define FALSE 0
@@ -46,9 +50,9 @@ typedef struct variable_entry
   int scope_level;
   int scope_sublevel;
   int decl_line;
-  int refr_line;
   int value;
   void *complexdata;
+  LINKEDLIST *refr_lines;
 } VARIABLE;
 
 typedef struct function_entry

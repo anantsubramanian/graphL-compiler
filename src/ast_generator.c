@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
+#include "headers/symboltable.h"
 
 #define BUFFERLEN 400
 #define INSTRLEN 5
@@ -11,6 +12,7 @@
 #define NEWLINE '\n'
 #define COMMENT_START '#'
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
+#define ATTRIBUTES_FILE "TOKENMAP"
 #define AST_NODETYPES_FILE "config/ast_nodetypes"
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
@@ -18,6 +20,7 @@
 
 #define PROPERTY_PARENT 1
 #define PROPERTY_READ 2
+#define PROPERTY_ADD 4
 
 // A consistent mapping between these #defines and the AST_NODETYPES_FILE
 // must be maintained.
@@ -133,8 +136,11 @@ int makeTrieProperty ( char *instr )
   int result = 0;
   if ( instr [0] == 'P' )
     result |= PROPERTY_PARENT;
+
   if ( instr [1] == 'R' )
     result |= PROPERTY_READ;
+  else if ( instr [1] == 'A' )
+    result |= PROPERTY_ADD;
 
   return result;
 }
@@ -196,6 +202,41 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
     *linenumber = ( (*linenumber) * 10 ) + ( inputtoken [i++] - DIGSTART );
   }
 
+}
+
+int getLineCount ( FILE *inputfile, int blocksize )
+{
+  char c;
+
+  int curbuff = -1;
+  int charindx = -1;
+  int lines = 0;
+  int charsread = 0;
+  char buffers [2] [blocksize];
+
+  while ( TRUE )
+  {
+    // Get char from appropriate buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == NEWLINE )
+      lines++;
+  }
+
+  return lines;
 }
 
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
@@ -450,7 +491,8 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 }
 
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
-                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties )
+                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
+                 SYMBOLTABLE *symboltable )
 {
   // We start processing from the root node
   ANODE *currnode = ast -> root;
@@ -508,7 +550,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         int linenumber = -1;
         int hasLineNumber = 0;
 
-        // TODO: Anyway to make this jugaad cleaner?
+        // TODO: (unimportant) -- Anyway to make this jugaad cleaner?
         if ( topvalue [0] == '<' && topvalue [1] == 'T' )
         {
           hasLineNumber = 1;
@@ -516,6 +558,29 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           free ( topvalue );
           topvalue = temptoken;
         }
+
+
+        // TODO: If 'topvalue' is a variable/literal, add entry of appropriate type in
+        //       the symbol table
+        // TODO: If 'topvalue' is == TK_PLUS / TK_MINUS / TK_MUL / TK_DIV / TK_MODULO,
+        //       assign the appropriate type to the AST_AROP node that will be created
+        //       in the creation condition below.
+        // TODO: If 'topvalue' is == TK_AND / TK_OR / TK_NOT then assign the appropriate
+        //       type to the AST_BOOLOP node that will be created in the creation cond.
+        //       below
+        // TODO: If 'topvalue' is DFT / BFT then assign the appropriate type to the BDFT
+        //       node that will be created below
+        // TODO: If 'topvalue' is == TK_INT/FLOAT/STRING/VERTEX/EDGE/GRAPH/TREE assign
+        //       the appropriate type to the datatype node, which **should** and will be
+        //       the currnode
+        // TODO: If 'topvalue' is TK_LT/GT/LTE/GTE/EQ then assign the appropriate type
+        //       to the compare node, which **should** and will be the currnode
+        //
+        // where 'topvalue' = the string that was popped from the stack
+        //       'token' = the next line that was read from the input
+        //       'tokenname' = name of the variable / value of the literal
+        //       linenumber = the linenumber for variables / literals
+
 
         // The current node properties override all of the other conditions so it must be tested
         // first.
@@ -529,6 +594,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           {
             int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
             int shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
+            int shouldAdd = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_ADD ) == PROPERTY_ADD );
             printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
                                                                 topvalue, numberOfJumps );
             while ( numberOfJumps > 0 )
@@ -543,6 +609,13 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             {
               free ( topvalue );
               break;
+            }
+            else if ( shouldAdd == 1 )
+            {
+              stack = push ( stack, topvalue );
+              printf ( "Pushing back %s\n", topvalue );
+              free ( topvalue );
+              continue;
             }
           }
         }
@@ -574,10 +647,6 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
 
         TNODE *currentval = findString ( instructions, topvalue );
-
-        // TODO: Add code to perform special checks for scoping,
-        // entering names and performing symbol table look-ups,
-        // assigning data type for data type nodes, etc.
 
         // If there are no instructions for the current value, ignore it if terminal
         // Read on non-terminals.
@@ -781,6 +850,33 @@ int main ( )
   getNodeInstructions ( instructionsfile, blocksize, instructions, auxdata, ast -> node_typemap,
                         nonterminals, terminals, properties );
 
+
+
+  /*********************************************************
+    *                                                      *
+    *    PHASE 3 : Build Final AST and use Symbol Table    *
+    *                                                      *
+    ********************************************************
+   */
+
+  FILE *attributesFile = NULL;
+  attributesFile = fopen ( ATTRIBUTES_FILE, "rb" );
+
+  if ( attributesFile == NULL )
+  {
+    fprintf ( stderr, "Failed to open attributes map file\n" );
+    return -1;
+  }
+
+  int stbentries = getLineCount ( attributesFile, blocksize );
+
+  SYMBOLTABLE *symboltable = getSymbolTable();
+
+  symboltable = setNumEntries ( symboltable, stbentries );
+
+  // Open a global environment in the symbol table
+  symboltable = openEnv ( symboltable );
+
   FILE *parseroutput = NULL;
   parseroutput = fopen ( PARSE_OUTPUT_FILE, "rb" );
 
@@ -790,7 +886,8 @@ int main ( )
     return -1;
   }
 
-  ast = createAST ( parseroutput, blocksize, ast, instructions, auxdata, nonterminals, terminals, properties );
+  ast = createAST ( parseroutput, blocksize, ast, instructions, auxdata,
+                    nonterminals, terminals, properties, symboltable );
 
   if ( fclose ( parseroutput ) != 0 )
   {

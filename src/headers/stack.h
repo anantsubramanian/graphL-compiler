@@ -1,5 +1,7 @@
 #include "linkedlist.h"
 
+#define STACK_DEFINED 1
+
 #define TRUE 1
 #define FALSE 0
 

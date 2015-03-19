@@ -220,7 +220,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     varobj -> scope_level = symboltable -> cur_scope;
     varobj -> scope_sublevel = symboltable -> cur_subscope;
     varobj -> decl_line = -1;
-    varobj -> refr_line = -1;
+    varobj -> refr_lines = NULL;
     varobj -> value = -1;
   }
   else if ( value_type == ENTRY_FUNC_TYPE )

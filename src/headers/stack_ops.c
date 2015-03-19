@@ -211,9 +211,17 @@ STACK* pushReverseSpaceSeparatedWords ( STACK * stack, const char * wordlist )
     if ( indx == len ) break;
 
     int buffindx = 0;
-    while ( indx < len && wordlist [ indx ] > 32 )
+    int inquote = 0;
+    while ( indx < len && ( inquote == 1 || wordlist [ indx ] > 32 ) )
     {
       buffer [ buffindx++ ] = wordlist [ indx ];
+      if ( wordlist [ indx ] == '"' )
+      {
+        if ( inquote == 0 )
+          inquote = 1;
+        else
+          inquote = 0;
+      }
       indx++;
     }
 
