@@ -186,6 +186,25 @@ int makeTrieProperty ( char *instr )
   return result;
 }
 
+DATATYPE getDataType ( ANODE *currnode )
+{
+  if ( currnode == NULL )
+  {
+    fprintf ( stderr, "Cannot get data type of child of non-existent node\n" );
+    return -1;
+  }
+
+  if ( currnode -> num_of_children <= 0 )
+  {
+    fprintf ( stderr, "Trying to get data type of child of node with no children\n" );
+    return -1;
+  }
+
+  ANODE *firstchild = ( ANODE * ) currnode -> children -> head -> data . generic_val;
+
+  return firstchild -> extra_data . data_type;
+}
+
 char* getNodeTypeName ( int type )
 {
   return nodeTypes [type];
@@ -616,7 +635,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
        || ltenode == NULL
        || eqnode == NULL
        || bftnode == NULL
-       || dftnode == NULL ) fprintf ( stderr, "Failed to find required terminal for semantic analysis\n" ), exit (0);
+       || dftnode == NULL ) fprintf ( stderr, "Failed to find required terminal for semantic analysis\n" ), exit (-1);
 
   int beginint = beginnode -> data . int_val;
   int endint = endnode -> data . int_val;
@@ -826,15 +845,132 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOTHING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . data_type = D_NOTHING_TYPE;
           }
+          else if ( terminalvalue == idenint )
+          {
+            if ( currnode -> node_type == AST_DEFINE_NODE
+                 || currnode -> node_type == AST_FUNCTION_NODE
+                 || currnode -> node_type == AST_GLOBALDEFINE_NODE
+                 || currnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+            {
+              // At a define node, so need to add an entry to the symbol table.
+              // the data type for the node should be identifiable from the first child
+              // of the current node (AST_DEFINE_NODE).
+
+              // TODO: Print an elaborate error for redeclaration by using a look-up
+              //       on the symbol table
+              if ( getEntryByName ( symboltable, tokenname ) != NULL )
+              {
+                fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
+                // exit (-1);
+              }
+              else
+              {
+                unsigned insertedIndex = -1;
+
+                if ( currnode -> node_type == AST_FUNCTION_NODE )
+                {
+                  insertedIndex = ( unsigned int ) addEntry ( symboltable, tokenname, ENTRY_FUNC_TYPE );
+                  STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
+
+                  FUNCTION *funcdata = & ( insertedEntry -> data . func_data );
+
+                  funcdata -> decl_line = linenumber;
+
+                  int len = strlen ( tokenname );
+                  funcdata -> name = malloc ( (len+1) * sizeof ( char ) );
+
+                  if ( funcdata -> name == NULL )
+                  {
+                    fprintf ( stderr, "Failed to allocate memory for function name\n" );
+                    exit (-1);
+                  }
+
+                  strcpy ( funcdata -> name, tokenname );
+                }
+                else
+                {
+                  insertedIndex = addEntry ( symboltable, tokenname, ENTRY_VAR_TYPE );
+
+                  STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
+
+                  VARIABLE *vardata = & ( insertedEntry -> data . var_data );
+
+                  if ( currnode -> node_type == AST_GLOBALDEFINE_NODE )
+                    vardata -> var_type = V_GLOBAL_TYPE;
+                  else if ( currnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+                    vardata -> var_type = V_PARAM_TYPE;
+                  else if ( currnode -> node_type == AST_DEFINE_NODE )
+                    vardata -> var_type = V_LOCAL_TYPE;
+                  else
+                  {
+                    fprintf ( stderr, "At node %s did not recognize variable type\n", getNodeTypeName ( currnode -> node_type ) );
+                  }
+
+                  // Set the data type using the data type of the first child
+                  vardata -> data_type = getDataType ( currnode );
+                  vardata -> decl_line = linenumber;
+                }
+              }
+            }
+            else
+            {
+              // Variable is being referenced, not declared, here so push it into the linkedlist of references
+              STBENTRY *foundEntry = getEntryByName ( symboltable, tokenname );
+
+              // TODO: Print more elaborate error for variable not declared
+              if ( foundEntry == NULL )
+              {
+                fprintf ( stderr, "Variable %s used but not declared\n", tokenname );
+                // exit (-1);
+              }
+              else
+              {
+                if ( foundEntry -> entry_type == ENTRY_VAR_TYPE )
+                  foundEntry -> data . var_data . refr_lines =
+                    insertAtBack ( foundEntry -> data . var_data . refr_lines, &linenumber );
+                else if ( foundEntry -> entry_type == ENTRY_FUNC_TYPE )
+                  foundEntry -> data . func_data . refr_lines =
+                    insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
+
+              }
+            }
+          }
+          else if ( terminalvalue == intlitint || terminalvalue == floatlitint
+                    || terminalvalue == stringlitint )
+          {
+            // Add entry for the literal in the symbol table if it doesn't already exist
+
+            STBENTRY *entry = getEntryByName ( symboltable, tokenname );
+
+            if ( entry == NULL )
+            {
+              unsigned int entryIndex = addEntry ( symboltable, tokenname, ENTRY_LIT_TYPE );
+              entry = getEntryByIndex ( symboltable, entryIndex );
+            }
+
+            // Entry now has the entry index. Set the value appropriately
+            if ( terminalvalue == intlitint )
+              entry -> data . lit_data . lit_type = D_INT_TYPE;
+            else if ( terminalvalue == floatlitint )
+              entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
+            else if ( terminalvalue == stringlitint )
+              entry -> data . lit_data . lit_type = D_STRING_TYPE;
+
+            int len = strlen ( tokenname );
+            entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
+
+            if ( entry -> data . lit_data . value == NULL )
+            {
+              fprintf ( stderr, "Failed to allocate memory for literal\n" );
+              exit (-1);
+            }
+
+            strcpy ( entry -> data . lit_data . value, tokenname );
+          }
         }
 
 
-        // TODO: If 'topvalue' is a variable/literal, add entry of appropriate type in
-        //       the symbol table
-        // TODO: If 'topvalue' is a variable, then set the VARIABLETYPE entry in the
-        //       symbol table depending on whether it is a global/local/param
-        //
-        // where 'topvalue' = the string that was popped from the stack
+        // Here  'topvalue' = the string that was popped from the stack
         //       'token' = the next line that was read from the input
         //       'tokenname' = name of the variable / value of the literal
         //       linenumber = the linenumber for variables / literals

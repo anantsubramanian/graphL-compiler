@@ -247,7 +247,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     funcobj -> ret_type = -1;
     funcobj -> returndata_stbindex = -1;
     funcobj -> decl_line = -1;
-    funcobj -> refr_line = -1;
+    funcobj -> refr_lines = getLinkedList ( LL_INT_TYPE );
   }
   else if ( value_type == ENTRY_LIT_TYPE )
   {
@@ -255,9 +255,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     // user for integer and float literals
     LITERAL *litobj = & ( newentry -> data . lit_data );
     litobj -> lit_type = -1;
-    litobj -> data . int_value = 0;
-    litobj -> data . double_val = 0;
-    litobj -> data . string_val = NULL;
+    litobj -> value = NULL;
   }
 
   TNODE *indexlocator = NULL;

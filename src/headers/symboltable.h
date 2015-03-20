@@ -75,18 +75,13 @@ typedef struct function_entry
   DATATYPE ret_type;
   int returndata_stbindex;
   int decl_line;
-  int refr_line;
+  LINKEDLIST *refr_lines;
 } FUNCTION;
 
 typedef struct literal_entry
 {
   DATATYPE lit_type;
-  union
-  {
-    int int_value;
-    double double_val;
-    char *string_val;
-  } data;
+  char *value;
 } LITERAL;
 
 typedef struct symboltable_entry
