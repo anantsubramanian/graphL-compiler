@@ -61,6 +61,7 @@
 #define TK_EQ "TK_EQ"
 #define TK_BFT "TK_BFT"
 #define TK_DFT "TK_DFT"
+#define TK_FUNCTION "TK_FUNCTION"
 // End language-specific tokens
 
 // A consistent mapping between these #defines and the AST_NODETYPES_FILE
@@ -154,6 +155,20 @@ char nodeTypes[][30] = {
   ""
 };
 
+char dataTypes[][10] = {
+
+  "",
+  "INT",
+  "FLOAT",
+  "STRING",
+  "VERTEX",
+  "EDGE",
+  "TREE",
+  "GRAPH",
+  "NOTHING",
+  ""
+};
+
 typedef struct property_data
 {
   int jumps;
@@ -200,7 +215,7 @@ DATATYPE getDataType ( ANODE *currnode )
     return -1;
   }
 
-  ANODE *firstchild = ( ANODE * ) currnode -> children -> head -> data . generic_val;
+  ANODE *firstchild = *( ( ANODE ** ) ( currnode -> children -> head -> data . generic_val ) );
 
   return firstchild -> extra_data . data_type;
 }
@@ -208,6 +223,28 @@ DATATYPE getDataType ( ANODE *currnode )
 char* getNodeTypeName ( int type )
 {
   return nodeTypes [type];
+}
+
+char* getDataTypeName ( DATATYPE type )
+{
+  if ( type == D_INT_TYPE )
+    return dataTypes [1];
+  if ( type == D_FLOAT_TYPE )
+    return dataTypes [2];
+  if ( type == D_STRING_TYPE )
+    return dataTypes [3];
+  if ( type == D_VERTEX_TYPE )
+    return dataTypes [4];
+  if ( type == D_EDGE_TYPE )
+    return dataTypes [5];
+  if ( type == D_TREE_TYPE )
+    return dataTypes [6];
+  if ( type == D_GRAPH_TYPE )
+    return dataTypes [7];
+  if ( type == D_NOTHING_TYPE )
+    return dataTypes [8];
+
+  return dataTypes [0];
 }
 
 void extractTokenData ( char *inputtoken, char **token, char **name, int *linenumber )
@@ -573,6 +610,10 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int charsread = 0;
   int tokencounter = 0;
 
+  // TODO: Is this a jugaad? Doesn't seem like it, but need to check again...
+  int function_scope_started = 0;
+  int should_start_function = 0;
+
   int conditional_read = 0;
   int conditional_pop = 0;
   int conditional_value = -1;
@@ -606,6 +647,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   TNODE *eqnode = findString ( terminals, TK_EQ );
   TNODE *bftnode = findString ( terminals, TK_BFT );
   TNODE *dftnode = findString ( terminals, TK_DFT );
+  TNODE *functionnode = findString ( terminals, TK_FUNCTION );
 
   if ( beginnode == NULL
        || endnode == NULL
@@ -635,6 +677,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
        || ltenode == NULL
        || eqnode == NULL
        || bftnode == NULL
+       || functionnode == NULL
        || dftnode == NULL ) fprintf ( stderr, "Failed to find required terminal for semantic analysis\n" ), exit (-1);
 
   int beginint = beginnode -> data . int_val;
@@ -666,6 +709,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int eqint = eqnode -> data . int_val;
   int bftint = bftnode -> data . int_val;
   int dftint = dftnode -> data . int_val;
+  int functionint = functionnode -> data . int_val;
 
   while ( TRUE )
   {
@@ -720,9 +764,14 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
           if ( terminalvalue == beginint )
           {
-            // If it is TK_BEGIN
-            symboltable = openEnv ( symboltable );
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Opening environment\n\n" );
+            if ( function_scope_started == 0 )
+            {
+              // If it is TK_BEGIN
+              symboltable = openEnv ( symboltable );
+              if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Opening environment\n\n" );
+            }
+            else
+              function_scope_started = 0;
           }
           else if ( terminalvalue == endint )
           {
@@ -845,12 +894,19 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOTHING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . data_type = D_NOTHING_TYPE;
           }
+          else if ( terminalvalue == functionint )
+          {
+            // If function keyword has been seen, then start the function scope after the next identifier
+            // and ignore the next begin
+            should_start_function = 1;
+          }
           else if ( terminalvalue == idenint )
           {
-            if ( currnode -> node_type == AST_DEFINE_NODE
-                 || currnode -> node_type == AST_FUNCTION_NODE
-                 || currnode -> node_type == AST_GLOBALDEFINE_NODE
-                 || currnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+            ANODE *parentnode = currnode -> parent;
+            if ( parentnode -> node_type == AST_DEFINE_NODE
+                 || parentnode -> node_type == AST_FUNCTION_NODE
+                 || parentnode -> node_type == AST_GLOBALDEFINE_NODE
+                 || parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
             {
               // At a define node, so need to add an entry to the symbol table.
               // the data type for the node should be identifiable from the first child
@@ -860,16 +916,24 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
               //       on the symbol table
               if ( getEntryByName ( symboltable, tokenname ) != NULL )
               {
-                fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
-                // exit (-1);
+                // Report an error if the current identifier is a variable and had been declared in the same scope before
+                if ( parentnode -> node_type != AST_FUNCTION_NODE )
+                {
+                  if ( getEntryByName ( symboltable, tokenname ) -> data . var_data . scope_level == symboltable -> cur_scope )
+                  {
+                    fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
+                    // exit (-1);
+                  }
+                }
               }
               else
               {
                 unsigned insertedIndex = -1;
 
-                if ( currnode -> node_type == AST_FUNCTION_NODE )
+                if ( parentnode -> node_type == AST_FUNCTION_NODE )
                 {
                   insertedIndex = ( unsigned int ) addEntry ( symboltable, tokenname, ENTRY_FUNC_TYPE );
+                  if ( DEBUG_AUXOPS ) printf ( "Added function entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
                   STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
 
                   FUNCTION *funcdata = & ( insertedEntry -> data . func_data );
@@ -889,17 +953,22 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
                 }
                 else
                 {
+                  // TODO: Any better method than this jugaad?
+                  // If the variable is a qualified parameters, then its scope is actually
+                  // 1 + the current scope of the symbol table!
+
                   insertedIndex = addEntry ( symboltable, tokenname, ENTRY_VAR_TYPE );
+                  if ( DEBUG_AUXOPS ) printf ( "Added variable entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
 
                   STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
 
                   VARIABLE *vardata = & ( insertedEntry -> data . var_data );
 
-                  if ( currnode -> node_type == AST_GLOBALDEFINE_NODE )
+                  if ( parentnode -> node_type == AST_GLOBALDEFINE_NODE )
                     vardata -> var_type = V_GLOBAL_TYPE;
-                  else if ( currnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+                  else if ( parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
                     vardata -> var_type = V_PARAM_TYPE;
-                  else if ( currnode -> node_type == AST_DEFINE_NODE )
+                  else if ( parentnode -> node_type == AST_DEFINE_NODE )
                     vardata -> var_type = V_LOCAL_TYPE;
                   else
                   {
@@ -907,8 +976,11 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
                   }
 
                   // Set the data type using the data type of the first child
-                  vardata -> data_type = getDataType ( currnode );
+                  vardata -> data_type = getDataType ( parentnode );
                   vardata -> decl_line = linenumber;
+
+
+                  if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
                 }
               }
             }
@@ -933,6 +1005,19 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
                     insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
 
               }
+            }
+
+            // Finished processing the identifier, if this identifier was a function name,
+            // then we need to start a new scop here itself, so that parameters belong to
+            // the inner scope.
+            // We set the function_scope_started parameter so that the TK_BEGIN for the
+            // function body doesn't start another scope, again.
+
+            if ( should_start_function == 1 )
+            {
+              should_start_function = 0;
+              symboltable = openEnv ( symboltable );
+              function_scope_started = 1;
             }
           }
           else if ( terminalvalue == intlitint || terminalvalue == floatlitint
