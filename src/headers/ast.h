@@ -1,3 +1,12 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
 #ifndef STACK_DEFINED
   #include "stack.h"
 #endif
