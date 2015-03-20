@@ -1,3 +1,12 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -79,7 +88,10 @@ DFA* setNumStates ( DFA *dfa, int numStates )
     for (j = 0; j < TRANSITION_LIMIT; j++)
       dfa->all_states[i].next_state[j] = NULL;
   }
+
   dfa->num_states = numStates;
+
+  return dfa;
 }
 
 DFA* gotoInitialState ( DFA *dfa )
@@ -141,13 +153,13 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
     return NULL;
   }
 
-  if ( state1->next_state[ input ] != NULL )
+  if ( state1->next_state[ (int) input ] != NULL )
   {
     fprintf ( stderr, "A transition for state %d and ASCII %d already exists\n", state1->state_number, (int) input );
     fprintf ( stderr, "Overwriting transition..\n" );
   }
 
-  state1->next_state[ input ] = state2;
+  state1->next_state[ (int) input ] = state2;
   return state1;
 }
 
@@ -174,7 +186,7 @@ STATE *getCurrentState ( DFA *dfa )
   return &( dfa->all_states[ dfa->current_state ] );
 }
 
-STATE *setSpecialProperty ( STATE *state, int property )
+STATE *setSpecialProperty ( STATE *state, DFA_STATE_PROPERTY property )
 {
   if ( state == NULL )
   {
@@ -182,7 +194,7 @@ STATE *setSpecialProperty ( STATE *state, int property )
     return NULL;
   }
 
-  if ( property < 0 || property > 2 )
+  if ( property < NONE || property > ERROR )
   {
     fprintf ( stderr, "Invalid property value for state\n" );
     return NULL;
@@ -229,7 +241,7 @@ DFA* gotoNextState ( DFA *dfa, char input )
     return NULL;
   }
 
-  STATE *next = dfa->all_states[ dfa->current_state ].next_state [ input ];
+  STATE *next = dfa->all_states[ dfa->current_state ].next_state [ (int) input ];
 
   if ( next == NULL )
   {
@@ -252,7 +264,7 @@ STATE* resetTransition ( STATE *state, char input )
     return NULL;
   }
 
-  state->next_state [ input ] = NULL;
+  state->next_state [ (int) input ] = NULL;
   return state;
 }
 
@@ -433,7 +445,6 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   for ( i = 0; i < num_transitions; i++ )
   {
     int numfrom, numto;
-    int state1, state2;
     char printable;
     fscanf ( file, "%d", &numfrom );
 
@@ -637,10 +648,10 @@ STATE* peek ( DFA *dfa, char nextinp )
     return NULL;
   }
 
-  return dfa->all_states[ dfa->current_state ].next_state[ nextinp ];
+  return dfa->all_states[ dfa->current_state ].next_state[ (int) nextinp ];
 }
 
-int getSpecialProperty ( STATE *state )
+DFA_STATE_PROPERTY getSpecialProperty ( STATE *state )
 {
   if ( state == NULL )
   {

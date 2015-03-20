@@ -1,22 +1,53 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
+#define TRIE_DEFINED 1
+
 #define TRUE 1
 #define FALSE 0
 
+typedef enum trie_type
+{
+  TRIE_TYPE_FIRST,
+  TRIE_INT_TYPE,
+  TRIE_DOUBLE_TYPE,
+  TRIE_STRING_TYPE,
+  TRIE_GENERIC_TYPE,
+  TRIE_TYPE_LAST
+} TRIE_TYPE;
+
 typedef struct trie_node
 {
-  char *name;
-  int value;
+  struct trie_node *next [128];
   int is_final;
   int count;
-  struct trie_node *next [128];
+  char *name;
+  union
+  {
+    int int_val;
+    double double_val;
+    char *string_val;
+    void *generic_val;
+  } data;
 } TNODE;
 
 typedef struct trie_struct
 {
   TNODE *root;
+  TRIE_TYPE data_type;
+  int generic_size;
   char *name;
 } TRIE;
 
-extern TRIE* getNewTrie ();
+extern TRIE* getNewTrie ( TRIE_TYPE );
+
+extern TRIE* setTrieGenericSize ( TRIE * , unsigned int );
 
 extern TRIE* setTrieName ( TRIE * , const char * );
 
@@ -26,7 +57,7 @@ extern TNODE* insertString ( TRIE * , const char * );
 
 extern TNODE* findString ( TRIE * , const char * );
 
-extern TNODE* setValue ( TNODE * , int );
+extern TNODE* setValue ( TRIE * , TNODE * , void * );
 
 extern TNODE* setNodeName ( TNODE * , const char * );
 

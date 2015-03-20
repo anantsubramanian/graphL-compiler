@@ -1,3 +1,12 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,7 +32,7 @@
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
-#define MAX_ERRORS 100
+#define MAX_ERRORS 15
 #define NO_TRANSITION -1
 #define NEWLINE '\n'
 #define COMMA ','
@@ -70,7 +79,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
       token [ tokenindex ] = '\0';
       TNODE *temp = NULL;
       temp = insertString ( trie, token );
-      temp -> value = value;
+      temp -> data.int_val = value;
       *count = value;
       value = 0;
       torval = 0;
@@ -265,7 +274,7 @@ void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleList
     if ( c == NEWLINE )
     {
       token [ tokenindex ] = '\0';
-      ruleLists [value] = getLinkedList ();
+      ruleLists [value] = getLinkedList ( LL_STRING_TYPE );
       ruleLists [value] = insertSpaceSeparatedWords ( ruleLists [value], token );
       value = 0;
       torval = 1;
@@ -409,10 +418,10 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   }
 
   STACK *stack = NULL;
-  stack = getStack ();
+  stack = getStack ( STACK_STRING_TYPE );
 
   stack = push ( stack, START_SYMBOL );
-  fprintf ( parseout, "%s\n", START_SYMBOL );
+  fprintf ( parseout, "%s \n", START_SYMBOL );
 
   char c;
 
@@ -424,7 +433,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   int charsread = 0;
   int tokenindex = 0;
 
-  int epscolumn = findString ( terminals, "e" ) -> value;
+  int epscolumn = findString ( terminals, "e" ) -> data.int_val;
 
   int value = 0;
   int linenum = 0;
@@ -432,6 +441,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
   int in_error_state = FALSE;
   int errorcount = 0;
+  TNODE* tempnode = NULL;
 
   TNODE* newlinenode = NULL;
   if ( ( newlinenode = findString ( terminals, NEWLINE_SYMBOL ) ) == NULL )
@@ -440,7 +450,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int newlineterm = newlinenode -> value;
+  int newlineterm = newlinenode -> data.int_val;
 
   TNODE* identifiernode = NULL;
   if ( ( identifiernode = findString ( terminals, IDENTIFIER_SYMBOL ) ) == NULL )
@@ -449,7 +459,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int identifierterm = identifiernode -> value;
+  int identifierterm = identifiernode -> data.int_val;
 
   TNODE* stringlitnode = NULL;
   if ( ( stringlitnode = findString ( terminals, STRINGLIT_SYMBOL ) ) == NULL )
@@ -458,7 +468,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int stringlitterm = stringlitnode -> value;
+  int stringlitterm = stringlitnode -> data.int_val;
 
   TNODE* floatlitnode = NULL;
   if ( ( floatlitnode = findString ( terminals, FLOATLIT_SYMBOL ) ) == NULL )
@@ -467,7 +477,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int floatlitterm = floatlitnode -> value;
+  int floatlitterm = floatlitnode -> data.int_val;
 
   TNODE* intlitnode = NULL;
   if ( ( intlitnode = findString ( terminals, INTLIT_SYMBOL ) ) == NULL )
@@ -476,7 +486,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
     exit (-1);
   }
 
-  int intlitterm = intlitnode -> value;
+  int intlitterm = intlitnode -> data.int_val;
 
   while ( TRUE )
   {
@@ -497,7 +507,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
       {
         while ( ! isEmpty ( stack ) )
         {
-          char *topval = strdup ( top ( stack ) );
+          char *topval = strdup ( (char *) top ( stack ) );
           if ( topval == NULL )
           {
             fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
@@ -520,7 +530,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           free ( topval );
           topval = NULL;
 
-          int nontermval = nonterm -> value;
+          int nontermval = nonterm -> data.int_val;
           if ( parseTable [ nontermval ] [ epscolumn ] == NO_TRANSITION )
           {
             fprintf ( parseerr, "Error at line %d:\n\tUnexpected end to input program.\n", linenum );
@@ -548,7 +558,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         exit (-1 );
       }
 
-      int column = tomatch -> value;
+      int column = tomatch -> data.int_val;
 
       if ( in_error_state )
       {
@@ -589,7 +599,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
           exit (-1);
         }
 
-        char *topval = strdup ( top ( stack ) );
+        char *topval = strdup ( (char *) top ( stack ) );
         if ( topval == NULL )
         {
           fprintf ( stderr, "Failed to allocate memory to duplicate top of stack\n" );
@@ -603,18 +613,32 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
         if ( current != NULL )
         {
           // Top of stack is a non-terminal
-          int nontermindex = current -> value;
+          int nontermindex = current -> data.int_val;
 
           if ( parseTable [ nontermindex ] [ column ] != NO_TRANSITION )
           {
             // Print rules to parser output
             LNODE iterator;
-            getIterator ( ruleLists [ parseTable [ nontermindex ] [ column ] ], &iterator );
+            LINKEDLIST *requiredRule = ruleLists [ parseTable [ nontermindex ] [ column ] ];
+            getIterator (  requiredRule, &iterator );
             while ( hasNext ( &iterator ) )
             {
-              getNext ( &iterator );
-              fprintf ( parseout, "%s ", iterator.value );
+              getNext ( requiredRule, &iterator );
+
+              if ( ( tempnode = findString ( terminals, iterator.data.string_val ) )  != NULL )
+              {
+                if ( tempnode -> data.int_val == identifierterm
+                     || tempnode -> data.int_val == stringlitterm
+                     || tempnode -> data.int_val == intlitterm
+                     || tempnode -> data.int_val == floatlitterm)
+                  fprintf ( parseout, "<%s,%s,%d> ", iterator.data.string_val , attributes [ value ] , linenum );
+                else
+                  fprintf ( parseout, "%s " , iterator.data.string_val );
+              }
+              else
+                fprintf ( parseout, "%s ", iterator.data.string_val );
             }
+
             fprintf ( parseout, "\n" );
 
             stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );
@@ -654,7 +678,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             while ( !isEmpty ( stack ) )
             {
-              char *topval = top ( stack );
+              char *topval = (char *) top ( stack );
               TNODE *temp = findString ( terminals, topval );
               stack = pop ( stack );
 
@@ -662,7 +686,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                 continue;
 
               // If synchronization newline is found, break
-              if ( temp -> value == newlineterm )
+              if ( temp -> data.int_val == newlineterm )
                 break;
             }
 
@@ -697,7 +721,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             exit (-1);
           }
-          int stackterminal = current -> value;
+          int stackterminal = current -> data.int_val;
 
           if ( stackterminal != column )
           {
@@ -742,7 +766,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
             while ( !isEmpty ( stack ) )
             {
-              char *topval = top ( stack );
+              char *topval = (char *) top ( stack );
               TNODE *temp = findString ( terminals, topval );
               stack = pop ( stack );
 
@@ -750,7 +774,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                 continue;
 
               // If synchronization newline is found, break
-              if ( temp -> value == newlineterm )
+              if ( temp -> data.int_val == newlineterm )
                 break;
             }
 
@@ -823,8 +847,8 @@ int main ( int argc, char *argv[] )
   int terminalscount = 0, nonterminalscount = 0;
   char **terminalnames = NULL;
 
-  terminals = getNewTrie ();
-  nonterminals = getNewTrie ();
+  terminals = getNewTrie ( TRIE_INT_TYPE );
+  nonterminals = getNewTrie ( TRIE_INT_TYPE );
 
   FILE *tmapfile = NULL, *ntmapfile = NULL;
   FILE *tnamemapfile = NULL;
@@ -895,6 +919,8 @@ int main ( int argc, char *argv[] )
   tnamemapfile = NULL;
 
 
+  fprintf ( stderr, "PHASE 1 complete\n" );
+
 
   /***********************************************************
     *                                                        *
@@ -944,6 +970,8 @@ int main ( int argc, char *argv[] )
   }
 
 
+  fprintf ( stderr, "PHASE 2 complete\n" );
+
 
   /***********************************************************
     *                                                        *
@@ -991,6 +1019,8 @@ int main ( int argc, char *argv[] )
     return -1;
   }
 
+
+  fprintf ( stderr, "PHASE 3 complete\n" );
 
 
   /***********************************************************

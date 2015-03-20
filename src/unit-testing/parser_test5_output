@@ -1,4 +1,4 @@
-<program>
+<program> 
 <globaldefines> <fndefines> <statements> 
 e 
 e 
@@ -9,7 +9,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_TREE 
-TK_IDEN 
+<TK_IDEN,T,1> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -18,7 +18,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,u,2> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -27,7 +27,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_EDGE 
-TK_IDEN 
+<TK_IDEN,e1,3> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -36,21 +36,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,v,4> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,v,6> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,6> 
 e 
 e 
 e 
@@ -59,13 +59,13 @@ e
 <iteration> 
 TK_FOR <loop> TK_COLON <block> 
 <identifier> <loop1> 
-TK_IDEN 
+<TK_IDEN,u,8> 
 TK_IN <iterable> 
 <identifier> <iterable1> 
-TK_IDEN 
+<TK_IDEN,T,8> 
 TK_ADJACENT TK_TO <assignable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,8> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -75,14 +75,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,e1,10> 
 e 
 TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,u,10> 
 e 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,T,10> 
 TK_MEMBEROP <endassignable> 
 TK_ROOT <primitiveval> 
 e 
@@ -101,7 +101,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,v,12> 
 e 
 e 
 e 
@@ -112,7 +112,7 @@ TK_EQ
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,e1,12> 
 <assignable1> 
 TK_MEMBEROP <endassignable> 
 TK_WEIGHT 
@@ -127,7 +127,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <output> 
 TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
 <literal> 
-TK_STRINGLIT 
+<TK_STRINGLIT," Found an edge ",14> 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <breakstmt> 

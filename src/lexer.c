@@ -1,5 +1,15 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include "headers/dfa.h"
 #include "headers/trie.h"
@@ -10,7 +20,7 @@
 #define DICT_FILE "TOKENMAP"
 #define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
-#define ERRORS 100
+#define ERRORS 15
 #define NEWLINE '\n'
 
 int main ( int argc, char *argv[] )
@@ -31,11 +41,10 @@ int main ( int argc, char *argv[] )
   dfa = initializeFromFile ( dfa, DFA_PATH );
 
   TRIE* dictionary = NULL;
-  dictionary = getNewTrie();
+  dictionary = getNewTrie( TRIE_INT_TYPE );
   dictionary = setTrieName ( dictionary, DICTNAME );
   int tokenid = 0;
 
-  int shouldread = TRUE;
   int started = FALSE;
 
   char buffers [2] [ blocksize ];
@@ -45,7 +54,7 @@ int main ( int argc, char *argv[] )
 
   char c;
   char errorc;
-  char stringliteral [ BUFFERLEN ];
+  char stringliteral [ BUFFERLEN + 1 ];
   char identifier [ BUFFERLEN ];
   char floatorint [ BUFFERLEN ];
 
@@ -100,6 +109,33 @@ int main ( int argc, char *argv[] )
     if ( c == NEWLINE )
       linenumber++;
 
+    if ( floatintindex >= BUFFERLEN )
+    {
+      floatorint [ BUFFERLEN - 1 ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, floatorint,
+                "Maximum integer literal length exceeded\n" );
+      floatintindex = 0;
+      errorcount++;
+    }
+
+    if ( idenindex >= BUFFERLEN )
+    {
+      identifier [ BUFFERLEN - 1 ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, identifier,
+                "Maximum identifier length exceeded\n" );
+      idenindex = 0;
+      errorcount++;
+    }
+
+    if ( stringlitindex >= BUFFERLEN )
+    {
+      stringliteral [ BUFFERLEN ] = '\0';
+      fprintf ( errorsfile, "Line %d: %s\n\t\t%s\n\n", linenumber, stringliteral,
+                "Maximum string literal length exceeded\n" );
+      stringlitindex  = 0;
+      errorcount++;
+    }
+
     if ( peek ( dfa, c ) == NULL || getSpecialProperty ( peek ( dfa, c ) ) == TRAP )
     {
       // Token over / error encountered so should process intermediate result
@@ -138,10 +174,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, floatorint );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_INTLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -153,10 +190,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, floatorint );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, floatorint );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_FLOATLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -168,10 +206,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, stringliteral );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, stringliteral );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_STRINGLIT,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }
@@ -183,10 +222,11 @@ int main ( int argc, char *argv[] )
           {
             find = insertString ( dictionary, identifier );
             fprintf ( tokenmapfile, "%d %s\n", tokenid, identifier );
-            setValue ( find, tokenid++ );
+            setValue ( dictionary, find, &(tokenid) );
+            tokenid++;
           }
           else
-            valueToPrint = find -> value;
+            valueToPrint = find -> data.int_val;
           fprintf ( tokensfile, "<TK_IDEN,%d,%d>\n", valueToPrint,
                     c == NEWLINE ? linenumber - 1 : linenumber );
         }

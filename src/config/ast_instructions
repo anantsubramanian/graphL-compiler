@@ -1,0 +1,139 @@
+# Lines with # are comments and are ignored
+# Format of instructions:
+#     *Top-of-the-stack*        *C(reate)/D(on't)*  *G(oto)/R(emain)*  *R(ead)/D(on't)*    *Type-of-AST-node*
+#
+# Start non-terminals
+<program>          CGR AST_PROGRAM_NODE
+<globaldefine>     CGR AST_GLOBALDEFINE_NODE
+<defineargs>       DRR
+<definestmt>       CGR AST_DEFINE_NODE
+<letstmt>          CGR AST_LET_NODE
+<equatable>        DRR
+<assignable>       CGR AST_ASSIGNABLE_NODE
+<assignable1>      DCR e
+<endassignable>    CGR AST_ENDASSIGN_NODE
+<primitiveval>     DCR e
+<datatype>         CGR AST_DATATYPE_NODE
+<complextype>      DRR
+<primitivetype>    DRR
+<identifier>       CGR AST_IDENTIFIER_NODE
+<moreidens>        DRR
+<fndefines>        DRR
+<fnbody>           CGR AST_FUNCBODY_NODE
+<paramlist>        CGR AST_QUALIFIEDPARAMETERS_NODE
+<param>            CGR AST_QUALIFIEDPARAMETER_NODE
+<returntype>       CGR AST_RETURNTYPE_NODE
+<statements>       DRR
+<possiblestmts>    DRR
+<validstatement>   DRR
+<validconditional> DRR
+<input>            CGR AST_READ_NODE
+<output>           CGR AST_PRINT_NODE
+<boolresult>       CGR AST_COMPARE_NODE
+<boolexp>          CGR AST_BOOLEXP_NODE
+<exp>              CGR AST_EXP_NODE
+<mulexp>           DRR
+<modexp>           DRR
+<baseexp>          DRR
+<modexp1>          DRR
+<mulexp1>          DRR
+<passedparams>     CGR AST_PASSEDPARAMS_NODE
+<exp1>             DCR e
+<boolexp1>         DCR e
+<expor1>           DRR
+<returnstmt>       CGR AST_RETURNSTMT_NODE
+<funcstmt>         CGR AST_FUNCTIONCALL_NODE
+<validconditional> CGR AST_IF_NODE
+<ifstmt>           DRR
+<block>            CGR AST_BLOCK_NODE
+<iteration>        CGR AST_FOR_NODE
+<loop>             DRR
+<loop1>            DRR
+<iterable>         DRR
+<iterop>           CGR AST_BDFT_NODE
+<literal>          DRR
+<operatorparams>   DRR
+<assignorfunc>     CGR AST_ASSIGNFUNC_NODE
+<assignorfunc1>    DCR e
+<breakstmt>        CGR AST_BREAK_NODE
+#
+# Start terminals
+#
+TK_FUNCTION        CGD AST_FUNCTION_NODE
+TK_SQOPENPAREN     CGD AST_EDGECREATE_NODE
+TK_SQCLOSEPAREN    DPD
+TK_IDEN            DPD
+TK_INTLIT          CRD AST_LITERAL_NODE
+TK_FLOATLIT        CRD AST_LITERAL_NODE
+TK_STRINGLIT       CRD AST_LITERAL_NODE
+TK_AND             CGD AST_BOOLOP_NODE
+TK_OR              CGD AST_BOOLOP_NODE
+TK_NOT             CGD AST_BOOLOP_NODE
+TK_PLUS            CGD AST_AROP_NODE
+TK_MINUS           CGD AST_AROP_NODE
+TK_MUL             CGD AST_AROP_NODE
+TK_DIV             CGD AST_AROP_NODE
+TK_MODULO          CGD AST_AROP_NODE
+TK_DEPTH           CRD AST_DEPTH_NODE
+TK_CLOSEPAREN      DCD TK_RETURNSYM
+TK_ITERATIONS      DPD
+TK_IN              CRD AST_FORIN_NODE
+TK_BFT             DPD
+TK_DFT             DPD
+TK_ADJACENT        CRD AST_ADJTO_NODE
+TK_ROOT            CRD AST_ROOT_NODE
+TK_DEST            CRD AST_DEST_NODE
+TK_SOURCE          CRD AST_SOURCE_NODE
+TK_WEIGHT          CRD AST_WEIGHT_NODE
+TK_INT             DPD
+TK_FLOAT           DPD
+TK_STRING          DPD
+TK_VERTEX          DPD
+TK_EDGE            DPD
+TK_GRAPH           DPD
+TK_TREE            DPD
+TK_MEMBEROP        CRD AST_MEMBEROP_NODE
+TK_BREAK           DPD
+@@@@
+#
+# Use marker symbol above to indicate end of instrs
+# Start special node properties
+#
+# Properties format:
+# AST_*_NODE              N(umber) P(arent)/C(reate) R(ead)/D(on't)/A(dd)     Input-symbol      Type-of-node (optional)
+AST_GLOBALDEFINE_NODE         1 PR <globaldefines>
+AST_DEFINE_NODE               1 PR <statements>
+AST_LET_NODE                  1 PR <statements>
+AST_READ_NODE                 1 PR <statements>
+AST_PRINT_NODE                1 PR <statements>
+AST_FOR_NODE                  1 PR <statements>
+AST_IF_NODE                   1 PD <statements>
+AST_FUNCTION_NODE             1 PD <statements>
+AST_BLOCK_NODE                1 PD TK_END
+AST_BOOLEXP_NODE              1 PD <block>
+AST_QUALIFIEDPARAMETER_NODE   1 PD <param>
+AST_QUALIFIEDPARAMETERS_NODE  1 PD <returntype>
+AST_RETURNTYPE_NODE           1 PD TK_COLON
+AST_EXP_NODE                  1 PD <relop>
+AST_COMPARE_NODE              1 PD TK_COLON
+AST_RETURNSTMT_NODE           2 PD TK_END
+AST_FUNCTION_NODE             1 PD <fndefines>
+AST_PASSEDPARAMS_NODE         1 PD TK_CLOSEPAREN
+AST_EXP_NODE                  2 PD <statements>
+AST_AROP_NODE                 0 PR <exp>
+AST_EXP_NODE                  3 PR <exp>
+AST_ASSIGNABLE_NODE           1 PD TK_COMMA
+AST_ASSIGNABLE_NODE           1 PD TK_SQCLOSEPAREN
+AST_ASSIGNABLE_NODE           1 PA TK_COLON
+AST_AROP_NODE                 1 PA <statements>
+AST_EXP_NODE                  1 PA <statements>
+AST_EXP_NODE                  1 PA TK_COLON
+AST_COMPARE_NODE              1 PA TK_AND
+AST_COMPARE_NODE              1 PA TK_OR
+AST_BOOLOP_NODE               1 PA TK_COLON
+AST_ENDASSIGN_NODE            1 PA TK_BE
+AST_ASSIGNABLE_NODE           1 PA TK_BE
+AST_EXP_NODE                  1 CR TK_OPENPAREN   AST_EXP_NODE
+AST_AROP_NODE                 1 CR TK_OPENPAREN   AST_EXP_NODE
+AST_BOOLEXP_NODE              1 CR TK_CROPENPAREN AST_BOOLEXP_NODE
+AST_BOOLOP_NODE               1 CR TK_CROPENPAREN AST_BOOLEXP_NODE

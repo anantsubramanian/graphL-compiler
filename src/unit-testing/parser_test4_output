@@ -1,4 +1,4 @@
-<program>
+<program> 
 <globaldefines> <fndefines> <statements> 
 e 
 e 
@@ -9,31 +9,31 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,a,1> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,b,1> 
 TK_COMMA <identifier> <moreidens> 
-TK_IDEN 
+<TK_IDEN,c,1> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,a,3> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,2,3> 
 e 
 TK_MUL <mulexp> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,3,3> 
 e 
 e 
 TK_PLUS <exp> 
@@ -41,7 +41,7 @@ TK_PLUS <exp>
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,3> 
 e 
 e 
 e 
@@ -50,14 +50,14 @@ e
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,b,4> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,2,4> 
 e 
 TK_MUL <mulexp> 
 <modexp> <mulexp1> 
@@ -66,7 +66,7 @@ TK_OPENPAREN <exp> TK_CLOSEPAREN
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,3,4> 
 e 
 e 
 TK_PLUS <exp> 
@@ -74,7 +74,7 @@ TK_PLUS <exp>
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,5,4> 
 e 
 e 
 e 
@@ -85,7 +85,7 @@ e
 <input> 
 TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,c,6> 
 e 
 <possiblestmts> <statements> 
 <validconditional> 
@@ -102,7 +102,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,c,8> 
 e 
 e 
 e 
@@ -112,7 +112,7 @@ TK_LT
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,8> 
 e 
 e 
 e 
@@ -124,7 +124,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <output> 
 TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
 <literal> 
-TK_STRINGLIT 
+<TK_STRINGLIT," End Program ",10> 
 e 
 TK_ELSE <elseifblock1> 
 <validconditional> 
@@ -141,7 +141,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,c,12> 
 e 
 e 
 e 
@@ -151,7 +151,7 @@ TK_GTE
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,12> 
 e 
 e 
 e 
@@ -165,7 +165,7 @@ TK_AND <expor>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,a,12> 
 e 
 e 
 e 
@@ -176,7 +176,7 @@ TK_LT
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,b,12> 
 e 
 e 
 e 
@@ -189,7 +189,7 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <output> 
 TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
 <literal> 
-TK_STRINGLIT 
+<TK_STRINGLIT," Precedence Works",14> 
 e 
 TK_ELSE <elseifblock1> 
 TK_COLON <block> TK_NEWLINE 
@@ -199,5 +199,5 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <output> 
 TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
 <literal> 
-TK_STRINGLIT 
+<TK_STRINGLIT," Precedence Fails",18> 
 e 

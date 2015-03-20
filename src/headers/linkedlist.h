@@ -1,23 +1,54 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
+#define LINKEDLIST_DEFINED 1
+
 #define TRUE 1
 #define FALSE 0
+
+typedef enum linkedlist_type
+{
+  LL_TYPE_FIRST,
+  LL_INT_TYPE,
+  LL_DOUBLE_TYPE,
+  LL_STRING_TYPE,
+  LL_GENERIC_TYPE,
+  LL_TYPE_LAST
+} LINKEDLIST_TYPE;
 
 typedef struct linkedlist_node
 {
   struct linkedlist_node *prev, *next;
-  char *value;
+  union
+  {
+    int int_val;
+    double double_val;
+    char *string_val;
+    void *generic_val;
+  } data;
 } LNODE;
 
 typedef struct linkedlist
 {
   LNODE *head, *tail;
+  LINKEDLIST_TYPE data_type;
+  int generic_size;
   char *name;
 } LINKEDLIST;
 
-extern LINKEDLIST* getLinkedList ();
+extern LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE );
 
-extern LINKEDLIST* insertAtBack ( LINKEDLIST * , char * );
+extern LINKEDLIST* setGenericSize ( LINKEDLIST * , unsigned int );
 
-extern LINKEDLIST* insertAtFront ( LINKEDLIST * , char * );
+extern LINKEDLIST* insertAtBack ( LINKEDLIST * , void * );
+
+extern LINKEDLIST* insertAtFront ( LINKEDLIST * , void * );
 
 extern LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * , char * );
 
@@ -25,7 +56,7 @@ extern LINKEDLIST* deleteFromBack ( LINKEDLIST * );
 
 extern LINKEDLIST* deleteFromFront ( LINKEDLIST * );
 
-extern LNODE* copyNode ( LNODE * , LNODE * );
+extern LNODE* copyNode ( LINKEDLIST * , LNODE * , LNODE * );
 
 extern LNODE* getIterator ( LINKEDLIST * , LNODE * );
 
@@ -35,9 +66,9 @@ extern int hasNext ( LNODE * );
 
 extern int hasPrevious ( LNODE * );
 
-extern LNODE* getNext ( LNODE * );
+extern LNODE* getNext ( LINKEDLIST * , LNODE * );
 
-extern LNODE* getPrevious ( LNODE * );
+extern LNODE* getPrevious ( LINKEDLIST * , LNODE * );
 
 extern LNODE* getFront ( LINKEDLIST * );
 

@@ -1,9 +1,18 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "trie.h"
 
-TRIE* getNewTrie ()
+TRIE* getNewTrie ( TRIE_TYPE data_type )
 {
   TRIE* trie = NULL;
   trie = malloc ( sizeof (TRIE) );
@@ -14,7 +23,15 @@ TRIE* getNewTrie ()
     return NULL;
   }
 
-  trie->name = NULL;
+  if ( data_type <= TRIE_TYPE_FIRST || data_type >= TRIE_TYPE_LAST )
+  {
+    fprintf ( stderr, "Invalid type for Trie\n" );
+    return NULL;
+  }
+
+  trie -> name = NULL;
+  trie -> data_type = data_type;
+  trie -> generic_size = -1;
   trie->root = malloc ( sizeof ( TNODE ) );
   if ( trie->root == NULL )
   {
@@ -63,6 +80,19 @@ TRIE* setTrieName ( TRIE *trie, const char *name )
   return trie;
 }
 
+TRIE* setTrieGenericSize ( TRIE *trie, unsigned int size )
+{
+  if ( trie == NULL )
+  {
+    fprintf ( stderr, "Cannot set the generic type size of a non-existent trie\n" );
+    return NULL;
+  }
+
+  trie -> generic_size = size;
+
+  return trie;
+}
+
 TNODE* initializeNode ( TNODE *node )
 {
   if ( node == NULL )
@@ -71,8 +101,11 @@ TNODE* initializeNode ( TNODE *node )
     return NULL;
   }
 
-  node->name = NULL;
-  node->value = 0;
+  node -> name = NULL;
+  node -> data . int_val = 0;
+  node -> data . double_val = 0;
+  node -> data . string_val = NULL;
+  node -> data . generic_val = NULL;
   node->is_final = FALSE;
   node->count = 0;
 
@@ -98,11 +131,11 @@ TNODE* insertString ( TRIE *trie, const char *str )
   }
 
   int i = 0;
-  TNODE *curnode = trie->root;
+  TNODE *curnode = trie -> root;
   for ( i = 0; str [i] != '\0'; i++ )
   {
-    if ( curnode -> next [ str [i] ] == NULL ) break;
-    curnode = curnode -> next [ str [i] ];
+    if ( curnode -> next [ (int) str [i] ] == NULL ) break;
+    curnode = curnode -> next [ (int) str [i] ];
     curnode -> count ++;
   }
 
@@ -110,13 +143,13 @@ TNODE* insertString ( TRIE *trie, const char *str )
   {
     for ( ; str [i] != '\0'; i++ )
     {
-      curnode -> next [ str [i] ] = malloc ( sizeof ( TNODE ) );
-      if ( curnode -> next [ str [i] ] == NULL )
+      curnode -> next [ (int) str [i] ] = malloc ( sizeof ( TNODE ) );
+      if ( curnode -> next [ (int) str [i] ] == NULL )
       {
         fprintf ( stderr, "Failed to allocate memory for node while inserting\n" );
         return NULL;
       }
-      curnode = curnode -> next [ str [i] ];
+      curnode = curnode -> next [ (int) str [i] ];
       initializeNode ( curnode );
       curnode -> count++;
     }
@@ -146,12 +179,12 @@ TNODE* findString ( TRIE *trie, const char *str )
 
   for ( i = 0; str [i] != '\0'; i++ )
   {
-    if ( curnode -> next [ str [i] ] == NULL )
+    if ( curnode -> next [ (int) str [i] ] == NULL )
     {
       curnode = NULL;
       break;
     }
-    curnode = curnode -> next [ str [i] ];
+    curnode = curnode -> next [ (int) str [i] ];
   }
 
   if ( str [i] != '\0' || isFinalTNode ( curnode ) == FALSE )
@@ -160,15 +193,60 @@ TNODE* findString ( TRIE *trie, const char *str )
   return curnode;
 }
 
-TNODE* setValue ( TNODE *node, int value )
+TNODE* setValue ( TRIE * trie, TNODE *node, void * value )
 {
+  if ( trie == NULL )
+  {
+    fprintf ( stderr, "Attempting to set value of non-existent trie\n" );
+    return NULL;
+  }
+
   if ( node == NULL )
   {
     fprintf ( stderr, "Attempting to set value of non-existent node\n" );
     return NULL;
   }
 
-  node->value = value;
+  if ( trie -> data_type == TRIE_INT_TYPE )
+  {
+    node -> data . int_val = * ( (int *) value );
+  }
+  else if ( trie -> data_type == TRIE_DOUBLE_TYPE )
+  {
+    node -> data . double_val = * ( (double *) value );
+  }
+  else if ( trie -> data_type == TRIE_STRING_TYPE )
+  {
+    char *strval = (char *) value;
+    int len = strlen ( strval );
+    node -> data . string_val = malloc ( (len+1) * sizeof (char) );
+    if ( node -> data . string_val == NULL )
+    {
+      fprintf ( stderr, "Failed to allocate memory for node's string value\n" );
+      return NULL;
+    }
+    strcpy ( node -> data . string_val, strval );
+  }
+  else
+  {
+    // Is a generic type list
+    if ( trie -> generic_size == -1 )
+    {
+      fprintf ( stderr, "Calling insert on generic list without specifying size\n" );
+      return NULL;
+    }
+
+    node -> data . generic_val = malloc ( trie -> generic_size );
+    if ( node -> data . generic_val == NULL )
+    {
+      fprintf ( stderr, "Failed to allocate memory for generic type node data\n" );
+      return NULL;
+    }
+
+    // Copy the raw data from value to generic_val
+    memcpy ( node -> data . generic_val, value, trie -> generic_size );
+  }
+
   return node;
 }
 
@@ -218,11 +296,11 @@ TRIE* deleteString ( TRIE* trie, const char *str )
   for ( i = 0; str [i] != '\0'; i++ )
   {
     TNODE *tempnode = curnode;
-    curnode = curnode -> next [ str [i] ];
+    curnode = curnode -> next [ (int) str [i] ];
     curnode -> count--;
 
     if ( curnode -> count == 0 && tempnode != NULL )
-      tempnode -> next [ str [i] ] = NULL;
+      tempnode -> next [ (int) str [i] ] = NULL;
 
     if ( tempnode != NULL && tempnode -> count == 0 )
     {

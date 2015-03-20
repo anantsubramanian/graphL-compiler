@@ -1,4 +1,4 @@
-<program>
+<program> 
 <globaldefines> <fndefines> <statements> 
 e 
 e 
@@ -9,7 +9,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_VERTEX 
-TK_IDEN 
+<TK_IDEN,V,2> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -18,7 +18,7 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <complextype> 
 TK_GRAPH 
-TK_IDEN 
+<TK_IDEN,G,3> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
@@ -27,21 +27,21 @@ TK_DEFINE <defineargs>
 <datatype> <identifier> <moreidens> 
 <primitivetype> 
 TK_INT 
-TK_IDEN 
+<TK_IDEN,x,11> 
 e 
 <possiblestmts> <statements> 
 <validstatement> TK_NEWLINE 
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,x,14> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,10,14> 
 e 
 e 
 TK_PLUS <exp> 
@@ -49,7 +49,7 @@ TK_PLUS <exp>
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,25,14> 
 e 
 e 
 e 
@@ -68,7 +68,7 @@ TK_IF <boolexp>
 <baseexp> <modexp1> 
 <assignorfunc> 
 <identifier> <assignorfunc1> 
-TK_IDEN 
+<TK_IDEN,x,16> 
 e 
 e 
 e 
@@ -78,7 +78,7 @@ TK_GT
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,16> 
 e 
 e 
 e 
@@ -90,14 +90,14 @@ TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END
 <letstmt> 
 TK_LET <assignable> TK_BE <equatable> 
 <identifier> <assignable1> 
-TK_IDEN 
+<TK_IDEN,x,19> 
 e 
 <exp> 
 <mulexp> <exp1> 
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,0,19> 
 e 
 e 
 TK_MINUS <exp> 
@@ -105,7 +105,7 @@ TK_MINUS <exp>
 <modexp> <mulexp1> 
 <baseexp> <modexp1> 
 <literal> 
-TK_INTLIT 
+<TK_INTLIT,1,19> 
 e 
 e 
 e 

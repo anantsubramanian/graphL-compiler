@@ -1,0 +1,236 @@
+// Authors: Anant Subramanian <anant.subramanian15@gmail.com>
+//          Aditya Bansal <adityabansal_adi@yahoo.co.in>
+//
+// BITS PILANI ID NOs: 2012A7TS010P
+//                     2012A7PS122P
+//
+// Project Team Num: 1
+// Project Group No. 1
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include "headers/parsetree.h"
+#include "headers/trie.h"
+
+#define BUFFERLEN 400
+#define NEWLINE '\n'
+#define PARSE_OUTPUT_FILE "PARSEOUTPUT"
+#define T_INDEX_FILE "config/terminals_index"
+#define NT_INDEX_FILE "config/nonterminals_index"
+
+#define DEBUG_ONCREATE 0
+
+void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
+{
+  char buffers [2] [ blocksize ];
+  int curbuff = -1;
+  int charindx = -1;
+  int charsread = 0;
+  int tokenindex = 0;
+  int torval = 0;
+
+  char c;
+  char token [ BUFFERLEN ];
+  int value = 0;
+
+  while ( TRUE )
+  {
+    // Get char from appropriate buffer
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
+                                blocksize, mapfile ) ) == 0 )
+        break;
+    }
+    c = buffers [ curbuff ] [ charindx ];
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == ' ' )
+    {
+      torval = 1;
+      tokenindex = 0;
+    }
+    else if ( c == NEWLINE )
+    {
+      token [ tokenindex ] = '\0';
+      TNODE *temp = NULL;
+      temp = insertString ( trie, token );
+      temp -> data.int_val = value;
+      *count = value;
+      value = 0;
+      torval = 0;
+    }
+    else if ( torval == 1 )
+      token [ tokenindex++ ] = c;
+    else
+      value = value * 10 + c - 48;
+  }
+}
+
+PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
+                             TRIE *terminals )
+{
+  PTNODE *currnode = pst -> root;
+
+  char c;
+
+  char buffers [2] [blocksize];
+  char token [ BUFFERLEN ];
+
+  int charindx = -1;
+  int curbuff = -1;
+  int charsread = 0;
+  int tokencounter = 0;
+
+  while ( TRUE )
+  {
+    charindx = ( charindx + 1 ) % blocksize;
+    if ( charindx == 0 )
+    {
+      curbuff = ( curbuff + 1 ) & 1;
+      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, parseroutput ) ) == 0 )
+        break;
+    }
+
+    c = buffers [ curbuff ] [ charindx ];
+
+
+    if ( charsread < blocksize && charindx >= charsread )
+    {
+      fprintf ( stderr, "EOF Found\n" );
+      break;
+    }
+
+    if ( c == NEWLINE )
+    {
+      token [ tokencounter ] = '\0';
+
+      currnode = getLeftMostDesc ( currnode );
+
+      if ( currnode == pst -> root )
+        currnode = insertSpaceSeparatedWords ( currnode, token );
+      else
+      {
+        while ( findString ( terminals, currnode -> name ) != NULL )
+        {
+          // While the current node represents a terminal
+          // go to the next pre-order node
+          currnode = getNextPreOrder ( currnode );
+        }
+
+        if ( DEBUG_ONCREATE ) printf ( "At node %s:\n", currnode -> name );
+
+        // Found the required non-terminal node
+        // expand it using the words in token
+        currnode = insertSpaceSeparatedWords ( currnode, token );
+
+        if ( DEBUG_ONCREATE )
+        {
+          printf ( "Created children: " );
+          int childindx;
+          for ( childindx = 0; childindx < currnode -> num_of_children; childindx++ )
+            printf ( "%s ", currnode -> next [ childindx ] -> name );
+          printf ( "\n" );
+        }
+
+        // Go to the appropriate node after insertion
+        currnode = getLeftMostDesc ( currnode );
+      }
+
+      tokencounter = 0;
+    }
+    else
+      token [ tokencounter++ ] = c;
+  }
+
+  return pst;
+}
+
+int main ( )
+{
+  // Get the system block size
+  struct stat fi;
+  stat ( "/", &fi );
+  int blocksize = fi.st_blksize;
+
+
+
+  /*********************************************************
+    *                                                      *
+    *              PHASE 1 : Populate Tries                *
+    *                                                      *
+    ********************************************************
+   */
+
+
+
+  TRIE *terminals = NULL, *nonterminals = NULL;
+  int terminalscount = 0, nonterminalscount = 0;
+
+  terminals = getNewTrie ( TRIE_INT_TYPE );
+  nonterminals = getNewTrie ( TRIE_INT_TYPE );
+
+  FILE *tmapfile = NULL, *ntmapfile = NULL;
+
+  tmapfile = fopen ( T_INDEX_FILE, "rb" );
+  ntmapfile = fopen ( NT_INDEX_FILE, "rb" );
+
+  if ( tmapfile == NULL || ntmapfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open (non) terminals index file\n" );
+    return -1;
+  }
+
+  populateTrie ( tmapfile, blocksize, terminals, &terminalscount );
+  populateTrie ( ntmapfile, blocksize, nonterminals, &nonterminalscount );
+
+  if ( fclose ( tmapfile ) != 0 )
+    fprintf ( stderr, "Failed to close terminals index file\n" );
+  if ( fclose ( ntmapfile ) != 0 )
+    fprintf ( stderr, "Failed to close non terminals index file\n" );
+
+
+
+  /*********************************************************
+    *                                                      *
+    *     PHASE 2 : Build PARSETREE from parser output     *
+    *                                                      *
+    ********************************************************
+   */
+
+
+
+  FILE *parseroutput = NULL;
+  parseroutput = fopen ( PARSE_OUTPUT_FILE, "rb" );
+
+  if ( parseroutput == NULL )
+  {
+    fprintf ( stderr, "Failed to open parser output file\n" );
+    return -1;
+  }
+
+  PARSETREE* pst = NULL;
+  pst = getNewParseTree ();
+
+  pst = createParseTree ( parseroutput, blocksize, pst, terminals );
+
+  if ( fclose ( parseroutput ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close parser output file\n" );
+    return -1;
+  }
+
+  printf ( "PARSETREE successfully built\n" );
+
+  return 0;
+}
+
