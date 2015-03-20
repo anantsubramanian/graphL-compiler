@@ -50,7 +50,13 @@ typedef struct variable_entry
   int scope_level;
   int scope_sublevel;
   int decl_line;
-  int value;
+  union
+  {
+    int int_value;
+    char *string_value;
+    double float_value;
+    void *complex_value;
+  } data;
   void *complexdata;
   LINKEDLIST *refr_lines;
 } VARIABLE;
@@ -61,6 +67,7 @@ typedef struct function_entry
   int num_params;
   int *params;
   DATATYPE ret_type;
+  int returndata_stbindex;
   int decl_line;
   int refr_line;
 } FUNCTION;

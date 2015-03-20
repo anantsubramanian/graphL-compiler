@@ -221,7 +221,10 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     varobj -> scope_sublevel = symboltable -> cur_subscope;
     varobj -> decl_line = -1;
     varobj -> refr_lines = NULL;
-    varobj -> value = -1;
+    varobj -> data . int_value = 0;
+    varobj -> data . string_value = 0;
+    varobj -> data . float_value = 0;
+    varobj -> data . complex_value = 0;
   }
   else if ( value_type == ENTRY_FUNC_TYPE )
   {
@@ -240,6 +243,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     funcobj -> num_params = -1;
     funcobj -> params = NULL;
     funcobj -> ret_type = -1;
+    funcobj -> returndata_stbindex = -1;
     funcobj -> decl_line = -1;
     funcobj -> refr_line = -1;
   }
