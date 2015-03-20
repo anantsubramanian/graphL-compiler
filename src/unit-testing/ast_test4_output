@@ -61,10 +61,10 @@ Creating: AST_LITERAL_NODE
 At node AST_EXP_NODE
 Creating: AST_AROP_NODE
 
-At node AST_AROP_NODE
+At node AST_EXP_NODE
 Creating: AST_LITERAL_NODE
 
-At node AST_AROP_NODE
+At node AST_EXP_NODE
 Creating: AST_AROP_NODE
 
 At node AST_AROP_NODE

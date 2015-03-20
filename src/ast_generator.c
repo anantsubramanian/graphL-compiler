@@ -39,6 +39,7 @@
 #define PROPERTY_PARENT 1
 #define PROPERTY_READ 2
 #define PROPERTY_ADD 4
+#define PROPERTY_CREATE 8
 
 // Required language-specific tokens for semantic analysis
 #define TK_BEGIN "TK_BEGIN"
@@ -182,6 +183,7 @@ typedef struct property_data
 {
   int jumps;
   int instruction;
+  int node_type;
 } PROPERTY;
 
 int makeTrieProperty ( char *instr )
@@ -201,6 +203,8 @@ int makeTrieProperty ( char *instr )
   int result = 0;
   if ( instr [0] == 'P' )
     result |= PROPERTY_PARENT;
+  else if ( instr [0] == 'C' )
+    result |= PROPERTY_CREATE;
 
   if ( instr [1] == 'R' )
     result |= PROPERTY_READ;
@@ -409,6 +413,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
   char token [ BUFFERLEN ];
   char instr [ INSTRLEN ];
   char extradata [ BUFFERLEN ];
+  char nodetype [ BUFFERLEN ];
   int num_jumps = 0;
 
   int charindx = -1;
@@ -419,6 +424,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
   int tokencounter = 0;
   int instrcounter = 0;
   int extracounter = 0;
+  int nodetcounter = 0;
 
   int isfirst = 1;
   int incomment = 0;
@@ -507,12 +513,13 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
               exit (-1);
             }
           }
-          if ( DEBUG_ALL ) printf ( "%s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
+          if ( DEBUG_ALL ) printf ( "%s %s %d %s %s\n", token, instr, createProperty ( instr ), extradata, nodetype );
         }
         else
         {
           extradata [ extracounter ] = '\0';
-          if ( DEBUG_ALL ) printf ( "Property %s %d %s %s\n", token, num_jumps, instr, extradata );
+          nodetype [ nodetcounter ] = '\0';
+          if ( DEBUG_ALL ) printf ( "Property %s %d %s %s %s\n", token, num_jumps, instr, extradata, nodetype );
           // Parsing properties now
           TNODE* nodeexists = findString ( properties, token );
           TRIE* level2trie = NULL;
@@ -532,6 +539,17 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
           PROPERTY temp;
           temp . jumps = num_jumps;
           temp . instruction = makeTrieProperty ( instr );
+          if ( ( temp . instruction & PROPERTY_CREATE ) == PROPERTY_CREATE )
+          {
+            TNODE *findnodetype = findString ( nodetypemap, nodetype );
+            if ( findnodetype == NULL )
+            {
+              fprintf ( stderr, "Invalid node type for create property in the instructions file\n" );
+              exit (-1);
+            }
+
+            temp . node_type = findnodetype -> data . int_val;
+          }
 
           propertyexists = setValue ( level2trie, propertyexists, & temp );
         }
@@ -576,6 +594,12 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
         extracounter = 0;
         toriore = 3;
       }
+      else if ( toriore == 3 && started_properties == 1 )
+      {
+        extradata [ extracounter ] = '\0';
+        nodetcounter = 0;
+        toriore = 4;
+      }
     }
     else if ( toriore == 0 )
       token [ tokencounter++ ] = c, prevspace = 0, isfirst = 0;
@@ -592,6 +616,8 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
       instr [ instrcounter++ ] = c, prevspace = 0, isfirst = 0;
     else if ( toriore == 3 )
       extradata [ extracounter++ ] = c, prevspace = 0, isfirst = 0;
+    else if ( toriore == 4 )
+      nodetype [ nodetcounter++ ] = c, prevspace = 0, isfirst = 0;
   }
 
 }
@@ -1084,16 +1110,44 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
             int shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
             int shouldAdd = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_ADD ) == PROPERTY_ADD );
+            int shouldCreate = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_CREATE ) == PROPERTY_CREATE );
+            int nodetype_tocreate = ( (PROPERTY *) jumps -> data . generic_val ) -> node_type;
+
             if ( DEBUG_ALL ) printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
-                                                                topvalue, numberOfJumps );
-            while ( numberOfJumps > 0 )
+                                                                                 topvalue, numberOfJumps );
+            if ( shouldCreate == 0 )
             {
-              if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
-                break;
-              currnode = getParent ( currnode );
-              numberOfJumps --;
+              // Should jump
+              while ( numberOfJumps > 0 )
+              {
+                if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
+                  break;
+                currnode = getParent ( currnode );
+                numberOfJumps --;
+              }
             }
 
+
+            if ( shouldCreate == 1 )
+            {
+              if ( DEBUG_ALL || DEBUG_ONCREATE )
+                printf ( "At node %s got %s so creating and going to %s\n\n",
+                         getNodeTypeName ( currnode -> node_type ), topvalue,
+                         getNodeTypeName ( nodetype_tocreate ) );
+              currnode = addChild ( currnode, nodetype_tocreate, GOTOCH );
+
+              // numberOfJumps is the number of elements to pop from the stack
+              while ( numberOfJumps > 0 )
+              {
+                if ( isEmpty ( stack ) )
+                {
+                  fprintf ( stderr, "Instructions say pop elements, but stack is empty!\n" );
+                  exit (-1);
+                }
+                stack = pop ( stack );
+                numberOfJumps --;
+              }
+            }
             if ( shouldRead == 1 )
             {
               free ( topvalue );

@@ -100,7 +100,7 @@ TK_BREAK           DPD
 # Start special node properties
 #
 # Properties format:
-# AST_*_NODE              N(umber) P(arent)R(ead)/D(on't)/A(dd)     Input-symbol
+# AST_*_NODE              N(umber) P(arent)/C(reate) R(ead)/D(on't)/A(dd)     Input-symbol      Type-of-node (optional)
 AST_GLOBALDEFINE_NODE         1 PR <globaldefines>
 AST_DEFINE_NODE               1 PR <statements>
 AST_LET_NODE                  1 PR <statements>
@@ -133,3 +133,7 @@ AST_COMPARE_NODE              1 PA TK_OR
 AST_BOOLOP_NODE               1 PA TK_COLON
 AST_ENDASSIGN_NODE            1 PA TK_BE
 AST_ASSIGNABLE_NODE           1 PA TK_BE
+AST_EXP_NODE                  1 CR TK_OPENPAREN   AST_EXP_NODE
+AST_AROP_NODE                 1 CR TK_OPENPAREN   AST_EXP_NODE
+AST_BOOLEXP_NODE              1 CR TK_CROPENPAREN AST_BOOLEXP_NODE
+AST_BOOLOP_NODE               1 CR TK_CROPENPAREN AST_BOOLEXP_NODE
