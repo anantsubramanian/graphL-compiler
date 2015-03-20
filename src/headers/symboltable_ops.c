@@ -89,7 +89,7 @@ SYMBOLTABLE* setNumEntries ( SYMBOLTABLE *symboltable, unsigned int num_entries 
     return NULL;
   }
 
-  int i;
+  unsigned int i;
   for ( i = 0; i < num_entries; i++ )
   {
     symboltable -> entries [i] = NULL;
@@ -315,7 +315,7 @@ int checkIndexExistence ( SYMBOLTABLE *symboltable, unsigned int index )
     return -1;
   }
 
-  if ( index >= symboltable -> size )
+  if ( index >= ( unsigned int ) symboltable -> size )
     return FALSE;
   else if ( isEmpty ( symboltable -> entries [ index ] ) )
     return FALSE;
@@ -355,7 +355,7 @@ STBENTRY* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
     return NULL;
   }
 
-  if ( index >= symboltable -> size )
+  if ( index >= ( unsigned int ) symboltable -> size )
   {
     fprintf ( stderr, "Index out of bounds in symbol table\n" );
     return NULL;

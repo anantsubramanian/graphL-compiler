@@ -5,6 +5,10 @@
 #include "headers/ast.h"
 #include "headers/symboltable.h"
 
+#ifndef TRIE_DEFINED
+  #include "headers/trie.h"
+#endif
+
 #define BUFFERLEN 400
 #define INSTRLEN 5
 #define DIGSTART 48
@@ -13,10 +17,14 @@
 #define COMMENT_START '#'
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
 #define ATTRIBUTES_FILE "TOKENMAP"
+#define AST_OUTPUT_FILE "ASTOUTPUT"
 #define AST_NODETYPES_FILE "config/ast_nodetypes"
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
+
+#define DEBUG_ALL 0
+#define DEBUG_ONCREATE 0
 
 #define PROPERTY_PARENT 1
 #define PROPERTY_READ 2
@@ -162,7 +170,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
 
   *token = malloc ( len * sizeof ( char ) );
   *name = malloc ( len * sizeof ( char ) );
-  int i;
+  int i = 0;
 
   // Get token type
 
@@ -401,12 +409,12 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
               exit (-1);
             }
           }
-          printf ( "%s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
+          if ( DEBUG_ALL ) printf ( "%s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
         }
         else
         {
           extradata [ extracounter ] = '\0';
-          printf ( "Property %s %d %s %s\n", token, num_jumps, instr, extradata );
+          if ( DEBUG_ALL ) printf ( "Property %s %d %s %s\n", token, num_jumps, instr, extradata );
           // Parsing properties now
           TNODE* nodeexists = findString ( properties, token );
           TRIE* level2trie = NULL;
@@ -492,13 +500,16 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
                  TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
-                 SYMBOLTABLE *symboltable )
+                 SYMBOLTABLE *symboltable, FILE *astoutput )
 {
   // We start processing from the root node
   ANODE *currnode = ast -> root;
 
   STACK *stack = NULL;
   stack = getStack ( STACK_STRING_TYPE );
+
+  // Open a global environment in the symbol table
+  symboltable = openEnv ( symboltable );
 
   char c;
 
@@ -548,12 +559,10 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
         char *temptoken = NULL, *tokenname = NULL;
         int linenumber = -1;
-        int hasLineNumber = 0;
 
         // TODO: (unimportant) -- Anyway to make this jugaad cleaner?
         if ( topvalue [0] == '<' && topvalue [1] == 'T' )
         {
-          hasLineNumber = 1;
           extractTokenData ( topvalue, &temptoken, &tokenname, &linenumber );
           free ( topvalue );
           topvalue = temptoken;
@@ -595,7 +604,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
             int shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
             int shouldAdd = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_ADD ) == PROPERTY_ADD );
-            printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
+            if ( DEBUG_ALL ) printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
                                                                 topvalue, numberOfJumps );
             while ( numberOfJumps > 0 )
             {
@@ -613,7 +622,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             else if ( shouldAdd == 1 )
             {
               stack = push ( stack, topvalue );
-              printf ( "Pushing back %s\n", topvalue );
+              if ( DEBUG_ALL ) printf ( "Pushing back %s\n", topvalue );
               free ( topvalue );
               continue;
             }
@@ -639,7 +648,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           else if ( nontermval != NULL && nontermval -> data . int_val == conditional_value )
             currnode = getParent ( currnode );
           else
-            printf ( "Conditional read unsuccessful\n" );
+            if ( DEBUG_ALL ) printf ( "Conditional read unsuccessful\n" );
 
           // Don't break as the topvalue should be processed even on conditional read
           // but do reset the conditional_value
@@ -652,7 +661,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         // Read on non-terminals.
         if ( currentval == NULL )
         {
-          printf ( "*No rule for %s*\n", topvalue );
+          if ( DEBUG_ALL ) printf ( "*No rule for %s*\n", topvalue );
           TNODE *isnonterm = findString ( nonterminals, topvalue );
           free ( topvalue );
 
@@ -678,11 +687,19 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
           int type_to_create = typeofnode -> data . int_val;
 
-          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+          if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+
+          fprintf ( astoutput, "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+
           currnode = addChild ( currnode, type_to_create, instruction );
 
-          printf ( "Got %s so creating: %s\n", topvalue, getNodeTypeName ( type_to_create ) );
-          printf ( "\n\n" );
+          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+
+          if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
+
+          fprintf ( astoutput, "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
+
+          if ( DEBUG_ALL ) printf ( "\n\n" );
 
           // currnode is now either the same node, child, or parent depending on
           // the instruction. If the instruction says read, then we break.
@@ -699,9 +716,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & PARENT) == PARENT )
         {
-          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          printf ( "Got %s so ", topvalue );
-          printf ( "Going to parent\n" );
+          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+          if ( DEBUG_ALL ) printf ( "Going to parent\n" );
 
           if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
             fprintf ( stderr, "Parent is null, so remaining at same node\n" );
@@ -717,9 +734,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
         else if ( (instruction & CONDRD) == CONDRD )
         {
-          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          printf ( "Got %s so ", topvalue );
-          printf ( "conditionally reading/popping next value %d\n", instruction );
+          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+          if ( DEBUG_ALL ) printf ( "conditionally reading/popping next value %d\n", instruction );
           // Instruction is a conditional read
           // Set the conditional read flag and value so that
           // currnode will be changed to parent on that value
@@ -744,13 +761,13 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             free ( topvalue );
             break;
           }
-          printf ( "Not breaking\n" );
+          if ( DEBUG_ALL ) printf ( "Not breaking\n" );
         }
         else if ( (instruction & READ) == READ )
         {
-          printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          printf ( "Got %s so ", topvalue );
-          printf ( "Reading next input...\n" );
+          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
+          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+          if ( DEBUG_ALL ) printf ( "Reading next input...\n" );
           free ( topvalue );
           break;
         }
@@ -874,9 +891,6 @@ int main ( )
 
   symboltable = setNumEntries ( symboltable, stbentries );
 
-  // Open a global environment in the symbol table
-  symboltable = openEnv ( symboltable );
-
   FILE *parseroutput = NULL;
   parseroutput = fopen ( PARSE_OUTPUT_FILE, "rb" );
 
@@ -886,8 +900,18 @@ int main ( )
     return -1;
   }
 
+  FILE *astoutput = NULL;
+  astoutput = fopen ( AST_OUTPUT_FILE, "w+" );
+
+  if ( astoutput == NULL )
+  {
+    fprintf ( stderr, "Failed to open AST output file\n" );
+    return -1;
+  }
+
   ast = createAST ( parseroutput, blocksize, ast, instructions, auxdata,
-                    nonterminals, terminals, properties, symboltable );
+                    nonterminals, terminals, properties, symboltable,
+                    astoutput );
 
   if ( fclose ( parseroutput ) != 0 )
   {
@@ -895,7 +919,13 @@ int main ( )
     return -1;
   }
 
-  printf ( "AST successfully built\n" );
+  if ( fclose ( astoutput ) != 0 )
+  {
+    fprintf ( stderr, "Failed to close AST output file\n" );
+    return -1;
+  }
+
+  if ( DEBUG_ALL ) printf ( "AST successfully built\n" );
 
   return 0;
 }

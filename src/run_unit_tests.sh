@@ -246,6 +246,55 @@ printf "\n\n-------------------------------------------------------\n"
 printf "Testing module Parse Tree Generator complete."
 printf "\n-------------------------------------------------------\n\n"
 
+##############################################
+#        Starting AST Generator Tests        #
+##############################################
+
+
+if [[ "$5" == "" ]]; then
+  # Decide number of sample programs
+  printf "\nEnter the number of error-free parser tests in the testing folder (for AST): "
+  read numcases
+else
+  # Argument 5 is the number of ast generator test programs
+  numcases=$5
+fi
+
+printf "\n\n-------------------------------------------------------\n"
+printf "Testing module AST generator:"
+printf "\n-------------------------------------------------------\n\n"
+
+# Run required number of tests
+for (( i = 1; i <= $numcases; i++ )); do
+
+  printf "Running test $i... "
+  cp unit-testing/parser_test${i}_output PARSEOUTPUT
+  cp unit-testing/parser_test${i}_map TOKENMAP
+
+  result=$(./ast_generator 2>/dev/null)
+
+  diffres=$(diff ASTOUTPUT unit-testing/ast_test${i}_output)
+
+  if [[ "$diffres" != "" ]]; then
+    printf "FAILED!\n\n"
+    printf "Errors reported:\n\n"
+    diff ASTOUTPUT unit-testing/ast_test${i}_output
+    printf "\n\n"
+    exit
+  fi
+
+  printf "PASSED!\n"
+
+  rm PARSEOUTPUT
+  rm ASTOUTPUT
+  rm TOKENMAP
+done
+
+printf "All tests passed!"
+printf "\n\n-------------------------------------------------------\n"
+printf "Testing module AST Generator complete."
+printf "\n-------------------------------------------------------\n\n"
+
 # Done with all unit tests
 printf "\nAll unit tests passed. Proceed to commit.\n\n"
 
