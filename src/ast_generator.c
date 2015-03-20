@@ -709,57 +709,122 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           {
             // If it is TK_END
             symboltable = closeEnv ( symboltable );
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Closeing environment\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Closing environment\n\n" );
           }
           else if ( terminalvalue == ltint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LT type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . compop_type = C_LT_TYPE;
           }
           else if ( terminalvalue == lteint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LTE type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . compop_type = C_LTE_TYPE;
           }
           else if ( terminalvalue == gtint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GT type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . compop_type = C_GT_TYPE;
           }
           else if ( terminalvalue == gteint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GTE type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . compop_type = C_GTE_TYPE;
           }
           else if ( terminalvalue == eqint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EQ type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EQ type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . compop_type = C_EQ_TYPE;
           }
           else if ( terminalvalue == andint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . boolop_type = B_AND_TYPE;
           }
           else if ( terminalvalue == orint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . boolop_type = B_OR_TYPE;
           }
           else if ( terminalvalue == notint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . boolop_type = B_NOT_TYPE;
           }
           else if ( terminalvalue == bftint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning BFT type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning BFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . bdft_type = BDFT_BFT_TYPE;
           }
           else if ( terminalvalue == dftint )
           {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DFT type\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
             currnode -> extra_data . bdft_type = BDFT_DFT_TYPE;
+          }
+          else if ( terminalvalue == plusint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning PLUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . arop_type = A_PLUS_TYPE;
+          }
+          else if ( terminalvalue == minusint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MINUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . arop_type = A_MINUS_TYPE;
+          }
+          else if ( terminalvalue == mulint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MUL type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . arop_type = A_MUL_TYPE;
+          }
+          else if ( terminalvalue == divint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DIV type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . arop_type = A_DIV_TYPE;
+          }
+          else if ( terminalvalue == moduloint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MODULO type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . arop_type = A_MODULO_TYPE;
+          }
+          else if ( terminalvalue == intint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning INT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_INT_TYPE;
+          }
+          else if ( terminalvalue == floatint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning FLOAT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_FLOAT_TYPE;
+          }
+          else if ( terminalvalue == stringint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning STRING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_STRING_TYPE;
+          }
+          else if ( terminalvalue == vertexint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning VERTEX type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_VERTEX_TYPE;
+          }
+          else if ( terminalvalue == edgeint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EDGE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_EDGE_TYPE;
+          }
+          else if ( terminalvalue == graphint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GRAPH type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_GRAPH_TYPE;
+          }
+          else if ( terminalvalue == treeint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning TREE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_TREE_TYPE;
+          }
+          else if ( terminalvalue == nothingint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOTHING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+            currnode -> extra_data . data_type = D_NOTHING_TYPE;
           }
         }
 
@@ -768,12 +833,6 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         //       the symbol table
         // TODO: If 'topvalue' is a variable, then set the VARIABLETYPE entry in the
         //       symbol table depending on whether it is a global/local/param
-        // TODO: If 'topvalue' is == TK_PLUS / TK_MINUS / TK_MUL / TK_DIV / TK_MODULO,
-        //       assign the appropriate type to the AST_AROP node that will be created
-        //       in the creation condition below.
-        // TODO: If 'topvalue' is == TK_INT/FLOAT/STRING/VERTEX/EDGE/GRAPH/TREE assign
-        //       the appropriate type to the datatype node, which **should** and will be
-        //       the currnode
         //
         // where 'topvalue' = the string that was popped from the stack
         //       'token' = the next line that was read from the input
