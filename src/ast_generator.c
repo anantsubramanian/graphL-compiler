@@ -30,6 +30,38 @@
 #define PROPERTY_READ 2
 #define PROPERTY_ADD 4
 
+// Required language-specific tokens for semantic analysis
+#define TK_BEGIN "TK_BEGIN"
+#define TK_END "TK_END"
+#define TK_IDEN "TK_IDEN"
+#define TK_INTLIT "TK_INTLIT"
+#define TK_STRINGLIT "TK_STRINGLIT"
+#define TK_FLOATLIT "TK_FLOATLIT"
+#define TK_INT "TK_INT"
+#define TK_STRING "TK_STRING"
+#define TK_FLOAT "TK_FLOAT"
+#define TK_VERTEX "TK_VERTEX"
+#define TK_EDGE "TK_EDGE"
+#define TK_GRAPH "TK_GRAPH"
+#define TK_TREE "TK_TREE"
+#define TK_NOTHING "TK_NOTHING"
+#define TK_AND "TK_AND"
+#define TK_OR "TK_OR"
+#define TK_NOT "TK_NOT"
+#define TK_PLUS "TK_PLUS"
+#define TK_MINUS "TK_MINUS"
+#define TK_MUL "TK_MUL"
+#define TK_DIV "TK_DIV"
+#define TK_MODULO "TK_MODULO"
+#define TK_GT "TK_GT"
+#define TK_LT "TK_LT"
+#define TK_GTE "TK_GTE"
+#define TK_LTE "TK_LTE"
+#define TK_EQ "TK_EQ"
+#define TK_BFT "TK_BFT"
+#define TK_DFT "TK_DFT"
+// End language-specific tokens
+
 // A consistent mapping between these #defines and the AST_NODETYPES_FILE
 // must be maintained.
 
@@ -525,6 +557,96 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int conditional_pop = 0;
   int conditional_value = -1;
 
+  TNODE *beginnode = findString ( terminals, TK_BEGIN );
+  TNODE *endnode = findString ( terminals, TK_END );
+  TNODE *idennode = findString ( terminals, TK_IDEN );
+  TNODE *intlitnode = findString ( terminals, TK_INTLIT );
+  TNODE *stringlitnode = findString ( terminals, TK_STRINGLIT );
+  TNODE *floatlitnode = findString ( terminals, TK_FLOATLIT );
+  TNODE *intnode = findString ( terminals, TK_INT );
+  TNODE *stringnode = findString ( terminals, TK_STRING );
+  TNODE *floatnode = findString ( terminals, TK_FLOAT );
+  TNODE *vertexnode = findString ( terminals, TK_VERTEX );
+  TNODE *edgenode = findString ( terminals, TK_EDGE );
+  TNODE *graphnode = findString ( terminals, TK_GRAPH );
+  TNODE *treenode = findString ( terminals, TK_TREE );
+  TNODE *nothingnode = findString ( terminals, TK_NOTHING );
+  TNODE *andnode = findString ( terminals, TK_AND );
+  TNODE *ornode = findString ( terminals, TK_OR );
+  TNODE *notnode = findString ( terminals, TK_NOT );
+  TNODE *plusnode = findString ( terminals, TK_PLUS );
+  TNODE *minusnode = findString ( terminals, TK_MINUS );
+  TNODE *mulnode = findString ( terminals, TK_MUL );
+  TNODE *divnode = findString ( terminals, TK_DIV );
+  TNODE *modulonode = findString ( terminals, TK_MODULO );
+  TNODE *gtnode = findString ( terminals, TK_GT );
+  TNODE *ltnode = findString ( terminals, TK_LT );
+  TNODE *gtenode = findString ( terminals, TK_GTE );
+  TNODE *ltenode = findString ( terminals, TK_LTE );
+  TNODE *eqnode = findString ( terminals, TK_EQ );
+  TNODE *bftnode = findString ( terminals, TK_BFT );
+  TNODE *dftnode = findString ( terminals, TK_DFT );
+
+  if ( beginnode == NULL
+       || endnode == NULL
+       || idennode == NULL
+       || intlitnode == NULL
+       || stringlitnode == NULL
+       || floatlitnode == NULL
+       || intnode == NULL
+       || stringnode == NULL
+       || floatnode == NULL
+       || vertexnode == NULL
+       || edgenode == NULL
+       || graphnode == NULL
+       || treenode == NULL
+       || nothingnode == NULL
+       || andnode == NULL
+       || ornode == NULL
+       || notnode == NULL
+       || plusnode == NULL
+       || minusnode == NULL
+       || mulnode == NULL
+       || divnode == NULL
+       || modulonode == NULL
+       || gtnode == NULL
+       || ltnode == NULL
+       || gtenode == NULL
+       || ltenode == NULL
+       || eqnode == NULL
+       || bftnode == NULL
+       || dftnode == NULL ) fprintf ( stderr, "Failed to find required terminal for semantic analysis\n" ), exit (0);
+
+  int beginint = beginnode -> data . int_val;
+  int endint = endnode -> data . int_val;
+  int idenint = idennode -> data . int_val;
+  int intlitint = intlitnode -> data . int_val;
+  int stringlitint = stringlitnode -> data . int_val;
+  int floatlitint = floatlitnode -> data . int_val;
+  int intint = intnode -> data . int_val;
+  int stringint = stringnode -> data . int_val;
+  int floatint = floatnode -> data . int_val;
+  int vertexint = vertexnode -> data . int_val;
+  int edgeint = edgenode -> data . int_val;
+  int graphint = graphnode -> data . int_val;
+  int treeint = treenode -> data . int_val;
+  int nothingint = nothingnode -> data . int_val;
+  int andint = andnode -> data . int_val;
+  int orint = ornode -> data . int_val;
+  int notint = notnode -> data . int_val;
+  int plusint = plusnode -> data . int_val;
+  int minusint = minusnode -> data . int_val;
+  int mulint = mulnode -> data . int_val;
+  int divint = divnode -> data . int_val;
+  int moduloint = modulonode -> data . int_val;
+  int gtint = gtnode -> data . int_val;
+  int ltint = ltnode -> data . int_val;
+  int gteint = gtenode -> data . int_val;
+  int lteint = ltenode -> data . int_val;
+  int eqint = eqnode -> data . int_val;
+  int bftint = bftnode -> data . int_val;
+  int dftint = dftnode -> data . int_val;
+
   while ( TRUE )
   {
     charindx = ( charindx + 1 ) % blocksize;
@@ -569,8 +691,16 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
 
 
-        // TODO: If topvalue is TK_BEGIN, open a new scope and if topvalue is TK_END
-        //       close the current scope
+        TNODE *istopterminal = findString ( terminals, topvalue );
+        if ( istopterminal != NULL )
+        {
+          if ( istopterminal -> data . int_val == beginint )
+            symboltable = openEnv ( symboltable );
+          else if ( istopterminal -> data . int_val == endint )
+            symboltable = closeEnv ( symboltable );
+        }
+
+
         // TODO: If 'topvalue' is a variable/literal, add entry of appropriate type in
         //       the symbol table
         // TODO: If 'topvalue' is == TK_PLUS / TK_MINUS / TK_MUL / TK_DIV / TK_MODULO,
