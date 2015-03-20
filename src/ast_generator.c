@@ -25,6 +25,7 @@
 
 #define DEBUG_ALL 0
 #define DEBUG_ONCREATE 0
+#define DEBUG_AUXOPS 0
 
 #define PROPERTY_PARENT 1
 #define PROPERTY_READ 2
@@ -692,41 +693,93 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
 
         TNODE *istopterminal = findString ( terminals, topvalue );
+
+        // If the topvalue is a terminal
         if ( istopterminal != NULL )
         {
-          if ( istopterminal -> data . int_val == beginint )
+          int terminalvalue = istopterminal -> data . int_val;
+
+          if ( terminalvalue == beginint )
           {
+            // If it is TK_BEGIN
             symboltable = openEnv ( symboltable );
-            if ( DEBUG_ALL ) printf ( "Opening environment\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Opening environment\n\n" );
           }
-          else if ( istopterminal -> data . int_val == endint )
+          else if ( terminalvalue == endint )
           {
+            // If it is TK_END
             symboltable = closeEnv ( symboltable );
-            if ( DEBUG_ALL ) printf ( "Closeing environment\n\n" );
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Closeing environment\n\n" );
+          }
+          else if ( terminalvalue == ltint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LT type\n\n" );
+            currnode -> extra_data . compop_type = C_LT_TYPE;
+          }
+          else if ( terminalvalue == lteint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LTE type\n\n" );
+            currnode -> extra_data . compop_type = C_LTE_TYPE;
+          }
+          else if ( terminalvalue == gtint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GT type\n\n" );
+            currnode -> extra_data . compop_type = C_GT_TYPE;
+          }
+          else if ( terminalvalue == gteint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GTE type\n\n" );
+            currnode -> extra_data . compop_type = C_GTE_TYPE;
+          }
+          else if ( terminalvalue == eqint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EQ type\n\n" );
+            currnode -> extra_data . compop_type = C_EQ_TYPE;
+          }
+          else if ( terminalvalue == andint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type\n\n" );
+            currnode -> extra_data . boolop_type = B_AND_TYPE;
+          }
+          else if ( terminalvalue == orint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type\n\n" );
+            currnode -> extra_data . boolop_type = B_OR_TYPE;
+          }
+          else if ( terminalvalue == notint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type\n\n" );
+            currnode -> extra_data . boolop_type = B_NOT_TYPE;
+          }
+          else if ( terminalvalue == bftint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning BFT type\n\n" );
+            currnode -> extra_data . bdft_type = BDFT_BFT_TYPE;
+          }
+          else if ( terminalvalue == dftint )
+          {
+            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DFT type\n\n" );
+            currnode -> extra_data . bdft_type = BDFT_DFT_TYPE;
           }
         }
 
 
         // TODO: If 'topvalue' is a variable/literal, add entry of appropriate type in
         //       the symbol table
+        // TODO: If 'topvalue' is a variable, then set the VARIABLETYPE entry in the
+        //       symbol table depending on whether it is a global/local/param
         // TODO: If 'topvalue' is == TK_PLUS / TK_MINUS / TK_MUL / TK_DIV / TK_MODULO,
         //       assign the appropriate type to the AST_AROP node that will be created
         //       in the creation condition below.
-        // TODO: If 'topvalue' is == TK_AND / TK_OR / TK_NOT then assign the appropriate
-        //       type to the AST_BOOLOP node that will be created in the creation cond.
-        //       below
-        // TODO: If 'topvalue' is DFT / BFT then assign the appropriate type to the BDFT
-        //       node that will be created below
         // TODO: If 'topvalue' is == TK_INT/FLOAT/STRING/VERTEX/EDGE/GRAPH/TREE assign
         //       the appropriate type to the datatype node, which **should** and will be
         //       the currnode
-        // TODO: If 'topvalue' is TK_LT/GT/LTE/GTE/EQ then assign the appropriate type
-        //       to the compare node, which **should** and will be the currnode
         //
         // where 'topvalue' = the string that was popped from the stack
         //       'token' = the next line that was read from the input
         //       'tokenname' = name of the variable / value of the literal
         //       linenumber = the linenumber for variables / literals
+
 
 
         // The current node properties override all of the other conditions so it must be tested

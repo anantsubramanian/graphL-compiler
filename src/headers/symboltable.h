@@ -8,6 +8,10 @@
 #define TRUE 1
 #define FALSE 0
 
+#ifndef DATATYPE_DEFINED
+
+#define DATATYPE_DEFINED 1
+
 typedef enum data_types
 {
   D_TYPE_FIRST,
@@ -21,6 +25,8 @@ typedef enum data_types
   D_NOTHING_TYPE,
   D_TYPE_LAST
 } DATATYPE;
+
+#endif
 
 typedef enum variable_types
 {

@@ -5,11 +5,70 @@
   #include "trie.h"
 #endif
 
+#ifndef DATATYPE_DEFINED
+
+#define DATATYPE_DEFINED 1
+
+typedef enum data_types
+{
+  D_TYPE_FIRST,
+  D_INT_TYPE,
+  D_FLOAT_TYPE,
+  D_STRING_TYPE,
+  D_VERTEX_TYPE,
+  D_EDGE_TYPE,
+  D_TREE_TYPE,
+  D_GRAPH_TYPE,
+  D_NOTHING_TYPE,
+  D_TYPE_LAST
+} DATATYPE;
+
+#endif
+
 #define CREATE 16   // 10000b
 #define GOTOCH 8    // 01000b
 #define PARENT 4    // 00100b
 #define CONDRD 2    // 00010b
 #define READ 1      // 00001b
+
+typedef enum arop_types
+{
+  A_TYPE_FIRST,
+  A_PLUS_TYPE,
+  A_MINUS_TYPE,
+  A_MUL_TYPE,
+  A_DIV_TYPE,
+  A_MODULO_TYPE,
+  A_TYPE_LAST
+} AROPTYPE;
+
+typedef enum compareop_type
+{
+  C_TYPE_FIRST,
+  C_LT_TYPE,
+  C_GT_TYPE,
+  C_LTE_TYPE,
+  C_GTE_TYPE,
+  C_EQ_TYPE,
+  C_TYPE_LAST
+} COMPOPTYPE;
+
+typedef enum boolop_type
+{
+  B_TYPE_FIRST,
+  B_AND_TYPE,
+  B_OR_TYPE,
+  B_NOT_TYPE,
+  B_TYPE_LAST
+} BOOLOPTYPE;
+
+typedef enum bdft_type
+{
+  BDFT_TYPE_FIRST,
+  BDFT_BFT_TYPE,
+  BDFT_DFT_TYPE,
+  BDFT_TYPE_LAST
+} BDFTTYPE;
 
 typedef struct ast_node
 {
@@ -20,8 +79,12 @@ typedef struct ast_node
   LINKEDLIST *children;
   union
   {
-    int data_type;              // For DATATYPE nodes
+    DATATYPE data_type;              // For DATATYPE nodes and ENDASSIGNABLE nodes
     int symboltable_index;      // For VARIABLE and LITERAL nodes
+    AROPTYPE arop_type;
+    COMPOPTYPE compop_type;
+    BOOLOPTYPE boolop_type;
+    BDFTTYPE bdft_type;
   } extra_data;
 } ANODE;
 
