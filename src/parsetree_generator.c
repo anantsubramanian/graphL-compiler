@@ -11,6 +11,8 @@
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
 
+#define DEBUG_ONCREATE 0
+
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {
   char buffers [2] [ blocksize ];
@@ -116,9 +118,20 @@ PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
           currnode = getNextPreOrder ( currnode );
         }
 
+        if ( DEBUG_ONCREATE ) printf ( "At node %s:\n", currnode -> name );
+
         // Found the required non-terminal node
         // expand it using the words in token
         currnode = insertSpaceSeparatedWords ( currnode, token );
+
+        if ( DEBUG_ONCREATE )
+        {
+          printf ( "Created children: " );
+          int childindx;
+          for ( childindx = 0; childindx < currnode -> num_of_children; childindx++ )
+            printf ( "%s ", currnode -> next [ childindx ] -> name );
+          printf ( "\n" );
+        }
 
         // Go to the appropriate node after insertion
         currnode = getLeftMostDesc ( currnode );
