@@ -220,7 +220,8 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     varobj -> scope_level = symboltable -> cur_scope;
     varobj -> scope_sublevel = symboltable -> cur_subscope;
     varobj -> decl_line = -1;
-    varobj -> refr_lines = NULL;
+    // LINKEDLIST of integers that stores the lines in which the variable is referenced
+    varobj -> refr_lines = getLinkedList ( LL_INT_TYPE );
     varobj -> data . int_value = 0;
     varobj -> data . string_value = 0;
     varobj -> data . float_value = 0;
@@ -241,7 +242,8 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     strcpy ( funcobj -> name, toinsert );
 
     funcobj -> num_params = -1;
-    funcobj -> params = NULL;
+    // LINKEDLIST of integers that stores the indices of the paramters in the Symbol Table
+    funcobj -> parameters = getLinkedList ( LL_INT_TYPE );
     funcobj -> ret_type = -1;
     funcobj -> returndata_stbindex = -1;
     funcobj -> decl_line = -1;

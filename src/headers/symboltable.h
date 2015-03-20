@@ -65,7 +65,7 @@ typedef struct function_entry
 {
   char *name;
   int num_params;
-  int *params;
+  LINKEDLIST *parameters;
   DATATYPE ret_type;
   int returndata_stbindex;
   int decl_line;

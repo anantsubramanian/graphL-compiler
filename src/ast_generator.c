@@ -569,6 +569,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         }
 
 
+        // TODO: If topvalue is TK_BEGIN, open a new scope and if topvalue is TK_END
+        //       close the current scope
         // TODO: If 'topvalue' is a variable/literal, add entry of appropriate type in
         //       the symbol table
         // TODO: If 'topvalue' is == TK_PLUS / TK_MINUS / TK_MUL / TK_DIV / TK_MODULO,
