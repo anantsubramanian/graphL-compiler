@@ -695,9 +695,15 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         if ( istopterminal != NULL )
         {
           if ( istopterminal -> data . int_val == beginint )
+          {
             symboltable = openEnv ( symboltable );
+            if ( DEBUG_ALL ) printf ( "Opening environment\n\n" );
+          }
           else if ( istopterminal -> data . int_val == endint )
+          {
             symboltable = closeEnv ( symboltable );
+            if ( DEBUG_ALL ) printf ( "Closeing environment\n\n" );
+          }
         }
 
 
