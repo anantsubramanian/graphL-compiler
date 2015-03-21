@@ -5,7 +5,7 @@ A brief documentation of language constructs and features:
 
 1. The language is statically typed, and type binding is done using the Define statement: 
 
-        "Define *datatype* *identifier*"
+        Define <datatype> <identifier>
 
     1. Statements are terminated by new line characters, i.e. each line is a statement.
     2. A valid identifier starts with a character or an underscore, followed by any combination of characters, underscores, and numbers. The maximum length for an identifier is 200 characters ( this can be modified by changing the #defines in the driver files ).
@@ -14,8 +14,10 @@ A brief documentation of language constructs and features:
     4.  Valid arithemetic operations on *Int* and *Float* are addition, subtraction, multiplication, division. Int additionally supports the remainder operation ( or modulo ). No operations have been defined for *String* as of now.
     5.  Every *Vertex* and *Edge* object has three members, and Int, a Float and a String. An *Edge* object additionally has the members source (of type *Vertex*), dest (of type *Vertex*) and Weight (of type *Float*) as its members.
     6.  Members of an object are accessed using the "'s" membership operator:
-          Define Vertex v
-          Let v's Int be 5
+
+                Define Vertex v
+                Let v's Int be 5
+
     7. A *Tree* and *Graph* objects have a list of *Vertex* and *Edge* as their members. These cannot be explicitly accessed, but can be iterated over and manipulated using operations. A *Tree* type object has an additional root (of type *Vertex*) member that can be optionally set for rooted trees.
     8. *Tree* and *Graph* objects support the addition and removal of vertices and edges using the overloaded '+' and '-' operators.
 
@@ -93,6 +95,6 @@ A brief documentation of language constructs and features:
 7. Literals:
 
     Three types of literals can be used in the language:
-      1. Int literals 	– 	[0-9]+
+      1. Int literals 	        – 	[0-9]+
       2. Float literals 	– 	[0-9]+\.[0-9]+
       3. String literals	– 	“ * ”
