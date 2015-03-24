@@ -32,6 +32,8 @@ extern PTNODE* setParseTreeNodeName ( PTNODE * , const char * );
 
 extern PTNODE* setNumChildren ( PTNODE * , int );
 
+extern void deleteParseTreeNode ( PTNODE * );
+
 extern PTNODE* allocateChildren ( PTNODE * );
 
 extern PTNODE* insertSpaceSeparatedWords ( PTNODE * , char * );

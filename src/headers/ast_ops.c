@@ -87,6 +87,7 @@ AST* addTypeMap ( AST *ast, const char *name, int value )
     return NULL;
   }
 
+  // Assumes that the type mapping being inserted doesn't already exist
   TNODE *insertedNode = NULL;
   insertedNode = insertString ( ast -> node_typemap , name );
 

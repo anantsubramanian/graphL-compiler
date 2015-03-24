@@ -74,3 +74,5 @@ extern LNODE* getFront ( LINKEDLIST * );
 
 extern LNODE* getBack ( LINKEDLIST * );
 
+extern void deleteLinkedList ( LINKEDLIST * );
+

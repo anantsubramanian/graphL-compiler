@@ -100,16 +100,7 @@ SYMBOLTABLE* setNumEntries ( SYMBOLTABLE *symboltable, unsigned int num_entries 
 
   unsigned int i;
   for ( i = 0; i < num_entries; i++ )
-  {
     symboltable -> entries [i] = NULL;
-    symboltable -> entries [i] = malloc ( sizeof ( STACK ) );
-
-    if ( symboltable -> entries [i] == NULL )
-    {
-      fprintf ( stderr, "Failed to allocate memory for one of the symbol table entries\n" );
-      return NULL;
-    }
-  }
 
   return symboltable;
 }
@@ -165,6 +156,11 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
     symboltable -> entries [ iterator.data.int_val ] = pop ( symboltable -> entries
                                                              [ iterator.data.int_val ] );
   }
+
+  // Before popping the current environment linked list from the stack of environments,
+  // first delete the environment linked list, as the onus to free the memory allocated
+  // for the linked list is at the user level in a generic type stack
+  deleteLinkedList ( curenv );
 
   symboltable -> environments = pop ( symboltable -> environments );
   symboltable -> cur_scope --;

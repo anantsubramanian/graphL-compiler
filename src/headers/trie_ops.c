@@ -308,6 +308,11 @@ TRIE* deleteString ( TRIE* trie, const char *str )
       {
         free ( tempnode -> name );
         tempnode -> name = NULL;
+        if ( trie -> data_type == TRIE_GENERIC_TYPE && tempnode -> data . generic_val != NULL )
+        {
+          free ( tempnode -> data . generic_val );
+          tempnode -> data . generic_val = NULL;
+        }
       }
       free ( tempnode );
     }
@@ -317,6 +322,8 @@ TRIE* deleteString ( TRIE* trie, const char *str )
   {
     if ( curnode -> name != NULL )
       free ( curnode -> name );
+    if ( trie -> data_type == TRIE_GENERIC_TYPE && curnode -> data . generic_val != NULL )
+      free ( curnode -> data . generic_val );
     free ( curnode );
   }
 
@@ -331,6 +338,6 @@ int isFinalTNode ( TNODE *node )
     return -1;
   }
 
-  return node->is_final;
+  return node -> is_final;
 }
 

@@ -113,6 +113,7 @@ STACK* pop ( STACK *s )
     return s;
   }
 
+  // Linkedlist automatically handles freeing of generic type memory
   s -> stack = deleteFromBack ( s -> stack );
 
   if ( s -> stack -> head == NULL )

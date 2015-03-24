@@ -488,3 +488,17 @@ LNODE* getBack ( LINKEDLIST * list )
   return list -> tail;
 }
 
+void deleteLinkedList ( LINKEDLIST * list )
+{
+  if ( list == NULL )
+  {
+    fprintf ( stderr, "Cannot delete a non-existent linked list\n" );
+    return;
+  }
+
+  while ( list -> head != NULL )
+  {
+    list = deleteFromFront ( list );
+  }
+}
+

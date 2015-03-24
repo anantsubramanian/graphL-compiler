@@ -146,6 +146,25 @@ PTNODE* setNumChildren ( PTNODE *node, int value )
   return node;
 }
 
+void deleteParseTreeNode ( PTNODE * node )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot delete a non-existent parse tree node\n" );
+    return;
+  }
+
+  if ( node -> name != NULL )
+    free ( node -> name );
+
+  // Recursively delete all of the current node's children
+  int i;
+  for ( i = 0; i < node -> num_of_children; i++ )
+    deleteParseTreeNode ( node -> next [i] );
+
+  free ( node );
+}
+
 PTNODE* allocateChildren ( PTNODE * node )
 {
   if ( node == NULL )
@@ -167,12 +186,17 @@ PTNODE* allocateChildren ( PTNODE * node )
   }
 
   // If next array has already been populated, free it
+  int i;
+
   if ( node -> next != NULL )
+  {
+    for ( i = 0; i < node -> num_of_children; i++ )
+      deleteParseTreeNode ( node -> next [i] );
     free ( node -> next );
+  }
 
   node -> next = malloc ( (node -> num_of_children) * sizeof (PTNODE *) );
 
-  int i;
   for( i = 0 ; i < node -> num_of_children ; i++)
   {
     node -> next [i] = NULL;
