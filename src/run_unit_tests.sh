@@ -9,25 +9,30 @@
 
 # If insufficient command line arguments are provided
 # display arguments information
-if [[ "$4" == "" ]]; then
+if [[ "$5" == "" ]]; then
   printf "\n\nTo avoid prompts during testing, considering running "
   printf "the script in the following way:\n\n"
-  printf "./run_unit_tests.sh numlex generatept? numparse numpst\n"
+  printf "./run_unit_tests.sh numlex generatept? numparse numpst numast\n"
   printf "\nwhere:\n\tnumlex = Number of lexer test programs\n"
   printf "\tgeneratept? = 'y' if parse table needs to be generated/tested\n"
   printf "\tnumparse = Number of parser test programs\n"
   printf "\tnumpst = Number of Parse Tree generator test programs\n"
+  printf "\tnumast = Number of Abstract Syntax Tree generator test programs\n"
 fi
 
-# Start running unit tests
-
-printf "\nRunning Unit Tests:\n\n"
-
 # Recompile to check against latest version
-make
+printf "\n\n-------------------------------------------------------\n"
+printf "Compiling all modules:"
+printf "\n-------------------------------------------------------\n\n"
+make all
+
+# Start running unit tests
+printf "\n\n-------------------------------------------------------\n"
+printf "Running Unit Tests:"
+printf "\n-------------------------------------------------------\n\n"
 
 # Clean files from previous runs
-rm TOKENS TOKENMAP ERRORS 2>/dev/null
+rm TOKENS TOKENMAP ERRORS ASTOUTPUT PARSEERRORS PARSEOUTPUT 2>/dev/null
 
 if [[ "$1" == "" ]]; then
   # Decide number of sample programs
@@ -44,7 +49,7 @@ fi
 
 printf "\n\n-------------------------------------------------------\n"
 printf "Testing module lexer:"
-printf "\n-------------------------------------------------------\n\n"
+printf "\n-------------------------------------------------------\n"
 
 # Run required number of tests
 for (( i = 1; i <= $numcases; i++ )); do
@@ -294,9 +299,7 @@ for (( i = 1; i <= $numcases; i++ )); do
 
   printf "PASSED!\n"
 
-  rm PARSEOUTPUT
-  rm ASTOUTPUT
-  rm TOKENMAP
+  rm PARSEOUTPUT ASTOUTPUT TOKENMAP
 done
 
 printf "All tests passed!"
