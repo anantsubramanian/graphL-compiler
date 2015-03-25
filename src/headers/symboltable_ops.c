@@ -182,7 +182,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     return -1;
   }
 
-  if ( value_type < ENTRY_VAR_TYPE || value_type > ENTRY_LIT_TYPE )
+  if ( value_type <= ENTRY_TYPE_FIRST || value_type >= ENTRY_TYPE_LAST )
   {
     fprintf ( stderr, "Invalid type of data object being inserted in symbol table\n" );
     return -1;
