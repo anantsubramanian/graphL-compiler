@@ -121,7 +121,6 @@ AST_FUNCTION_NODE             1 PD <fndefines>
 AST_PASSEDPARAMS_NODE         1 PD TK_CLOSEPAREN
 AST_EXP_NODE                  2 PD <statements>
 AST_AROP_NODE                 0 PR <exp>
-AST_EXP_NODE                  3 PR <exp>
 AST_ASSIGNABLE_NODE           1 PD TK_COMMA
 AST_ASSIGNABLE_NODE           1 PD TK_SQCLOSEPAREN
 AST_ASSIGNABLE_NODE           1 PA TK_COLON
