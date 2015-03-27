@@ -765,6 +765,10 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
       break;
     }
 
+    // TODO: This segment of the function is waaaaaaay too long!
+    //       Perhaps find a way to modularize it? It would also
+    //       make the code more manageable, and the flow of
+    //       control would be more clearly visible as well...
     if ( c == NEWLINE )
     {
       token [ tokencounter ] = '\0';
@@ -786,6 +790,12 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         {
           extractTokenData ( topvalue, &temptoken, &tokenname, &linenumber );
           free ( topvalue );
+
+          // temptoken was dynamically allocated memory by extractTokenData
+          // since topvalue is now temptoken, temptoken will be freed with
+          // when topvalue is freed below
+          // We need to take care of freeing tokenname, which should be done
+          // whenever topvalue is freed
           topvalue = temptoken;
         }
 
@@ -1151,6 +1161,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
             if ( shouldRead == 1 )
             {
               free ( topvalue );
+              free ( tokenname );
               break;
             }
             else if ( shouldAdd == 1 )
@@ -1158,6 +1169,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
               stack = push ( stack, topvalue );
               if ( DEBUG_ALL ) printf ( "Pushing back %s\n", topvalue );
               free ( topvalue );
+              free ( tokenname );
               continue;
             }
           }
@@ -1198,6 +1210,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           if ( DEBUG_ALL ) printf ( "*No rule for %s*\n", topvalue );
           TNODE *isnonterm = findString ( nonterminals, topvalue );
           free ( topvalue );
+          free ( tokenname );
 
           // Is a non-terminal...
           if ( isnonterm != NULL )
@@ -1240,6 +1253,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           if ( (instruction & READ) == READ )
           {
             free ( topvalue );
+            free ( tokenname );
             break;
           }
         }
@@ -1263,6 +1277,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           if ( (instruction & READ) == READ )
           {
             free ( topvalue );
+            free ( tokenname );
             break;
           }
         }
@@ -1293,6 +1308,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           {
             // Break so a read will occur
             free ( topvalue );
+            free ( tokenname );
             break;
           }
           if ( DEBUG_ALL ) printf ( "Not breaking\n" );
@@ -1303,6 +1319,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
           if ( DEBUG_ALL ) printf ( "Reading next input...\n" );
           free ( topvalue );
+          free ( tokenname );
           break;
         }
       }   // End of while
