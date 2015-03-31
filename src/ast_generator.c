@@ -189,6 +189,21 @@ typedef struct property_data
   int node_type;
 } PROPERTY;
 
+typedef enum coditionalval_type
+{
+  CONDITIONAL_TYPE_FIRST,
+  CONDITIONAL_TERMINAL,
+  CONDITIONAL_NONTERMINAL,
+  CONDITIONAL_NODETYPE,
+  CONDITIONAL_TYPE_LAST
+} CONDTYPE;
+
+typedef struct instruction_auxdata
+{
+  int conditional_value;
+  CONDTYPE conditional_type;
+} AUXDATA;
+
 int makeTrieProperty ( char *instr )
 {
   if ( instr == NULL )
@@ -502,20 +517,28 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
             TNODE *isterm = findString ( terminals, extradata );
             TNODE *isntrm = findString ( nonterminals, extradata );
 
+            AUXDATA tempdata;
+
             if ( istype != NULL )
             {
               // Was a node type
-              temp -> data . int_val = istype -> data . int_val;
+              tempdata . conditional_value = istype -> data . int_val;
+              tempdata . conditional_type = CONDITIONAL_NODETYPE;
+              setValue ( auxdata, temp, & tempdata );
             }
             else if ( isterm != NULL )
             {
               // Was a terminal
-              temp -> data . int_val = isterm -> data . int_val;
+              tempdata . conditional_value = isterm -> data . int_val;
+              tempdata . conditional_type = CONDITIONAL_TERMINAL;
+              setValue ( auxdata, temp, & tempdata );
             }
             else if ( isntrm != NULL )
             {
               // Was a non terminal
-              temp -> data . int_val = isntrm -> data . int_val;
+              tempdata . conditional_value = isntrm -> data . int_val;
+              tempdata . conditional_type = CONDITIONAL_NONTERMINAL;
+              setValue ( auxdata, temp, & tempdata );
             }
             else
             {
@@ -918,7 +941,9 @@ void handleAuxiliaryTerminalOperations (
                       tokenname, getDataTypeName ( previousentry -> data . var_data . data_type ),
                       previousentry -> data . var_data . decl_line );
 
-            // TODO: Decide how to proceed after handling variable redeclaration errors
+            // Do not count the redeclaration, process the rest of the input as
+            // though this declaration didn't occur
+            return;
           }
         }
         else
@@ -929,7 +954,10 @@ void handleAuxiliaryTerminalOperations (
           fprintf ( stderr, "Note: Previous declaration of %s at line number %d.\n", tokenname,
                     previousentry -> data . func_data . decl_line );
 
-          // TODO: Decide how to proceed after handling function redeclarations
+          // Update the function to the latest declaration, and let the
+          // parameters be updated automatically.
+          // Don't return at this point, this way the start of the func
+          // scope is handled correctly after the else below
         }
       }
       else
@@ -999,7 +1027,9 @@ void handleAuxiliaryTerminalOperations (
         fprintf ( stderr, "Variable %s used but has not been declared in this scope\n", tokenname );
         fprintf ( stderr, "Note: Error at line %d.\n", linenumber );
 
-        // TODO: Decide how to proceed after variable not declared error
+        // Let all the rest of the errors associated with the undeclared variable
+        // show up as well, for ease of debugging
+        return;
       }
       else
       {
@@ -1112,8 +1142,8 @@ void handleNodeProperty ( ANODE **currnode, const char *topvalue, TNODE *jumps,
 }
 
 int handleNodeInstruction ( FILE *astoutput, ANODE **currnode, TNODE *currentval, AST *ast,
-                            const char *topvalue, const char *tokenname, TRIE *auxdata,
-                            int *conditional_read, int *conditional_pop, int *conditional_value )
+                            const char *topvalue, TRIE *auxdata, int *conditional_read,
+                            int *conditional_pop, int *conditional_value, CONDTYPE *conditional_type )
 {
   // instruction stores the encoded instruction, the individual bits need to be
   // examined to decode the instruction
@@ -1130,7 +1160,13 @@ int handleNodeInstruction ( FILE *astoutput, ANODE **currnode, TNODE *currentval
       exit (-1);
     }
 
-    int type_to_create = typeofnode -> data . int_val;
+    if ( ( (AUXDATA *) ( typeofnode -> data . generic_val ) ) -> conditional_type != CONDITIONAL_NODETYPE )
+    {
+      fprintf ( stderr, "Node instruction is create, but the auxiliary data provided is not a node type\n" );
+      exit (-1);
+    }
+
+    int type_to_create = ( (AUXDATA *) ( typeofnode -> data . generic_val ) ) -> conditional_value;
 
     if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
 
@@ -1194,7 +1230,8 @@ int handleNodeInstruction ( FILE *astoutput, ANODE **currnode, TNODE *currentval
       return -1;
     }
 
-    *conditional_value = cond_value -> data . int_val;
+    *conditional_value = ( (AUXDATA *) ( cond_value -> data . generic_val ) ) -> conditional_value;
+    *conditional_type = ( (AUXDATA *) ( cond_value -> data . generic_val ) ) -> conditional_type;
 
     if ( (instruction & READ) == READ )
       return 1;
@@ -1245,6 +1282,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int conditional_read = 0;
   int conditional_pop = 0;
   int conditional_value = -1;
+  CONDTYPE conditional_type = CONDITIONAL_TYPE_FIRST;
 
   // Get the integer index numbers for the required terminals in the language
   // for efficient comparison
@@ -1283,10 +1321,6 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
       break;
     }
 
-    // TODO: This segment of the function is waaaaaaay too long!
-    //       Perhaps find a way to modularize it? It would also
-    //       make the code more manageable, and the flow of
-    //       control would be more clearly visible as well...
     if ( c == NEWLINE )
     {
       token [ tokencounter ] = '\0';
@@ -1387,16 +1421,15 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           conditional_pop = 0;
 
           // The conditional read may be on a terminal or on a non-terminal. Check both.
-          // **Simplifying assumption - the IDs for the non-terminals and terminals are unique.
 
-          // TODO: Store extra data in the auxiliary Trie to differentiate
-          // between terminals and non-terminals.
           TNODE *termval = findString ( terminals, topvalue );
           TNODE *nontermval = findString ( nonterminals, topvalue );
 
-          if ( termval != NULL && termval -> data . int_val == conditional_value )
+          if ( termval != NULL && termval -> data . int_val == conditional_value
+               && conditional_type == CONDITIONAL_TERMINAL )
             currnode = getParent ( currnode );
-          else if ( nontermval != NULL && nontermval -> data . int_val == conditional_value )
+          else if ( nontermval != NULL && nontermval -> data . int_val == conditional_value
+                    && conditional_type == CONDITIONAL_NONTERMINAL )
             currnode = getParent ( currnode );
           else
             if ( DEBUG_ALL ) printf ( "Conditional read unsuccessful\n" );
@@ -1404,6 +1437,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           // Don't break as the topvalue should be processed even on conditional read
           // but do reset the conditional_value
           conditional_value = -1;
+          conditional_type = CONDITIONAL_TYPE_FIRST;
         }
 
         // Conditional instructions completed (if any), continue regular processing..
@@ -1431,9 +1465,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         // then we break so that the next token from the input file
         // is read
         if ( handleNodeInstruction ( astoutput, &currnode, currentval,
-                                     ast, topvalue, tokenname, auxdata,
-                                     &conditional_read, &conditional_pop,
-                                     &conditional_value ) == 1 )
+                                     ast, topvalue, auxdata, &conditional_read,
+                                     &conditional_pop, &conditional_value,
+                                     &conditional_type ) == 1 )
         {
           // We should read, as the function returned a read flag
           free ( topvalue );
@@ -1519,7 +1553,8 @@ int main ( )
   TRIE *properties = NULL;
 
   instructions = getNewTrie ( TRIE_INT_TYPE );
-  auxdata = getNewTrie ( TRIE_INT_TYPE );
+  auxdata = getNewTrie ( TRIE_GENERIC_TYPE );
+  auxdata = setTrieGenericSize ( auxdata, sizeof ( AUXDATA ) );
   properties = getNewTrie ( TRIE_GENERIC_TYPE );
   properties = setTrieGenericSize ( properties, sizeof ( TRIE* ) );
 
