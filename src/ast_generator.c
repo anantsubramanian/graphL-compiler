@@ -1111,6 +1111,108 @@ void handleNodeProperty ( ANODE **currnode, const char *topvalue, TNODE *jumps,
   return;
 }
 
+int handleNodeInstruction ( FILE *astoutput, ANODE **currnode, TNODE *currentval, AST *ast,
+                            const char *topvalue, const char *tokenname, TRIE *auxdata,
+                            int *conditional_read, int *conditional_pop, int *conditional_value )
+{
+  // instruction stores the encoded instruction, the individual bits need to be
+  // examined to decode the instruction
+  int instruction = currentval -> data . int_val;
+
+  if ( (instruction & CREATE) == CREATE )
+  {
+    // If we have to create a node, examine the type of node to be created
+    TNODE *typeofnode = findString ( auxdata, topvalue );
+
+    if ( typeofnode == NULL )
+    {
+      fprintf ( stderr, "Node instruction is create, but type to create not found\n" );
+      exit (-1);
+    }
+
+    int type_to_create = typeofnode -> data . int_val;
+
+    if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+
+    fprintf ( astoutput, "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+
+    *currnode = addChild ( *currnode, type_to_create, instruction );
+
+    if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+
+    if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
+
+    fprintf ( astoutput, "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
+
+    if ( DEBUG_ALL ) printf ( "\n\n" );
+
+    // currnode is now either the same node, child, or parent depending on
+    // the instruction.
+
+    // If the instruction says read, then return the read status 1.
+    if ( (instruction & READ) == READ )
+      return 1;
+  }
+  else if ( (instruction & GOTOCH) == GOTOCH )
+  {
+    fprintf ( stderr, "Instruction says goto child, but no child was created. So which child?\n" );
+    return -1;
+  }
+  else if ( (instruction & PARENT) == PARENT )
+  {
+    if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+    if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+    if ( DEBUG_ALL ) printf ( "Going to parent\n" );
+
+    if ( getParent ( *currnode ) == NULL || getParent ( *currnode ) == ast -> root )
+      fprintf ( stderr, "Parent is null, so remaining at same node\n" );
+    else
+      *currnode = getParent ( *currnode );
+
+    // If the instruction says read, we should return the read status 1
+    if ( (instruction & READ) == READ )
+      return 1;
+  }
+  else if ( (instruction & CONDRD) == CONDRD )
+  {
+    if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+    if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+    if ( DEBUG_ALL ) printf ( "conditionally reading/popping next value %d\n", instruction );
+    // Instruction is a conditional read
+    // Set the conditional read flag and value so that
+    // currnode will be changed to parent on that value
+
+    if ( (instruction & READ) == READ )
+      *conditional_read = 1;
+    else
+      *conditional_pop = 1;
+
+    TNODE *cond_value = findString ( auxdata, topvalue );
+    if ( cond_value == NULL )
+    {
+      fprintf ( stderr, "Conditional read & goto parent has no auxiliary data\n" );
+      return -1;
+    }
+
+    *conditional_value = cond_value -> data . int_val;
+
+    if ( (instruction & READ) == READ )
+      return 1;
+
+    if ( DEBUG_ALL ) printf ( "Not reading as conditional read failed\n" );
+  }
+  else if ( (instruction & READ) == READ )
+  {
+    if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+    if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
+    if ( DEBUG_ALL ) printf ( "Reading next input...\n" );
+    return 1;
+  }
+
+  // Should not read, so return 0
+  return 0;
+}
+
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
                  TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
                  SYMBOLTABLE *symboltable, FILE *astoutput )
@@ -1276,7 +1378,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           }
         }
 
-
+        // If the conditional flags were set in a previous iteration, process it now
+        // as we have the required token to examine the condition
         if ( conditional_read == 1 || conditional_pop == 1 )
         {
           // If the previous value was a conditional read we may need to go to currnode's parent
@@ -1284,7 +1387,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           conditional_pop = 0;
 
           // The conditional read may be on a terminal or on a non-terminal. Check both.
-          // Simplifying assumption - the IDs for the non-terminals and terminals are unique.
+          // **Simplifying assumption - the IDs for the non-terminals and terminals are unique.
+
           // TODO: Store extra data in the auxiliary Trie to differentiate
           // between terminals and non-terminals.
           TNODE *termval = findString ( terminals, topvalue );
@@ -1302,6 +1406,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           conditional_value = -1;
         }
 
+        // Conditional instructions completed (if any), continue regular processing..
+
+        // Start regular instruction processing
         TNODE *currentval = findString ( instructions, topvalue );
 
         // If there are no instructions for the current value, ignore it if terminal
@@ -1320,110 +1427,20 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
           continue;
         }
 
-        int instruction = currentval -> data . int_val;
-
-        if ( (instruction & CREATE) == CREATE )
+        // If on handling the instruction, a read status is returned
+        // then we break so that the next token from the input file
+        // is read
+        if ( handleNodeInstruction ( astoutput, &currnode, currentval,
+                                     ast, topvalue, tokenname, auxdata,
+                                     &conditional_read, &conditional_pop,
+                                     &conditional_value ) == 1 )
         {
-          // If we have to create a node, examine the type of node to be created
-          TNODE *typeofnode = findString ( auxdata, topvalue );
-
-          if ( typeofnode == NULL )
-          {
-            fprintf ( stderr, "Node instruction is create, but type to create not found\n" );
-            return NULL;
-          }
-
-          int type_to_create = typeofnode -> data . int_val;
-
-          if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-
-          fprintf ( astoutput, "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-
-          currnode = addChild ( currnode, type_to_create, instruction );
-
-          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
-
-          if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
-
-          fprintf ( astoutput, "Creating: %s\n\n", getNodeTypeName ( type_to_create ) );
-
-          if ( DEBUG_ALL ) printf ( "\n\n" );
-
-          // currnode is now either the same node, child, or parent depending on
-          // the instruction. If the instruction says read, then we break.
-          if ( (instruction & READ) == READ )
-          {
-            free ( topvalue );
-            free ( tokenname );
-            break;
-          }
-        }
-        else if ( (instruction & GOTOCH) == GOTOCH )
-        {
-          fprintf ( stderr, "Instruction says goto child, but no child was created. So which child?\n" );
-          return NULL;
-        }
-        else if ( (instruction & PARENT) == PARENT )
-        {
-          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
-          if ( DEBUG_ALL ) printf ( "Going to parent\n" );
-
-          if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
-            fprintf ( stderr, "Parent is null, so remaining at same node\n" );
-          else
-            currnode = getParent ( currnode );
-
-          // If the instruction says read, we should break
-          if ( (instruction & READ) == READ )
-          {
-            free ( topvalue );
-            free ( tokenname );
-            break;
-          }
-        }
-        else if ( (instruction & CONDRD) == CONDRD )
-        {
-          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
-          if ( DEBUG_ALL ) printf ( "conditionally reading/popping next value %d\n", instruction );
-          // Instruction is a conditional read
-          // Set the conditional read flag and value so that
-          // currnode will be changed to parent on that value
-
-          if ( (instruction & READ) == READ )
-            conditional_read = 1;
-          else
-            conditional_pop = 1;
-
-          TNODE *cond_value = findString ( auxdata, topvalue );
-          if ( cond_value == NULL )
-          {
-            fprintf ( stderr, "Conditional read & goto parent has no auxiliary data\n" );
-            return NULL;
-          }
-
-          conditional_value = cond_value -> data . int_val;
-
-          if ( (instruction & READ) == READ )
-          {
-            // Break so a read will occur
-            free ( topvalue );
-            free ( tokenname );
-            break;
-          }
-          if ( DEBUG_ALL ) printf ( "Not breaking\n" );
-        }
-        else if ( (instruction & READ) == READ )
-        {
-          if ( DEBUG_ALL ) printf ( "At node %s\n", getNodeTypeName ( currnode -> node_type ) );
-          if ( DEBUG_ALL ) printf ( "Got %s so ", topvalue );
-          if ( DEBUG_ALL ) printf ( "Reading next input...\n" );
+          // We should read, as the function returned a read flag
           free ( topvalue );
           free ( tokenname );
           break;
         }
-      }   // End of while
+      }   // End of while for stack processing
 
       tokencounter = 0;
     }
