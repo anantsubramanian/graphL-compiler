@@ -26,6 +26,7 @@ typedef enum stack_type
 
 typedef struct stack_struct
 {
+  char *name;
   LINKEDLIST *stack;
   STACK_TYPE data_type;
   int generic_size;
@@ -35,6 +36,8 @@ typedef struct stack_struct
 extern STACK* getStack ( STACK_TYPE );
 
 extern STACK* setStackGenericSize ( STACK * , unsigned int );
+
+extern STACK* setStackName ( STACK * , char * );
 
 extern int isEmpty ( STACK * );
 

@@ -49,6 +49,7 @@ STACK* getStack ( STACK_TYPE data_type )
     return NULL;
   }
 
+  s -> name = NULL;
   s -> is_empty = TRUE;
   s -> data_type = data_type;
   s -> generic_size = -1;
@@ -70,6 +71,32 @@ STACK* setStackGenericSize ( STACK *s, unsigned int size )
   s -> stack = setGenericSize ( s -> stack, size );
 
   return s;
+}
+
+STACK* setStackName ( STACK *stack, char * name )
+{
+  if ( stack == NULL )
+  {
+    fprintf ( stderr, "Cannot set the name of a non-existent stack\n" );
+    return NULL;
+  }
+
+  if ( stack -> name != NULL )
+  {
+    fprintf ( stderr, "Overwriting stack %s's name\n", stack -> name );
+    free ( stack -> name );
+    stack -> name = NULL;
+  }
+
+  if ( name != NULL )
+  {
+    int len = strlen ( name );
+    stack -> name = malloc ( (len+1) * sizeof ( char ) );
+
+    strcpy ( stack -> name, name );
+  }
+
+  return stack;
 }
 
 int isEmpty ( STACK * s )
@@ -110,6 +137,9 @@ STACK* pop ( STACK *s )
   if ( s -> stack -> head == NULL )
   {
     fprintf ( stderr, "Potential error, stack is empty\n" );
+    if ( s -> name != NULL )
+      fprintf ( stderr, "In stack %s\n", s -> name );
+
     return s;
   }
 
@@ -133,6 +163,8 @@ void* top ( STACK * s )
   if ( s -> stack -> head == NULL )
   {
     fprintf ( stderr, "Potential error, getting top of empty stack\n" );
+    if ( s -> name != NULL )
+      fprintf ( stderr, "In stack %s\n", s -> name );
     return NULL;
   }
 
@@ -163,12 +195,16 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
       || ( stack -> data_type == STACK_GENERIC_TYPE && list -> data_type != LL_GENERIC_TYPE ) )
   {
     fprintf ( stderr, "The types of linkedlist & stack don't match for insertion\n" );
+    if ( stack -> name != NULL )
+      fprintf ( stderr, "For stack %s\n",  stack -> name );
     return NULL;
   }
 
   if ( stack -> data_type == STACK_GENERIC_TYPE && stack -> generic_size != list -> generic_size )
   {
     fprintf ( stderr, "Generic type sizes of linked list and stack don't match. Cannot insert\n" );
+    if ( stack -> name != NULL )
+      fprintf ( stderr, "For stack %s\n", stack -> name );
     return NULL;
   }
 
@@ -202,12 +238,16 @@ STACK* pushReverseSpaceSeparatedWords ( STACK * stack, const char * wordlist )
   if ( wordlist == NULL )
   {
     fprintf ( stderr, "Attempting to push non-existent space separated word list on stack\n" );
+    if ( stack -> name != NULL )
+      fprintf ( stderr, "For stack %s\n", stack -> name );
     return NULL;
   }
 
   if ( stack -> data_type != STACK_STRING_TYPE )
   {
     fprintf ( stderr, "Cannot insert space separated words list into non-string stack\n" );
+    if ( stack -> name != NULL )
+      fprintf ( stderr, "For stack %s\n", stack -> name );
     return NULL;
   }
 

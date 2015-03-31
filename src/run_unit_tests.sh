@@ -285,7 +285,7 @@ for (( i = 1; i <= $numcases; i++ )); do
   cp unit-testing/parser_test${i}_output PARSEOUTPUT
   cp unit-testing/parser_test${i}_map TOKENMAP
 
-  result=$(./ast_generator 2>/dev/null)
+  ./ast_generator 2>/dev/null
 
   diffres=$(diff ASTOUTPUT unit-testing/ast_test${i}_output)
 

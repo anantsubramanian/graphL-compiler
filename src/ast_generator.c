@@ -24,6 +24,7 @@
 #define DIGEND 57
 #define NEWLINE '\n'
 #define COMMENT_START '#'
+#define PROPERTIES_START '@'
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
 #define ATTRIBUTES_FILE "TOKENMAP"
 #define AST_OUTPUT_FILE "ASTOUTPUT"
@@ -31,6 +32,8 @@
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
+#define ROOTNODE_NAME "AST Root Node"
+#define AST_STACK_NAME "AST Generation Stack"
 
 #define DEBUG_ALL 0
 #define DEBUG_ONCREATE 0
@@ -454,20 +457,24 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
     if ( c == NEWLINE )
     {
-      if ( token [0] == '@' )
-      {
-        started_properties = 1;
-        incomment = 0;
-        isfirst = 1;
-        toriore = 0;
-        tokencounter = 0;
-        continue;
-      }
       if ( incomment != 1 )
       {
+        // If the token is the special properties start marker
+        if ( token [0] == PROPERTIES_START )
+        {
+          token [ tokencounter ] = '\0';
+          if ( DEBUG_ALL ) printf ( "Started properties on %s\n", token );
+          started_properties = 1;
+          incomment = 0;
+          isfirst = 1;
+          toriore = 0;
+          tokencounter = 0;
+          continue;
+        }
+
+        // Parsing instructions and not properties
         if ( started_properties == 0 )
         {
-          // Parsing instructions and not properties
           // Is a valid line to parse, and not a comment
           if ( toriore == 1 )
           {
@@ -476,11 +483,14 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
             TNODE *temp = insertString ( instructions, token );
             temp -> data . int_val = createProperty ( instr );
+
+            if ( DEBUG_ALL ) printf ( "Instruction %s %s %d\n", token, instr, createProperty ( instr ) );
           }
           else
           {
             // Auxiliary data is there
             extradata [ extracounter ] = '\0';
+            nodetype [ nodetcounter ] = '\0';
 
             TNODE *temp = insertString ( instructions, token );
             temp -> data . int_val = createProperty ( instr );
@@ -512,8 +522,8 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
               fprintf ( stderr, "Invalid auxiliary data in the instructions file\n" );
               exit (-1);
             }
+            if ( DEBUG_ALL ) printf ( "Instruction %s %s %d %s\n", token, instr, createProperty ( instr ), extradata );
           }
-          if ( DEBUG_ALL ) printf ( "%s %s %d %s %s\n", token, instr, createProperty ( instr ), extradata, nodetype );
         }
         else
         {
@@ -622,36 +632,15 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
 
 }
 
-AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
-                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
-                 SYMBOLTABLE *symboltable, FILE *astoutput )
+void getNodeIntegers ( int *beginint, int *endint, int *idenint, int *intlitint,
+                       int *stringlitint, int *floatlitint, int *intint,
+                       int *stringint, int *floatint, int *vertexint, int *edgeint,
+                       int *graphint, int *treeint, int *nothingint, int *andint,
+                       int *orint, int *notint, int *plusint, int *minusint,
+                       int *mulint, int *divint, int *moduloint, int *gtint,
+                       int *ltint, int *gteint, int *lteint, int *eqint,
+                       int *bftint, int *dftint, int *functionint, TRIE *terminals )
 {
-  // We start processing from the root node
-  ANODE *currnode = ast -> root;
-
-  STACK *stack = NULL;
-  stack = getStack ( STACK_STRING_TYPE );
-
-  // Open a global environment in the symbol table
-  symboltable = openEnv ( symboltable );
-
-  char c;
-
-  char buffers [2] [blocksize];
-  char token [ BUFFERLEN ];
-
-  int charindx = -1;
-  int curbuff = -1;
-  int charsread = 0;
-  int tokencounter = 0;
-
-  // TODO: Is this a jugaad? Doesn't seem like it, but need to check again...
-  int function_scope_started = 0;
-  int should_start_function = 0;
-
-  int conditional_read = 0;
-  int conditional_pop = 0;
-  int conditional_value = -1;
 
   TNODE *beginnode = findString ( terminals, TK_BEGIN );
   TNODE *endnode = findString ( terminals, TK_END );
@@ -715,36 +704,401 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
        || functionnode == NULL
        || dftnode == NULL ) fprintf ( stderr, "Failed to find required terminal for semantic analysis\n" ), exit (-1);
 
-  int beginint = beginnode -> data . int_val;
-  int endint = endnode -> data . int_val;
-  int idenint = idennode -> data . int_val;
-  int intlitint = intlitnode -> data . int_val;
-  int stringlitint = stringlitnode -> data . int_val;
-  int floatlitint = floatlitnode -> data . int_val;
-  int intint = intnode -> data . int_val;
-  int stringint = stringnode -> data . int_val;
-  int floatint = floatnode -> data . int_val;
-  int vertexint = vertexnode -> data . int_val;
-  int edgeint = edgenode -> data . int_val;
-  int graphint = graphnode -> data . int_val;
-  int treeint = treenode -> data . int_val;
-  int nothingint = nothingnode -> data . int_val;
-  int andint = andnode -> data . int_val;
-  int orint = ornode -> data . int_val;
-  int notint = notnode -> data . int_val;
-  int plusint = plusnode -> data . int_val;
-  int minusint = minusnode -> data . int_val;
-  int mulint = mulnode -> data . int_val;
-  int divint = divnode -> data . int_val;
-  int moduloint = modulonode -> data . int_val;
-  int gtint = gtnode -> data . int_val;
-  int ltint = ltnode -> data . int_val;
-  int gteint = gtenode -> data . int_val;
-  int lteint = ltenode -> data . int_val;
-  int eqint = eqnode -> data . int_val;
-  int bftint = bftnode -> data . int_val;
-  int dftint = dftnode -> data . int_val;
-  int functionint = functionnode -> data . int_val;
+  *beginint = beginnode -> data . int_val;
+  *endint = endnode -> data . int_val;
+  *idenint = idennode -> data . int_val;
+  *intlitint = intlitnode -> data . int_val;
+  *stringlitint = stringlitnode -> data . int_val;
+  *floatlitint = floatlitnode -> data . int_val;
+  *intint = intnode -> data . int_val;
+  *stringint = stringnode -> data . int_val;
+  *floatint = floatnode -> data . int_val;
+  *vertexint = vertexnode -> data . int_val;
+  *edgeint = edgenode -> data . int_val;
+  *graphint = graphnode -> data . int_val;
+  *treeint = treenode -> data . int_val;
+  *nothingint = nothingnode -> data . int_val;
+  *andint = andnode -> data . int_val;
+  *orint = ornode -> data . int_val;
+  *notint = notnode -> data . int_val;
+  *plusint = plusnode -> data . int_val;
+  *minusint = minusnode -> data . int_val;
+  *mulint = mulnode -> data . int_val;
+  *divint = divnode -> data . int_val;
+  *moduloint = modulonode -> data . int_val;
+  *gtint = gtnode -> data . int_val;
+  *ltint = ltnode -> data . int_val;
+  *gteint = gtenode -> data . int_val;
+  *lteint = ltenode -> data . int_val;
+  *eqint = eqnode -> data . int_val;
+  *bftint = bftnode -> data . int_val;
+  *dftint = dftnode -> data . int_val;
+  *functionint = functionnode -> data . int_val;
+
+}
+
+void handleAuxiliaryTerminalOperations (
+    int beginint, int endint, int idenint, int intlitint,
+    int stringlitint, int floatlitint, int intint,
+    int stringint, int floatint, int vertexint, int edgeint,
+    int graphint, int treeint, int nothingint, int andint,
+    int orint, int notint, int plusint, int minusint,
+    int mulint, int divint, int moduloint, int gtint,
+    int ltint, int gteint, int lteint, int eqint,
+    int bftint, int dftint, int functionint, int terminalvalue,
+    ANODE *currnode, SYMBOLTABLE *symboltable, int *should_start_function,
+    int *function_scope_started, char *tokenname, int linenumber )
+{
+
+  // Here  'topvalue' = the string that was popped from the stack
+  //       'token' = the next line that was read from the input
+  //       'tokenname' = name of the variable / value of the literal
+  //       linenumber = the linenumber for variables / literals
+
+  if ( terminalvalue == beginint )
+  {
+    if ( *function_scope_started == 0 )
+    {
+      // If it is TK_BEGIN
+      symboltable = openEnv ( symboltable );
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Opening environment\n\n" );
+    }
+    else
+      *function_scope_started = 0;
+  }
+  else if ( terminalvalue == endint )
+  {
+    // If it is TK_END
+    symboltable = closeEnv ( symboltable );
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Closing environment\n\n" );
+  }
+  else if ( terminalvalue == ltint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . compop_type = C_LT_TYPE;
+  }
+  else if ( terminalvalue == lteint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . compop_type = C_LTE_TYPE;
+  }
+  else if ( terminalvalue == gtint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . compop_type = C_GT_TYPE;
+  }
+  else if ( terminalvalue == gteint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . compop_type = C_GTE_TYPE;
+  }
+  else if ( terminalvalue == eqint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EQ type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . compop_type = C_EQ_TYPE;
+  }
+  else if ( terminalvalue == andint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . boolop_type = B_AND_TYPE;
+  }
+  else if ( terminalvalue == orint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . boolop_type = B_OR_TYPE;
+  }
+  else if ( terminalvalue == notint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . boolop_type = B_NOT_TYPE;
+  }
+  else if ( terminalvalue == bftint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning BFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . bdft_type = BDFT_BFT_TYPE;
+  }
+  else if ( terminalvalue == dftint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . bdft_type = BDFT_DFT_TYPE;
+  }
+  else if ( terminalvalue == plusint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning PLUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . arop_type = A_PLUS_TYPE;
+  }
+  else if ( terminalvalue == minusint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MINUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . arop_type = A_MINUS_TYPE;
+  }
+  else if ( terminalvalue == mulint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MUL type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . arop_type = A_MUL_TYPE;
+  }
+  else if ( terminalvalue == divint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DIV type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . arop_type = A_DIV_TYPE;
+  }
+  else if ( terminalvalue == moduloint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MODULO type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . arop_type = A_MODULO_TYPE;
+  }
+  else if ( terminalvalue == intint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning INT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_INT_TYPE;
+  }
+  else if ( terminalvalue == floatint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning FLOAT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_FLOAT_TYPE;
+  }
+  else if ( terminalvalue == stringint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning STRING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_STRING_TYPE;
+  }
+  else if ( terminalvalue == vertexint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning VERTEX type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_VERTEX_TYPE;
+  }
+  else if ( terminalvalue == edgeint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EDGE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_EDGE_TYPE;
+  }
+  else if ( terminalvalue == graphint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GRAPH type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_GRAPH_TYPE;
+  }
+  else if ( terminalvalue == treeint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning TREE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_TREE_TYPE;
+  }
+  else if ( terminalvalue == nothingint )
+  {
+    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOTHING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+    currnode -> extra_data . data_type = D_NOTHING_TYPE;
+  }
+  else if ( terminalvalue == functionint )
+  {
+    // If function keyword has been seen, then start the function scope after the next identifier
+    // and ignore the next begin
+    *should_start_function = 1;
+  }
+  else if ( terminalvalue == idenint )
+  {
+    ANODE *parentnode = currnode -> parent;
+    if ( parentnode -> node_type == AST_DEFINE_NODE
+         || parentnode -> node_type == AST_FUNCTION_NODE
+         || parentnode -> node_type == AST_GLOBALDEFINE_NODE
+         || parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+    {
+      // At a define node, so need to add an entry to the symbol table.
+      // the data type for the node should be identifiable from the first child
+      // of the current node.
+
+      // TODO: Print an elaborate error for redeclaration by using a look-up
+      //       on the symbol table
+      if ( getEntryByName ( symboltable, tokenname ) != NULL )
+      {
+        // Report an error if the current identifier is a variable and had been declared in the same scope before
+        if ( parentnode -> node_type != AST_FUNCTION_NODE )
+        {
+          if ( getEntryByName ( symboltable, tokenname ) -> data . var_data . scope_level == symboltable -> cur_scope )
+          {
+            fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
+            // exit (-1);
+          }
+        }
+      }
+      else
+      {
+        unsigned insertedIndex = -1;
+
+        if ( parentnode -> node_type == AST_FUNCTION_NODE )
+        {
+          insertedIndex = ( unsigned int ) addEntry ( symboltable, tokenname, ENTRY_FUNC_TYPE );
+          if ( DEBUG_AUXOPS ) printf ( "Added function entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
+          STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
+
+          FUNCTION *funcdata = & ( insertedEntry -> data . func_data );
+
+          funcdata -> decl_line = linenumber;
+
+          int len = strlen ( tokenname );
+          funcdata -> name = malloc ( (len+1) * sizeof ( char ) );
+
+          if ( funcdata -> name == NULL )
+          {
+            fprintf ( stderr, "Failed to allocate memory for function name\n" );
+            exit (-1);
+          }
+
+          strcpy ( funcdata -> name, tokenname );
+        }
+        else
+        {
+          // TODO: Any better method than this jugaad?
+          // If the variable is a qualified parameters, then its scope is actually
+          // 1 + the current scope of the symbol table!
+
+          insertedIndex = addEntry ( symboltable, tokenname, ENTRY_VAR_TYPE );
+          if ( DEBUG_AUXOPS ) printf ( "Added variable entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
+
+          STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
+
+          VARIABLE *vardata = & ( insertedEntry -> data . var_data );
+
+          if ( parentnode -> node_type == AST_GLOBALDEFINE_NODE )
+            vardata -> var_type = V_GLOBAL_TYPE;
+          else if ( parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+            vardata -> var_type = V_PARAM_TYPE;
+          else if ( parentnode -> node_type == AST_DEFINE_NODE )
+            vardata -> var_type = V_LOCAL_TYPE;
+          else
+          {
+            fprintf ( stderr, "At node %s did not recognize variable type\n", getNodeTypeName ( currnode -> node_type ) );
+          }
+
+          // Set the data type using the data type of the first child
+          vardata -> data_type = getDataType ( parentnode );
+          vardata -> decl_line = linenumber;
+
+
+          if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
+        }
+      }
+    }
+    else
+    {
+      // Variable is being referenced, not declared, here so push it into the linkedlist of references
+      STBENTRY *foundEntry = getEntryByName ( symboltable, tokenname );
+
+      // TODO: Print more elaborate error for variable not declared
+      if ( foundEntry == NULL )
+      {
+        fprintf ( stderr, "Variable %s used but not declared\n", tokenname );
+        // exit (-1);
+      }
+      else
+      {
+        if ( foundEntry -> entry_type == ENTRY_VAR_TYPE )
+          foundEntry -> data . var_data . refr_lines =
+            insertAtBack ( foundEntry -> data . var_data . refr_lines, &linenumber );
+        else if ( foundEntry -> entry_type == ENTRY_FUNC_TYPE )
+          foundEntry -> data . func_data . refr_lines =
+            insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
+
+      }
+    }
+
+    // Finished processing the identifier, if this identifier was a function name,
+    // then we need to start a new scop here itself, so that parameters belong to
+    // the inner scope.
+    // We set the function_scope_started parameter so that the TK_BEGIN for the
+    // function body doesn't start another scope, again.
+
+    if ( *should_start_function == 1 )
+    {
+      *should_start_function = 0;
+      symboltable = openEnv ( symboltable );
+      *function_scope_started = 1;
+    }
+  }
+  else if ( terminalvalue == intlitint || terminalvalue == floatlitint
+            || terminalvalue == stringlitint )
+  {
+    // Add entry for the literal in the symbol table if it doesn't already exist
+
+    STBENTRY *entry = getEntryByName ( symboltable, tokenname );
+
+    if ( entry == NULL )
+    {
+      unsigned int entryIndex = addEntry ( symboltable, tokenname, ENTRY_LIT_TYPE );
+      entry = getEntryByIndex ( symboltable, entryIndex );
+    }
+
+    // Entry now has the entry index. Set the value appropriately
+    if ( terminalvalue == intlitint )
+      entry -> data . lit_data . lit_type = D_INT_TYPE;
+    else if ( terminalvalue == floatlitint )
+      entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
+    else if ( terminalvalue == stringlitint )
+      entry -> data . lit_data . lit_type = D_STRING_TYPE;
+
+    int len = strlen ( tokenname );
+    entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
+
+    if ( entry -> data . lit_data . value == NULL )
+    {
+      fprintf ( stderr, "Failed to allocate memory for literal\n" );
+      exit (-1);
+    }
+
+    strcpy ( entry -> data . lit_data . value, tokenname );
+  }
+
+}
+
+
+AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
+                 TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
+                 SYMBOLTABLE *symboltable, FILE *astoutput )
+{
+  // We start processing from the root node
+  ANODE *currnode = ast -> root;
+
+  setAstNodeName ( currnode, ROOTNODE_NAME );
+
+  STACK *stack = NULL;
+  stack = getStack ( STACK_STRING_TYPE );
+  stack = setStackName ( stack, AST_STACK_NAME );
+
+  // Open a global environment in the symbol table
+  symboltable = openEnv ( symboltable );
+
+  char c;
+
+  char buffers [2] [blocksize];
+  char token [ BUFFERLEN ];
+
+  int charindx = -1;
+  int curbuff = -1;
+  int charsread = 0;
+  int tokencounter = 0;
+
+  int function_scope_started = 0;     // Flag used to detect that the scope for a function has already started
+  int should_start_function = 0;      // Flag used to indicate that a function scope must be started
+
+  int conditional_read = 0;
+  int conditional_pop = 0;
+  int conditional_value = -1;
+
+  // Get the integer index numbers for the required terminals in the language
+  // for efficient comparison
+
+  int beginint, endint, idenint, intlitint, stringlitint, floatlitint, intint,
+      stringint, floatint, vertexint, edgeint, graphint, treeint, nothingint,
+      andint, orint, notint, plusint, minusint, mulint, divint, moduloint,
+      gtint, ltint, gteint, lteint, eqint, bftint, dftint, functionint;
+
+  getNodeIntegers ( & beginint, & endint, & idenint, & intlitint, & stringlitint,
+                    & floatlitint, & intint, & stringint, & floatint, & vertexint,
+                    & edgeint, & graphint, & treeint, & nothingint, & andint, & orint,
+                    & notint, & plusint, & minusint, & mulint, & divint, & moduloint,
+                    & gtint, & ltint, & gteint, & lteint, & eqint, & bftint, & dftint,
+                    & functionint, terminals );
+
+  // Read the output produced by the parser, line-by-line and follow the instructions
+  // from the ast_instructions file to construct the AST
 
   while ( TRUE )
   {
@@ -774,6 +1128,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
       token [ tokencounter ] = '\0';
 
       // A whole line of expansion has been read. Need to process
+      // it so push the words onto the stack, from which they will
+      // be popped and processed in the appropriate order
       stack = pushReverseSpaceSeparatedWords ( stack, token );
 
       while ( ! isEmpty ( stack ) )
@@ -785,7 +1141,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         char *temptoken = NULL, *tokenname = NULL;
         int linenumber = -1;
 
-        // TODO: (unimportant) -- Anyway to make this jugaad cleaner?
+        // If the top of the stack is an identifier or a literal, it has
+        // the prefix "<T", so use it to identify the fact that there is
+        // also auxiliary data present with it.
         if ( topvalue [0] == '<' && topvalue [1] == 'T' )
         {
           extractTokenData ( topvalue, &temptoken, &tokenname, &linenumber );
@@ -807,308 +1165,24 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         {
           int terminalvalue = istopterminal -> data . int_val;
 
-          if ( terminalvalue == beginint )
-          {
-            if ( function_scope_started == 0 )
-            {
-              // If it is TK_BEGIN
-              symboltable = openEnv ( symboltable );
-              if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Opening environment\n\n" );
-            }
-            else
-              function_scope_started = 0;
-          }
-          else if ( terminalvalue == endint )
-          {
-            // If it is TK_END
-            symboltable = closeEnv ( symboltable );
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Closing environment\n\n" );
-          }
-          else if ( terminalvalue == ltint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . compop_type = C_LT_TYPE;
-          }
-          else if ( terminalvalue == lteint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning LTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . compop_type = C_LTE_TYPE;
-          }
-          else if ( terminalvalue == gtint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . compop_type = C_GT_TYPE;
-          }
-          else if ( terminalvalue == gteint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GTE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . compop_type = C_GTE_TYPE;
-          }
-          else if ( terminalvalue == eqint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EQ type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . compop_type = C_EQ_TYPE;
-          }
-          else if ( terminalvalue == andint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . boolop_type = B_AND_TYPE;
-          }
-          else if ( terminalvalue == orint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . boolop_type = B_OR_TYPE;
-          }
-          else if ( terminalvalue == notint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . boolop_type = B_NOT_TYPE;
-          }
-          else if ( terminalvalue == bftint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning BFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . bdft_type = BDFT_BFT_TYPE;
-          }
-          else if ( terminalvalue == dftint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DFT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . bdft_type = BDFT_DFT_TYPE;
-          }
-          else if ( terminalvalue == plusint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning PLUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . arop_type = A_PLUS_TYPE;
-          }
-          else if ( terminalvalue == minusint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MINUS type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . arop_type = A_MINUS_TYPE;
-          }
-          else if ( terminalvalue == mulint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MUL type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . arop_type = A_MUL_TYPE;
-          }
-          else if ( terminalvalue == divint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning DIV type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . arop_type = A_DIV_TYPE;
-          }
-          else if ( terminalvalue == moduloint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning MODULO type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . arop_type = A_MODULO_TYPE;
-          }
-          else if ( terminalvalue == intint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning INT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_INT_TYPE;
-          }
-          else if ( terminalvalue == floatint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning FLOAT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_FLOAT_TYPE;
-          }
-          else if ( terminalvalue == stringint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning STRING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_STRING_TYPE;
-          }
-          else if ( terminalvalue == vertexint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning VERTEX type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_VERTEX_TYPE;
-          }
-          else if ( terminalvalue == edgeint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning EDGE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_EDGE_TYPE;
-          }
-          else if ( terminalvalue == graphint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning GRAPH type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_GRAPH_TYPE;
-          }
-          else if ( terminalvalue == treeint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning TREE type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_TREE_TYPE;
-          }
-          else if ( terminalvalue == nothingint )
-          {
-            if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOTHING type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-            currnode -> extra_data . data_type = D_NOTHING_TYPE;
-          }
-          else if ( terminalvalue == functionint )
-          {
-            // If function keyword has been seen, then start the function scope after the next identifier
-            // and ignore the next begin
-            should_start_function = 1;
-          }
-          else if ( terminalvalue == idenint )
-          {
-            ANODE *parentnode = currnode -> parent;
-            if ( parentnode -> node_type == AST_DEFINE_NODE
-                 || parentnode -> node_type == AST_FUNCTION_NODE
-                 || parentnode -> node_type == AST_GLOBALDEFINE_NODE
-                 || parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
-            {
-              // At a define node, so need to add an entry to the symbol table.
-              // the data type for the node should be identifiable from the first child
-              // of the current node (AST_DEFINE_NODE).
+          // Perform auxiliary operations depending on which terminal is
+          // encountered. Call the appropriate function to do the same.
 
-              // TODO: Print an elaborate error for redeclaration by using a look-up
-              //       on the symbol table
-              if ( getEntryByName ( symboltable, tokenname ) != NULL )
-              {
-                // Report an error if the current identifier is a variable and had been declared in the same scope before
-                if ( parentnode -> node_type != AST_FUNCTION_NODE )
-                {
-                  if ( getEntryByName ( symboltable, tokenname ) -> data . var_data . scope_level == symboltable -> cur_scope )
-                  {
-                    fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
-                    // exit (-1);
-                  }
-                }
-              }
-              else
-              {
-                unsigned insertedIndex = -1;
-
-                if ( parentnode -> node_type == AST_FUNCTION_NODE )
-                {
-                  insertedIndex = ( unsigned int ) addEntry ( symboltable, tokenname, ENTRY_FUNC_TYPE );
-                  if ( DEBUG_AUXOPS ) printf ( "Added function entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
-                  STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
-
-                  FUNCTION *funcdata = & ( insertedEntry -> data . func_data );
-
-                  funcdata -> decl_line = linenumber;
-
-                  int len = strlen ( tokenname );
-                  funcdata -> name = malloc ( (len+1) * sizeof ( char ) );
-
-                  if ( funcdata -> name == NULL )
-                  {
-                    fprintf ( stderr, "Failed to allocate memory for function name\n" );
-                    exit (-1);
-                  }
-
-                  strcpy ( funcdata -> name, tokenname );
-                }
-                else
-                {
-                  // TODO: Any better method than this jugaad?
-                  // If the variable is a qualified parameters, then its scope is actually
-                  // 1 + the current scope of the symbol table!
-
-                  insertedIndex = addEntry ( symboltable, tokenname, ENTRY_VAR_TYPE );
-                  if ( DEBUG_AUXOPS ) printf ( "Added variable entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
-
-                  STBENTRY *insertedEntry = getEntryByIndex ( symboltable, insertedIndex );
-
-                  VARIABLE *vardata = & ( insertedEntry -> data . var_data );
-
-                  if ( parentnode -> node_type == AST_GLOBALDEFINE_NODE )
-                    vardata -> var_type = V_GLOBAL_TYPE;
-                  else if ( parentnode -> node_type == AST_QUALIFIEDPARAMETER_NODE )
-                    vardata -> var_type = V_PARAM_TYPE;
-                  else if ( parentnode -> node_type == AST_DEFINE_NODE )
-                    vardata -> var_type = V_LOCAL_TYPE;
-                  else
-                  {
-                    fprintf ( stderr, "At node %s did not recognize variable type\n", getNodeTypeName ( currnode -> node_type ) );
-                  }
-
-                  // Set the data type using the data type of the first child
-                  vardata -> data_type = getDataType ( parentnode );
-                  vardata -> decl_line = linenumber;
-
-
-                  if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
-                }
-              }
-            }
-            else
-            {
-              // Variable is being referenced, not declared, here so push it into the linkedlist of references
-              STBENTRY *foundEntry = getEntryByName ( symboltable, tokenname );
-
-              // TODO: Print more elaborate error for variable not declared
-              if ( foundEntry == NULL )
-              {
-                fprintf ( stderr, "Variable %s used but not declared\n", tokenname );
-                // exit (-1);
-              }
-              else
-              {
-                if ( foundEntry -> entry_type == ENTRY_VAR_TYPE )
-                  foundEntry -> data . var_data . refr_lines =
-                    insertAtBack ( foundEntry -> data . var_data . refr_lines, &linenumber );
-                else if ( foundEntry -> entry_type == ENTRY_FUNC_TYPE )
-                  foundEntry -> data . func_data . refr_lines =
-                    insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
-
-              }
-            }
-
-            // Finished processing the identifier, if this identifier was a function name,
-            // then we need to start a new scop here itself, so that parameters belong to
-            // the inner scope.
-            // We set the function_scope_started parameter so that the TK_BEGIN for the
-            // function body doesn't start another scope, again.
-
-            if ( should_start_function == 1 )
-            {
-              should_start_function = 0;
-              symboltable = openEnv ( symboltable );
-              function_scope_started = 1;
-            }
-          }
-          else if ( terminalvalue == intlitint || terminalvalue == floatlitint
-                    || terminalvalue == stringlitint )
-          {
-            // Add entry for the literal in the symbol table if it doesn't already exist
-
-            STBENTRY *entry = getEntryByName ( symboltable, tokenname );
-
-            if ( entry == NULL )
-            {
-              unsigned int entryIndex = addEntry ( symboltable, tokenname, ENTRY_LIT_TYPE );
-              entry = getEntryByIndex ( symboltable, entryIndex );
-            }
-
-            // Entry now has the entry index. Set the value appropriately
-            if ( terminalvalue == intlitint )
-              entry -> data . lit_data . lit_type = D_INT_TYPE;
-            else if ( terminalvalue == floatlitint )
-              entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
-            else if ( terminalvalue == stringlitint )
-              entry -> data . lit_data . lit_type = D_STRING_TYPE;
-
-            int len = strlen ( tokenname );
-            entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
-
-            if ( entry -> data . lit_data . value == NULL )
-            {
-              fprintf ( stderr, "Failed to allocate memory for literal\n" );
-              exit (-1);
-            }
-
-            strcpy ( entry -> data . lit_data . value, tokenname );
-          }
+          handleAuxiliaryTerminalOperations (
+              beginint, endint, idenint, intlitint, stringlitint,
+              floatlitint, intint, stringint, floatint, vertexint,
+              edgeint, graphint, treeint, nothingint, andint, orint,
+              notint, plusint, minusint, mulint, divint, moduloint,
+              gtint, ltint, gteint, lteint, eqint, bftint, dftint,
+              functionint, terminalvalue, currnode, symboltable,
+              & should_start_function, & function_scope_started,
+              tokenname, linenumber );
         }
 
+        // If the current node has any properties according to the instructions file, then
+        // those properties override all other instructions, so they must be tested and
+        // acted on first.
 
-        // Here  'topvalue' = the string that was popped from the stack
-        //       'token' = the next line that was read from the input
-        //       'tokenname' = name of the variable / value of the literal
-        //       linenumber = the linenumber for variables / literals
-
-
-
-        // The current node properties override all of the other conditions so it must be tested
-        // first.
         TNODE *hasproperties = findString ( properties, getNodeTypeName ( currnode -> node_type ) );
         if ( hasproperties != NULL )
         {

@@ -29,6 +29,7 @@
 #define STRINGLIT_SYMBOL "TK_STRINGLIT"
 #define INTLIT_SYMBOL "TK_INTLIT"
 #define FLOATLIT_SYMBOL "TK_FLOATLIT"
+#define PARSER_STACK_NAME "Parser Stack"
 #define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
@@ -419,6 +420,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
 
   STACK *stack = NULL;
   stack = getStack ( STACK_STRING_TYPE );
+  stack = setStackName ( stack, PARSER_STACK_NAME );
 
   stack = push ( stack, START_SYMBOL );
   fprintf ( parseout, "%s \n", START_SYMBOL );

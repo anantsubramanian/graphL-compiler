@@ -12,6 +12,10 @@
 #include <string.h>
 #include "symboltable.h"
 
+#define SYMBOLTABLE_ENV_STACK_NAME "Symbol table environments stack"
+#define TO_APPEND_LENGTH 13
+#define TO_APPEND "'s STB Stack"
+
 SYMBOLTABLE* getSymbolTable ()
 {
   SYMBOLTABLE *symboltable;
@@ -36,6 +40,8 @@ SYMBOLTABLE* getSymbolTable ()
   symboltable -> entries = NULL;
 
   symboltable -> environments = getStack ( STACK_GENERIC_TYPE );
+  symboltable -> environments = setStackName ( symboltable -> environments,
+                                               SYMBOLTABLE_ENV_STACK_NAME );
   symboltable -> environments = setStackGenericSize ( symboltable -> environments,
                                                       sizeof ( LINKEDLIST ) );
 
@@ -272,7 +278,16 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     indexlocator -> data . int_val = symboltable -> size++;
     int foundval = indexlocator -> data . int_val;
 
+    int len = strlen ( toinsert );
+
+    char *stackname = malloc ( (len + TO_APPEND_LENGTH) * sizeof ( char ) );
+
+    strcpy ( stackname, toinsert );
+    strcat ( stackname, TO_APPEND );
+
     symboltable -> entries [ foundval ] = getStack ( STACK_GENERIC_TYPE );
+    symboltable -> entries [ foundval ] = setStackName ( symboltable -> entries [ foundval ],
+                                                         stackname );
     symboltable -> entries [ foundval ] = setStackGenericSize ( symboltable -> entries
                                                                 [ foundval ], sizeof ( STBENTRY ) );
   }
@@ -353,6 +368,12 @@ STBENTRY* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
   if ( indexlocator == NULL )
     return NULL;
 
+  // If the stack is empty, the entry ran out of
+  // scope, so even though there is an index value,
+  // there is no entry
+  if ( isEmpty ( symboltable -> entries [ indexlocator -> data . int_val ] ) )
+    return NULL;
+
   return ( STBENTRY * ) top ( symboltable -> entries [ indexlocator -> data . int_val ] );
 }
 
@@ -369,6 +390,12 @@ STBENTRY* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
     fprintf ( stderr, "Index out of bounds in symbol table\n" );
     return NULL;
   }
+
+  // Similar to the getEntryByName case, if the entry
+  // ran out of scope (i.e. the stack is empty), then
+  // return NULL to indicate that there is no entry
+  if ( isEmpty ( symboltable -> entries [ index ] ) )
+    return NULL;
 
   return ( STBENTRY * ) top ( symboltable -> entries [ index ] );
 }
