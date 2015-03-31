@@ -905,18 +905,31 @@ void handleAuxiliaryTerminalOperations (
       // the data type for the node should be identifiable from the first child
       // of the current node.
 
-      // TODO: Print an elaborate error for redeclaration by using a look-up
-      //       on the symbol table
       if ( getEntryByName ( symboltable, tokenname ) != NULL )
       {
         // Report an error if the current identifier is a variable and had been declared in the same scope before
         if ( parentnode -> node_type != AST_FUNCTION_NODE )
         {
-          if ( getEntryByName ( symboltable, tokenname ) -> data . var_data . scope_level == symboltable -> cur_scope )
+          STBENTRY *previousentry = getEntryByName ( symboltable, tokenname );
+          if ( previousentry -> data . var_data . scope_level == symboltable -> cur_scope )
           {
-            fprintf ( stderr, "Redeclaration of variable %s\n", tokenname );
-            // exit (-1);
+            fprintf ( stderr, "Redeclaration of variable %s at line number %d\n", tokenname, linenumber );
+            fprintf ( stderr, "Note: Previous declaration of %s as type %s on line %d.\n",
+                      tokenname, getDataTypeName ( previousentry -> data . var_data . data_type ),
+                      previousentry -> data . var_data . decl_line );
+
+            // TODO: Decide how to proceed after handling variable redeclaration errors
           }
+        }
+        else
+        {
+          // Is a duplicate function definition
+          STBENTRY *previousentry = getEntryByName ( symboltable, tokenname );
+          fprintf ( stderr, "Redeclaration of function %s at line number %d\n", tokenname, linenumber );
+          fprintf ( stderr, "Note: Previous declaration of %s at line number %d.\n", tokenname,
+                    previousentry -> data . func_data . decl_line );
+
+          // TODO: Decide how to proceed after handling function redeclarations
         }
       }
       else
@@ -946,10 +959,8 @@ void handleAuxiliaryTerminalOperations (
         }
         else
         {
-          // TODO: Any better method than this jugaad?
-          // If the variable is a qualified parameters, then its scope is actually
-          // 1 + the current scope of the symbol table!
-
+          // Not a function node, so it must be a variable declaration.
+          // Add the corresponding entry in the symbol table.
           insertedIndex = addEntry ( symboltable, tokenname, ENTRY_VAR_TYPE );
           if ( DEBUG_AUXOPS ) printf ( "Added variable entry %s at scope %d\n", tokenname, symboltable -> cur_scope );
 
@@ -972,7 +983,6 @@ void handleAuxiliaryTerminalOperations (
           vardata -> data_type = getDataType ( parentnode );
           vardata -> decl_line = linenumber;
 
-
           if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
         }
       }
@@ -982,11 +992,14 @@ void handleAuxiliaryTerminalOperations (
       // Variable is being referenced, not declared, here so push it into the linkedlist of references
       STBENTRY *foundEntry = getEntryByName ( symboltable, tokenname );
 
-      // TODO: Print more elaborate error for variable not declared
+      // If the variable is not found in the symbol table, it hasn't been declared yet in this scope.
+      // so report an error
       if ( foundEntry == NULL )
       {
-        fprintf ( stderr, "Variable %s used but not declared\n", tokenname );
-        // exit (-1);
+        fprintf ( stderr, "Variable %s used but has not been declared in this scope\n", tokenname );
+        fprintf ( stderr, "Note: Error at line %d.\n", linenumber );
+
+        // TODO: Decide how to proceed after variable not declared error
       }
       else
       {
@@ -1046,8 +1059,57 @@ void handleAuxiliaryTerminalOperations (
     strcpy ( entry -> data . lit_data . value, tokenname );
   }
 
+  // End handling aux ops for terminals
+  // Nothing more needs to be done
+
 }
 
+void handleNodeProperty ( ANODE **currnode, const char *topvalue, TNODE *jumps,
+                          STACK **stack, AST *ast, int *shouldAdd, int *shouldRead )
+{
+  int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
+  int shouldCreate = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_CREATE ) == PROPERTY_CREATE );
+  int nodetype_tocreate = ( (PROPERTY *) jumps -> data . generic_val ) -> node_type;
+  *shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
+  *shouldAdd = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_ADD ) == PROPERTY_ADD );
+
+  if ( DEBUG_ALL ) printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( (*currnode) -> node_type ),
+                                                                       topvalue, numberOfJumps );
+  if ( shouldCreate == 0 )
+  {
+    // Should jump
+    while ( numberOfJumps > 0 )
+    {
+      if ( getParent ( *currnode ) == NULL || getParent ( *currnode ) == ast -> root )
+        break;
+      *currnode = getParent ( *currnode );
+      numberOfJumps --;
+    }
+  }
+  else if ( shouldCreate == 1 )
+  {
+    if ( DEBUG_ALL || DEBUG_ONCREATE )
+      printf ( "At node %s got %s so creating and going to %s\n\n",
+               getNodeTypeName ( (*currnode) -> node_type ), topvalue,
+               getNodeTypeName ( nodetype_tocreate ) );
+
+    *currnode = addChild ( *currnode, nodetype_tocreate, GOTOCH );
+
+    // numberOfJumps is the number of elements to pop from the stack
+    while ( numberOfJumps > 0 )
+    {
+      if ( isEmpty ( *stack ) )
+      {
+        fprintf ( stderr, "Instructions say pop elements, but stack is empty!\n" );
+        exit (-1);
+      }
+      *stack = pop ( *stack );
+      numberOfJumps --;
+    }
+  }
+
+  return;
+}
 
 AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instructions,
                  TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
@@ -1160,7 +1222,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
         TNODE *istopterminal = findString ( terminals, topvalue );
 
-        // If the topvalue is a terminal
+        // If the topvalue is a terminal some auxiliary operations should be performed
+        // depending on which terminal it is
         if ( istopterminal != NULL )
         {
           int terminalvalue = istopterminal -> data . int_val;
@@ -1184,6 +1247,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
         // acted on first.
 
         TNODE *hasproperties = findString ( properties, getNodeTypeName ( currnode -> node_type ) );
+
         if ( hasproperties != NULL )
         {
           TRIE* trieToSearch = (TRIE *) hasproperties -> data . generic_val;
@@ -1191,47 +1255,10 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
           if ( jumps != NULL )
           {
-            int numberOfJumps = ( (PROPERTY *) jumps -> data . generic_val ) -> jumps;
-            int shouldRead = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_READ ) == PROPERTY_READ );
-            int shouldAdd = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_ADD ) == PROPERTY_ADD );
-            int shouldCreate = ( ( ( ( (PROPERTY *) jumps -> data . generic_val ) -> instruction ) & PROPERTY_CREATE ) == PROPERTY_CREATE );
-            int nodetype_tocreate = ( (PROPERTY *) jumps -> data . generic_val ) -> node_type;
+            int shouldAdd = 0, shouldRead = 0;
 
-            if ( DEBUG_ALL ) printf ( "At node %s got %s so jumping %d times\n", getNodeTypeName ( currnode -> node_type ),
-                                                                                 topvalue, numberOfJumps );
-            if ( shouldCreate == 0 )
-            {
-              // Should jump
-              while ( numberOfJumps > 0 )
-              {
-                if ( getParent ( currnode ) == NULL || getParent ( currnode ) == ast -> root )
-                  break;
-                currnode = getParent ( currnode );
-                numberOfJumps --;
-              }
-            }
+            handleNodeProperty ( &currnode, topvalue, jumps, &stack, ast, &shouldAdd, &shouldRead );
 
-
-            if ( shouldCreate == 1 )
-            {
-              if ( DEBUG_ALL || DEBUG_ONCREATE )
-                printf ( "At node %s got %s so creating and going to %s\n\n",
-                         getNodeTypeName ( currnode -> node_type ), topvalue,
-                         getNodeTypeName ( nodetype_tocreate ) );
-              currnode = addChild ( currnode, nodetype_tocreate, GOTOCH );
-
-              // numberOfJumps is the number of elements to pop from the stack
-              while ( numberOfJumps > 0 )
-              {
-                if ( isEmpty ( stack ) )
-                {
-                  fprintf ( stderr, "Instructions say pop elements, but stack is empty!\n" );
-                  exit (-1);
-                }
-                stack = pop ( stack );
-                numberOfJumps --;
-              }
-            }
             if ( shouldRead == 1 )
             {
               free ( topvalue );
