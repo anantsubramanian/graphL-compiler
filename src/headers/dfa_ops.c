@@ -15,6 +15,13 @@
 #define MAX_NAME_LEN 100
 #define BUFFERLENGTH 50
 
+/**
+ * Function that allocates memory for and returns the pointer
+ * to a new Deterministic Finite Automaton object
+ *
+ * @return DFA* The pointer to the new DFA memory location
+ */
+
 DFA* getNewDFA ()
 {
   DFA *dfa = NULL;
@@ -32,6 +39,16 @@ DFA* getNewDFA ()
 
   return dfa;
 }
+
+/**
+ * Function that frees all the memory allocated for the passed
+ * DFA and returns it to a fresh state
+ *
+ * @param  dfa DFA* The DFA that must be reset
+ *
+ * @return DFA* The pointer to the dfa, restored to its original
+ *              empty state
+ */
 
 DFA* resetDFA ( DFA *dfa )
 {
@@ -52,6 +69,17 @@ DFA* resetDFA ( DFA *dfa )
   dfa->num_states = 0;
   return dfa;
 }
+
+/**
+ * Function that sets the number of states of the given DFA
+ * and allocates the memory for the necessary pointers
+ *
+ * @param  dfa DFA* The DFA whose number of states must be set
+ * @param  int numStates The number of states to be used
+ *
+ * @return DFA* The pointer to the altered DFA
+ *
+ */
 
 DFA* setNumStates ( DFA *dfa, int numStates )
 {
@@ -94,6 +122,16 @@ DFA* setNumStates ( DFA *dfa, int numStates )
   return dfa;
 }
 
+/**
+ * Function that takes a DFA back to its initial state, which
+ * by convention is numbered 0
+ *
+ * @param  dfa DFA* The DFA whose current state must be changed
+ *
+ * @return DFA* The pointer to the altered DFA
+ *
+ */
+
 DFA* gotoInitialState ( DFA *dfa )
 {
   if ( dfa == NULL )
@@ -106,6 +144,17 @@ DFA* gotoInitialState ( DFA *dfa )
   dfa->current_state = 0;
   return dfa;
 }
+
+/**
+ * Function that returns the pointer to a particular state of
+ * the DFA. Can be used to modify the state
+ *
+ * @param  dfa DFA* The DFA whose state must be accessed
+ * @param  int stateNumber The number of the state to be accessed
+ *
+ * @return STATE* The pointer to the accessed state
+ *
+ */
 
 STATE* getState ( DFA *dfa, int stateNumber )
 {
@@ -123,6 +172,16 @@ STATE* getState ( DFA *dfa, int stateNumber )
 
   return &( dfa->all_states[ stateNumber ] );
 }
+
+/**
+ * Function that sets the name of a state
+ *
+ * @param  state STATE* The state whose name is to be set
+ * @param  name char* The name string to be used
+ *
+ * @return STATE* The pointer to the altered state
+ *
+ */
 
 STATE* setName ( STATE *state, const char *name )
 {
@@ -145,6 +204,19 @@ STATE* setName ( STATE *state, const char *name )
   return state;
 }
 
+/**
+ * Function that adds a transition from one state to another
+ * on an input character
+ *
+ * @param  char input The input symbol on which the transition
+ *                    should occur
+ * @param  state1 STATE* The from state
+ * @param  state2 STATE* The to state
+ *
+ * @return STATE* The pointer to the altered from state
+ *
+ */
+
 STATE* addTransition ( char input, STATE *state1, STATE *state2 )
 {
   if ( state1 == NULL || state2 == NULL )
@@ -163,6 +235,15 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
   return state1;
 }
 
+/**
+ * Function that sets a particular state as final
+ *
+ * @param  state STATE* The function which should be set as final
+ *
+ * @return STATE* The pointer to the altered state
+ *
+ */
+
 STATE *setFinal ( STATE *state )
 {
   if ( state == NULL )
@@ -175,6 +256,15 @@ STATE *setFinal ( STATE *state )
   return state;
 }
 
+/**
+ * Function that gets the current state of the given DFA
+ *
+ * @param  dfa DFA* The DFA whose current state is to be found
+ *
+ * @return STATE* The pointer to the current state of dfa
+ *
+ */
+
 STATE *getCurrentState ( DFA *dfa )
 {
   if ( dfa == NULL || dfa->current_state == -1 )
@@ -185,6 +275,16 @@ STATE *getCurrentState ( DFA *dfa )
 
   return &( dfa->all_states[ dfa->current_state ] );
 }
+
+/**
+ * Function that sets a special property for the given state
+ *
+ * @param  state STATE* The state whose special property is to be set
+ * @param  property DFA_STATE_PROPERTY The special property value
+ *
+ * @return STATE* The pointer to the altered state
+ *
+ */
 
 STATE *setSpecialProperty ( STATE *state, DFA_STATE_PROPERTY property )
 {
@@ -204,6 +304,16 @@ STATE *setSpecialProperty ( STATE *state, DFA_STATE_PROPERTY property )
   return state;
 }
 
+/**
+ * Function that sets the current state of the DFA
+ *
+ * @param  dfa DFA* The DFA whose current state is to be set
+ * @param  state STATE* The new current state
+ *
+ * @return DFA* The pointer to the altered DFA
+ *
+ */
+
 DFA* setCurrentState ( DFA *dfa, STATE *state )
 {
   if ( dfa == NULL )
@@ -216,6 +326,16 @@ DFA* setCurrentState ( DFA *dfa, STATE *state )
   return dfa;
 }
 
+/**
+ * Function that checks whether the provided state is final
+ * or not
+ *
+ * @param  state STATE* The state to be checked
+ *
+ * @return int 1 if the state is final, 0 otherwise
+ *
+ */
+
 int isFinal ( STATE *state )
 {
   if ( state == NULL )
@@ -226,6 +346,17 @@ int isFinal ( STATE *state )
 
   return state->is_final;
 }
+
+/**
+ * Function that simulates running the DFA in its current
+ * state on an input symbol, and returns the modified DFA
+ *
+ * @param  dfa DFA* The DFA to simulate
+ * @param  input char The transition character
+ *
+ * @return DFA* The pointer to the altered DFA
+ *
+ */
 
 DFA* gotoNextState ( DFA *dfa, char input )
 {
@@ -256,6 +387,17 @@ DFA* gotoNextState ( DFA *dfa, char input )
   return dfa;
 }
 
+/**
+ * Function that erases an existing transition from a
+ * DFA state
+ *
+ * @param  state STATE* The state whose transition is to be erased
+ * @param  input char The character for the transition to erase
+ *
+ * @return STATE* The pointer to the altered state
+ *
+ */
+
 STATE* resetTransition ( STATE *state, char input )
 {
   if ( state == NULL )
@@ -267,6 +409,17 @@ STATE* resetTransition ( STATE *state, char input )
   state->next_state [ (int) input ] = NULL;
   return state;
 }
+
+/**
+ * Function that initializes a complete DFA from a file. The format
+ * of the file can be found in the src/config folder
+ *
+ * @param  dfa DFA* The DFA to be initialized
+ * @param  filename char* The name of file to use
+ *
+ * @return DFA* The pointer to the initialized DFA
+ *
+ */
 
 DFA* initializeFromFile ( DFA *dfa, const char *filename )
 {
@@ -634,6 +787,17 @@ DFA* initializeFromFile ( DFA *dfa, const char *filename )
   return dfa;
 }
 
+/**
+ * Function that returns the next state for the DFA, on an
+ * input character, without altering the DFA itself
+ *
+ * @param  dfa DFA* The DFA to peek
+ * @param  nextinp char The input char on which to peek
+ *
+ * @return STATE* The next state if it exists or NULL
+ *
+ */
+
 STATE* peek ( DFA *dfa, char nextinp )
 {
   if ( dfa == NULL )
@@ -650,6 +814,15 @@ STATE* peek ( DFA *dfa, char nextinp )
 
   return dfa->all_states[ dfa->current_state ].next_state[ (int) nextinp ];
 }
+
+/**
+ * Function that returns the special property value for
+ * a state if it exists
+ *
+ * @param  state STATE* The state to be inspected
+ *
+ * @return DFA_STATE_PROPERTY The special property value for the state
+ */
 
 DFA_STATE_PROPERTY getSpecialProperty ( STATE *state )
 {

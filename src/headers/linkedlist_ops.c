@@ -12,6 +12,15 @@
 #include <string.h>
 #include "linkedlist.h"
 
+/**
+ * Function that gets a new Linked List parameterized to the
+ * type specified as a parameter
+ *
+ * @param  data_type LINKEDLIST_TYPE The type of values stored
+ *
+ * @return LINKEDLIST* The pointer to the allocated LinkedList
+ */
+
 LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE data_type )
 {
   LINKEDLIST *list = NULL;
@@ -38,6 +47,16 @@ LINKEDLIST* getLinkedList ( LINKEDLIST_TYPE data_type )
   return list;
 }
 
+/**
+ * Function that sets the generic size of the LinkedList for
+ * generic type linked lists
+ *
+ * @param  list LINKEDLIST* The linked list whose size is to be set
+ * @param  size uint The value of the size to be set
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
+
 LINKEDLIST* setGenericSize ( LINKEDLIST *list, unsigned int size )
 {
   if ( list == NULL )
@@ -46,10 +65,25 @@ LINKEDLIST* setGenericSize ( LINKEDLIST *list, unsigned int size )
     return NULL;
   }
 
+  if ( list -> data_type != LL_GENERIC_TYPE )
+  {
+    fprintf ( stderr, "Attempting to set Generic size of non-generic linked list\n" );
+    return NULL;
+  }
+
   list -> generic_size = size;
 
   return list;
 }
+
+/**
+ * Function to insert data at the end of a linked list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  value void* The pointer to the data location
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
 
 LINKEDLIST* insertAtBack ( LINKEDLIST * list, void * value )
 {
@@ -131,6 +165,15 @@ LINKEDLIST* insertAtBack ( LINKEDLIST * list, void * value )
   return list;
 }
 
+/**
+ * Function to insert data at the front of a linked list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  value void* The pointer to the data location
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
+
 LINKEDLIST* insertAtFront ( LINKEDLIST * list, void * value )
 {
   if ( list == NULL )
@@ -211,6 +254,16 @@ LINKEDLIST* insertAtFront ( LINKEDLIST * list, void * value )
   return list;
 }
 
+/**
+ * Function to insert a (multiple) space separated list of words,
+ * provided as a string, into a linked list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  wordlist char* The string containing the words
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
+
 LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * list, char * wordlist )
 {
   if ( list == NULL )
@@ -248,6 +301,14 @@ LINKEDLIST* insertSpaceSeparatedWords ( LINKEDLIST * list, char * wordlist )
 
   return list;
 }
+
+/**
+ * Function to delete a value from the back of a linked list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
 
 LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
 {
@@ -294,6 +355,14 @@ LINKEDLIST* deleteFromBack ( LINKEDLIST * list )
   return list;
 }
 
+/**
+ * Function to delete a value from the front of a linked list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ *
+ * @return LINKEDLIST* The pointer to the altered LinkedList
+ */
+
 LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
 {
   if ( list == NULL )
@@ -339,6 +408,17 @@ LINKEDLIST* deleteFromFront ( LINKEDLIST * list )
   return list;
 }
 
+/**
+ * Function to copy all data from a given linked list node
+ * to another node. The copy is a shallow copy
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  to LNODE* The target node
+ * @param  from LNODE* The source node
+ *
+ * @return LNODE* The pointer to the altered to node
+ */
+
 LNODE* copyNode ( LINKEDLIST *list, LNODE *to, LNODE *from )
 {
   if ( to == NULL || from == NULL )
@@ -368,6 +448,16 @@ LNODE* copyNode ( LINKEDLIST *list, LNODE *to, LNODE *from )
   return to;
 }
 
+/**
+ * Function that gets an iterator to the linked list,
+ * and stores it in the passed LNODE
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return LNODE* The pointer to the iterator
+ */
+
 LNODE* getIterator ( LINKEDLIST * list, LNODE * iterator )
 {
   if ( list == NULL )
@@ -391,6 +481,16 @@ LNODE* getIterator ( LINKEDLIST * list, LNODE * iterator )
 
   return iterator;
 }
+
+/**
+ * Function that gets a reverse iterator to the linked list,
+ * and stores it in the passed LNODE
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return LNODE* The pointer to the iterator
+ */
 
 LNODE* getReverseIterator ( LINKEDLIST * list, LNODE * iterator )
 {
@@ -416,6 +516,14 @@ LNODE* getReverseIterator ( LINKEDLIST * list, LNODE * iterator )
   return iterator;
 }
 
+/**
+ * Function that checks if a given iterator has a next node
+ *
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return int 1 if a next element exists, 0 otherwise
+ */
+
 int hasNext ( LNODE * iterator )
 {
   if ( iterator == NULL || iterator -> next == NULL )
@@ -424,6 +532,14 @@ int hasNext ( LNODE * iterator )
   return TRUE;
 }
 
+/**
+ * Function that checks if a given iterator has a previous node
+ *
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return int 1 if a previous element exists, 0 otherwise
+ */
+
 int hasPrevious ( LNODE * iterator )
 {
   if ( iterator == NULL || iterator -> prev == NULL )
@@ -431,6 +547,15 @@ int hasPrevious ( LNODE * iterator )
 
   return TRUE;
 }
+
+/**
+ * Function that gets the next element given an iterator
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return LNODE* The altered iterator
+ */
 
 LNODE* getNext ( LINKEDLIST * list, LNODE * iterator )
 {
@@ -449,6 +574,15 @@ LNODE* getNext ( LINKEDLIST * list, LNODE * iterator )
   return iterator;
 }
 
+/**
+ * Function that gets the previous element given an iterator
+ *
+ * @param  list LINKEDLIST* The target linked list
+ * @param  iterator LNODE* The target iterator
+ *
+ * @return LNODE* The altered iterator
+ */
+
 LNODE* getPrevious ( LINKEDLIST * list, LNODE * iterator )
 {
   if ( iterator == NULL || iterator -> prev == NULL )
@@ -466,6 +600,14 @@ LNODE* getPrevious ( LINKEDLIST * list, LNODE * iterator )
   return iterator;
 }
 
+/**
+ * Function that gets the first element of the given list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ *
+ * @return LNODE* The pointer to the first element
+ */
+
 LNODE* getFront ( LINKEDLIST * list )
 {
   if ( list == NULL )
@@ -477,6 +619,14 @@ LNODE* getFront ( LINKEDLIST * list )
   return list -> head;
 }
 
+/**
+ * Function that gets the last element of the given list
+ *
+ * @param  list LINKEDLIST* The target linked list
+ *
+ * @return LNODE* The pointer to the last element
+ */
+
 LNODE* getBack ( LINKEDLIST * list )
 {
   if ( list == NULL )
@@ -487,6 +637,13 @@ LNODE* getBack ( LINKEDLIST * list )
 
   return list -> tail;
 }
+
+/**
+ * Function that deletes a linked list and frees all associated memory
+ *
+ * @param  list LINKEDLIST* The target linked list
+ *
+ */
 
 void deleteLinkedList ( LINKEDLIST * list )
 {

@@ -14,6 +14,13 @@
 
 #define TRUE 1
 
+/**
+ * Function that allocates memory for and returns a new Parse Tree
+ *
+ * @return PARSETREE* The pointer to the allocated parse tree
+ *
+ */
+
 PARSETREE* getNewParseTree ()
 {
   PARSETREE* pst = NULL;
@@ -42,6 +49,16 @@ PARSETREE* getNewParseTree ()
 
   return pst;
 }
+
+/**
+ * Function that sets/clears the name of the parse tree
+ *
+ * @param pst PARSETREE* The target parse tree
+ * @param name char* The name containing string
+ *
+ * @return PARSETREE* The pointer to the allocated parse tree
+ *
+ */
 
 PARSETREE* setParseTreeName ( PARSETREE *pst, const char *name )
 {
@@ -72,6 +89,17 @@ PARSETREE* setParseTreeName ( PARSETREE *pst, const char *name )
   return pst;
 }
 
+/**
+ * Function that initializes a parse tree node by giving its attributes
+ * sentinel values
+ *
+ * @param node PTNODE* The target parse tree node
+ * @param parent PTNODE* The parent of the target node
+ *
+ * @return PTNODE* The pointer to the initialized node
+ *
+ */
+
 PTNODE* initializeParseTreeNode ( PTNODE *node, PTNODE *parent )
 {
   if ( node == NULL )
@@ -88,6 +116,16 @@ PTNODE* initializeParseTreeNode ( PTNODE *node, PTNODE *parent )
 
   return node;
 }
+
+/**
+ * Function that sets/clears the name of a parse tree node
+ *
+ * @param node PTNODE* The target parse tree node
+ * @param str char* The string containing the name
+ *
+ * @return PTNODE* The pointer to the altered node
+ *
+ */
 
 PTNODE* setParseTreeNodeName ( PTNODE *node, const char *str )
 {
@@ -120,6 +158,16 @@ PTNODE* setParseTreeNodeName ( PTNODE *node, const char *str )
   return node;
 }
 
+/**
+ * Function that sets the number of children of a parse tree node
+ *
+ * @param node PTNODE* The target parse tree node
+ * @param value int The number of children
+ *
+ * @return PTNODE* The pointer to the altered node
+ *
+ */
+
 PTNODE* setNumChildren ( PTNODE *node, int value )
 {
   if ( node == NULL )
@@ -146,6 +194,14 @@ PTNODE* setNumChildren ( PTNODE *node, int value )
   return node;
 }
 
+/**
+ * Function that recursively deletes and frees the memory
+ * of a parse tree node and all its descendants
+ *
+ * @param node PTNODE* The target parse tree node
+ *
+ */
+
 void deleteParseTreeNode ( PTNODE * node )
 {
   if ( node == NULL )
@@ -164,6 +220,16 @@ void deleteParseTreeNode ( PTNODE * node )
 
   free ( node );
 }
+
+/**
+ * Function that allocates memory for the pointers to the
+ * children and the children of the given node
+ *
+ * @param node PTNODE* The target parse tree node
+ *
+ * @return PTNODE* The altered parse tree node
+ *
+ */
 
 PTNODE* allocateChildren ( PTNODE * node )
 {
@@ -213,6 +279,17 @@ PTNODE* allocateChildren ( PTNODE * node )
 
   return node;
 }
+
+/**
+ * Function that creates the children of a node according to a
+ * list of provided space separated words
+ *
+ * @param node PTNODE* The target parse tree node
+ * @param wordlist char* The space separated word list
+ *
+ * @return PTNODE* The altered parse tree node
+ *
+ */
 
 PTNODE* insertSpaceSeparatedWords ( PTNODE * node, char * wordlist )
 {
@@ -268,6 +345,16 @@ PTNODE* insertSpaceSeparatedWords ( PTNODE * node, char * wordlist )
   return node;
 }
 
+/**
+ * Function that gets the first node in the pre-order traversal
+ * of the subtree rooted at the given node
+ *
+ * @param node PTNODE* The target parse tree node
+ *
+ * @return PTNODE* The left most descendant
+ *
+ */
+
 PTNODE* getLeftMostDesc ( PTNODE *node )
 {
   if ( node == NULL )
@@ -288,6 +375,16 @@ PTNODE* getLeftMostDesc ( PTNODE *node )
 
   return node;
 }
+
+/**
+ * Function that gets the next node in a pre-order traversal
+ * of the given tree
+ *
+ * @param node PTNODE* The current parse tree node
+ *
+ * @return PTNODE* The next node in a pre-order traversal
+ *
+ */
 
 PTNODE* getNextPreOrder ( PTNODE *node )
 {

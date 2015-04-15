@@ -16,6 +16,13 @@
 #define TO_APPEND_LENGTH 13
 #define TO_APPEND "'s STB Stack"
 
+/**
+ * Function that allocates memory for and returns a new symbol table
+ *
+ * @return SYMBOLTABLE* The pointer to the allocated symbol table
+ *
+ */
+
 SYMBOLTABLE* getSymbolTable ()
 {
   SYMBOLTABLE *symboltable;
@@ -48,6 +55,16 @@ SYMBOLTABLE* getSymbolTable ()
   return symboltable;
 }
 
+/**
+ * Function that sets/clears the name of a symbol table
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  name char* The string containing the name
+ *
+ * @return SYMBOLTABLE* The pointer to the altered symbol table
+ *
+ */
+
 SYMBOLTABLE* setSymbolTableName ( SYMBOLTABLE *symboltable, char * name )
 {
   if ( symboltable == NULL )
@@ -77,6 +94,16 @@ SYMBOLTABLE* setSymbolTableName ( SYMBOLTABLE *symboltable, char * name )
 
   return symboltable;
 }
+
+/**
+ * Function that sets the maximum number of entries in the symbol table
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  num_entries uint The number of entries
+ *
+ * @return SYMBOLTABLE* The pointer to the altered symbol table
+ *
+ */
 
 SYMBOLTABLE* setNumEntries ( SYMBOLTABLE *symboltable, unsigned int num_entries )
 {
@@ -111,6 +138,15 @@ SYMBOLTABLE* setNumEntries ( SYMBOLTABLE *symboltable, unsigned int num_entries 
   return symboltable;
 }
 
+/**
+ * Function that opens a new environment in the symbol table
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ *
+ * @return SYMBOLTABLE* The pointer to the altered symbol table
+ *
+ */
+
 SYMBOLTABLE* openEnv ( SYMBOLTABLE *symboltable )
 {
   if ( symboltable == NULL )
@@ -129,6 +165,15 @@ SYMBOLTABLE* openEnv ( SYMBOLTABLE *symboltable )
 
   return symboltable;
 }
+
+/**
+ * Function that closes the last opened environment of the symbol table
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ *
+ * @return SYMBOLTABLE* The pointer to the altered symbol table
+ *
+ */
 
 SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
 {
@@ -173,6 +218,18 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
 
   return symboltable;
 }
+
+/**
+ * Function that adds an entry of the given type, to the symbol table
+ * in the current scope and returns the index of the entry in the table
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  toinsert char* The name of the entry being inserted
+ * @param  value_type STB_ENTRYTYPE The type of the STB entry
+ *
+ * @return int The unique index used to identify the entry in the STB
+ *
+ */
 
 int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_type )
 {
@@ -307,6 +364,17 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
   return indexlocator -> data . int_val;
 }
 
+/**
+ * Function that checks if an entry of the given name already
+ * exists in the table, in the current scope
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  tocheck char* The name of the entry to check
+ *
+ * @return int 1 if the entry exists, 0 otherwise
+ *
+ */
+
 int checkNameExistence ( SYMBOLTABLE *symboltable, char *tocheck )
 {
   if ( symboltable == NULL )
@@ -331,6 +399,17 @@ int checkNameExistence ( SYMBOLTABLE *symboltable, char *tocheck )
   return TRUE;
 }
 
+/**
+ * Function that checks if an entry of the given index
+ * exists in the table, in the current scope
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  index uint The index to check
+ *
+ * @return int 1 if the entry exists, 0 otherwise
+ *
+ */
+
 int checkIndexExistence ( SYMBOLTABLE *symboltable, unsigned int index )
 {
   if ( symboltable == NULL )
@@ -346,6 +425,17 @@ int checkIndexExistence ( SYMBOLTABLE *symboltable, unsigned int index )
 
   return TRUE;
 }
+
+/**
+ * Function that returns a Symbol Table entry using the name
+ * of the entry to look it up
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  toget char* The name of the entry to look up
+ *
+ * @return STBENTRY* The pointer to the entry in the STB
+ *
+ */
 
 STBENTRY* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
 {
@@ -376,6 +466,17 @@ STBENTRY* getEntryByName ( SYMBOLTABLE *symboltable, char *toget )
 
   return ( STBENTRY * ) top ( symboltable -> entries [ indexlocator -> data . int_val ] );
 }
+
+/**
+ * Function that returns a Symbol Table entry using the index
+ * of the entry to look it up
+ *
+ * @param  symboltable SYMBOLTABLE* The target symbol table
+ * @param  index uint The index to look up
+ *
+ * @return STBENTRY* The pointer to the entry in the STB
+ *
+ */
 
 STBENTRY* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
 {

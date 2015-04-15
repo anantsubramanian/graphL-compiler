@@ -12,6 +12,16 @@
 #include <string.h>
 #include "trie.h"
 
+/**
+ * Function that allocates memory for and returns a pointer
+ * to a trie of the specified type
+ *
+ * @param  data_type TRIE_TYPE The parameter type
+ *
+ * @return TRIE* The pointer to the allocated trie
+ *
+ */
+
 TRIE* getNewTrie ( TRIE_TYPE data_type )
 {
   TRIE* trie = NULL;
@@ -47,6 +57,16 @@ TRIE* getNewTrie ( TRIE_TYPE data_type )
   return trie;
 }
 
+/**
+ * Function that sets/clears the name of the given trie
+ *
+ * @param  trie TRIE* The target trie
+ * @param  name char* The string containing the name
+ *
+ * @return TRIE* The pointer to the altered trie
+ *
+ */
+
 TRIE* setTrieName ( TRIE *trie, const char *name )
 {
   if ( trie == NULL )
@@ -80,6 +100,16 @@ TRIE* setTrieName ( TRIE *trie, const char *name )
   return trie;
 }
 
+/**
+ * Function that sets the generic size of the trie
+ *
+ * @param  trie TRIE* The target trie
+ * @param  size uint The value of the size
+ *
+ * @return TRIE* The pointer to the altered trie
+ *
+ */
+
 TRIE* setTrieGenericSize ( TRIE *trie, unsigned int size )
 {
   if ( trie == NULL )
@@ -88,10 +118,25 @@ TRIE* setTrieGenericSize ( TRIE *trie, unsigned int size )
     return NULL;
   }
 
+  if ( trie -> data_type != TRIE_GENERIC_TYPE )
+  {
+    fprintf ( stderr, "Cannot set generic type size of a non-generic trie\n" );
+    return NULL;
+  }
+
   trie -> generic_size = size;
 
   return trie;
 }
+
+/**
+ * Function that initializes the data in a node with sentinel values
+ *
+ * @param  node TNODE* The pointer to the target node
+ *
+ * @return TNODE* The pointer to the altered node
+ *
+ */
 
 TNODE* initializeNode ( TNODE *node )
 {
@@ -115,6 +160,17 @@ TNODE* initializeNode ( TNODE *node )
 
   return node;
 }
+
+/**
+ * Function that inserts a string into a trie and returns
+ * the pointer to the unique node for the string
+ *
+ * @param  trie TRIE* The target trie
+ * @param  str char* The string to be inserted
+ *
+ * @return TNODE* The pointer to the unique node for the string
+ *
+ */
 
 TNODE* insertString ( TRIE *trie, const char *str )
 {
@@ -160,6 +216,17 @@ TNODE* insertString ( TRIE *trie, const char *str )
   return curnode;
 }
 
+/**
+ * Function that finds a string in the given trie and returns the
+ * pointer to its unique node if it exists
+ *
+ * @param  trie TRIE* The target trie
+ * @param  str char* The string to be located
+ *
+ * @return TNODE* The pointer to the unique node for the string
+ *
+ */
+
 TNODE* findString ( TRIE *trie, const char *str )
 {
   if ( trie == NULL )
@@ -192,6 +259,18 @@ TNODE* findString ( TRIE *trie, const char *str )
 
   return curnode;
 }
+
+/**
+ * Function that sets a value to a trie node, depending on the type
+ * of the trie
+ *
+ * @param  trie TRIE* The target trie
+ * @param  node TNODE* The target node
+ * @param  value void* The pointer to the data
+ *
+ * @return TNODE* The pointer to the altered trie node
+ *
+ */
 
 TNODE* setValue ( TRIE * trie, TNODE *node, void * value )
 {
@@ -250,6 +329,16 @@ TNODE* setValue ( TRIE * trie, TNODE *node, void * value )
   return node;
 }
 
+/**
+ * Function that sets the name of a trie node
+ *
+ * @param  node TNODE* The target node
+ * @param  name char* The string containing the name
+ *
+ * @return TNODE* The pointer to the altered trie node
+ *
+ */
+
 TNODE* setNodeName ( TNODE *node, const char *name )
 {
   if ( node == NULL )
@@ -281,6 +370,19 @@ TNODE* setNodeName ( TNODE *node, const char *name )
 
   return node;
 }
+
+/**
+ * Function that deletes a string from the given trie
+ * The assumption is that the string being deleted exists in
+ * the trie. If not, the behavior of the function is
+ * unpredictable
+ *
+ * @param  trie TRIE* The target trie
+ * @param  str char* The string being deleted
+ *
+ * @return TRIE* The pointer to the altered trie
+ *
+ */
 
 TRIE* deleteString ( TRIE* trie, const char *str )
 {
@@ -329,6 +431,15 @@ TRIE* deleteString ( TRIE* trie, const char *str )
 
   return trie;
 }
+
+/**
+ * Function that checks if the supplied trie node is final or not
+ *
+ * @param  node TNODE* The target node
+ *
+ * @return int 1 if the node is final, 0 otherwise
+ *
+ */
 
 int isFinalTNode ( TNODE *node )
 {

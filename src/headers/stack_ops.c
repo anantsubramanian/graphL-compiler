@@ -12,6 +12,16 @@
 #include <string.h>
 #include "stack.h"
 
+/**
+ * Function that allocates memory for and returns a new stack
+ * parameterized to the specified type
+ *
+ * @param  data_type STACK_TYPE The parameter type
+ *
+ * @return STACK* The pointer to the created Stack
+ *
+ */
+
 STACK* getStack ( STACK_TYPE data_type )
 {
   STACK *s = NULL;
@@ -57,11 +67,27 @@ STACK* getStack ( STACK_TYPE data_type )
   return s;
 }
 
+/**
+ * Function that sets the size of a generic type stack
+ *
+ * @param  s STACK* The target stack
+ * @param  size uint The value of the size to be set
+ *
+ * @return STACK* The pointer to the altered Stack
+ *
+ */
+
 STACK* setStackGenericSize ( STACK *s, unsigned int size )
 {
   if ( s == NULL )
   {
     fprintf ( stderr, "Cannot set generic type size for non-existent stack\n" );
+    return NULL;
+  }
+
+  if ( s -> data_type != STACK_GENERIC_TYPE )
+  {
+    fprintf ( stderr, "Cannot set the generic type size of a non-generic stack\n" );
     return NULL;
   }
 
@@ -72,6 +98,16 @@ STACK* setStackGenericSize ( STACK *s, unsigned int size )
 
   return s;
 }
+
+/**
+ * Function that sets/clears the name of a stack
+ *
+ * @param  stack STACK* The target stack
+ * @param  name char* The string containing the name
+ *
+ * @return STACK* The pointer to the altered Stack
+ *
+ */
 
 STACK* setStackName ( STACK *stack, char * name )
 {
@@ -99,6 +135,15 @@ STACK* setStackName ( STACK *stack, char * name )
   return stack;
 }
 
+/**
+ * Function that checks if a stack is empty
+ *
+ * @param  stack STACK* The target stack
+ *
+ * @return int 1 if the stack if empty, 0 otherwise
+ *
+ */
+
 int isEmpty ( STACK * s )
 {
   if ( s == NULL )
@@ -109,6 +154,16 @@ int isEmpty ( STACK * s )
 
   return s -> is_empty;
 }
+
+/**
+ * Function that pushes data onto the top of the stack
+ *
+ * @param  stack STACK* The target stack
+ * @param  topush void* The pointer to the data to be pused
+ *
+ * @return STACK* The pointer to the altered stack
+ *
+ */
 
 STACK* push ( STACK *s, void *topush )
 {
@@ -125,6 +180,15 @@ STACK* push ( STACK *s, void *topush )
 
   return s;
 }
+
+/**
+ * Function that pops data from the top of the stack and discards it
+ *
+ * @param  stack STACK* The target stack
+ *
+ * @return STACK* The pointer to the altered stack
+ *
+ */
 
 STACK* pop ( STACK *s )
 {
@@ -151,6 +215,17 @@ STACK* pop ( STACK *s )
 
   return s;
 }
+
+/**
+ * Function that returns the pointer to the data on top of the stack
+ * Note that the function does not create a copy of the data, it
+ * returns the true pointer to the data currently ON the stack
+ *
+ * @param  stack STACK* The target stack
+ *
+ * @return void* The pointer to the data on top of the stack
+ *
+ */
 
 void* top ( STACK * s )
 {
@@ -180,12 +255,29 @@ void* top ( STACK * s )
   return NULL;
 }
 
+/**
+ * Function that pushes all the data in a linked list onto the stack,
+ * starting from the tail and moving towards the head of the list
+ *
+ * @param  stack STACK* The target stack
+ * @param  list LINKEDLIST* The source linked list
+ *
+ * @return STACK* The pointer to the altered stack
+ *
+ */
+
 STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
 {
+  if ( list == NULL || stack == NULL )
+  {
+    fprintf ( stderr, "Cannot push data onto an empty stack/from an empty LL\n" );
+    return NULL;
+  }
+
   LNODE iterator;
   if ( getReverseIterator ( list, &iterator ) == NULL )
   {
-    fprintf ( stderr, "Failed to get iterator\n" );
+    fprintf ( stderr, "Failed to get reverse iterator to LL while pushing onto stack\n" );
     return NULL;
   }
 
@@ -223,6 +315,17 @@ STACK* insertFromLinkedList ( STACK * stack, LINKEDLIST * list )
 
   return stack;
 }
+
+/**
+ * Function that pushes all words from a (multiple) space separated list
+ * of words, provided as a string, onto a stack in the reverse order
+ *
+ * @param  stack STACK* The target stack
+ * @param  wordlist char* The space separated word list
+ *
+ * @return STACK* The pointer to the altered stack
+ *
+ */
 
 STACK* pushReverseSpaceSeparatedWords ( STACK * stack, const char * wordlist )
 {

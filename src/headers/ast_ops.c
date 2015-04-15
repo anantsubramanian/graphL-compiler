@@ -14,6 +14,14 @@
 
 #define TRUE 1
 
+/**
+ * Function that allocates memory for, and returns a pointer
+ * to a new Abstract Syntax Tree
+ *
+ * @return AST* The pointer to the allocated AST
+ *
+ **/
+
 AST* getNewAst ()
 {
   AST* ast = NULL;
@@ -42,6 +50,17 @@ AST* getNewAst ()
 
   return ast;
 }
+
+/**
+ * Function set or clears the name of an AST. If the provided
+ * name is NULL, it clears current name of the AST.
+ *
+ * @param  ast  AST* The AST whose name is to be set
+ * @param  name char* The name to be used
+ *
+ * @return AST* The pointer to the altered AST
+ *
+ **/
 
 AST* setAstName ( AST *ast, const char *name )
 {
@@ -72,6 +91,19 @@ AST* setAstName ( AST *ast, const char *name )
   return ast;
 }
 
+/**
+ * Function that adds a mapping between a node name
+ * and an integer in the internal dictionary of the
+ * provided AST.
+ *
+ * @param  ast AST* The AST whose dictionary must be modified
+ * @param  name char* The name of the node, which is the key
+ * @param  value int The value to be set for the key name
+ *
+ * @return AST* The pointer to the altered AST
+ *
+ **/
+
 AST* addTypeMap ( AST *ast, const char *name, int value )
 {
   // Assumes mapping being added doesn't exist in the typemap
@@ -98,6 +130,18 @@ AST* addTypeMap ( AST *ast, const char *name, int value )
   return ast;
 }
 
+/**
+ * Function that returns the value for the given key in the
+ * internal type mapping dictionary of the given AST
+ *
+ * @param ast AST* The AST whose dictionary must be queried
+ * @param name char* The key for which the value must be found
+ *
+ * @return int The value for the key in the type map.
+ *             If the key doesn't exist, -1 is returned.
+ *
+ **/
+
 int getMapValue ( AST *ast, const char *name )
 {
   if ( ast == NULL )
@@ -121,6 +165,17 @@ int getMapValue ( AST *ast, const char *name )
   return foundNode -> data . int_val;
 }
 
+/**
+ * Function that initializes an AST Node with sentinal values
+ * and creates a linked list of pointers to its children.
+ *
+ * @param  node ANODE* The AST node that must be initialized
+ * @param  parent ANODE* The parent of the node to be initialized
+ *
+ * @return ANODE* The initialized AST node
+ *
+ **/
+
 ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
 {
   if ( node == NULL )
@@ -140,6 +195,16 @@ ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
   return node;
 }
 
+/**
+ * Function that sets the type of an AST node
+ *
+ * @param  node ANODE* The AST node whose type must be set
+ * @param  type int The type that the node must be assigned
+ *
+ * @return ANODE* The modified AST node
+ *
+ **/
+
 ANODE* setNodeType ( ANODE *node, int type )
 {
   if ( node == NULL )
@@ -152,6 +217,17 @@ ANODE* setNodeType ( ANODE *node, int type )
 
   return node;
 }
+
+/**
+ * Function that sets or clears the name of an AST node.
+ * If the paramemter provided is NULL, the name is cleared.
+ *
+ * @param  node ANODE* The AST node whose name must be set
+ * @param  str char* The name which must be set
+ *
+ * @return ANODE* The modified AST node
+ *
+ **/
 
 ANODE* setAstNodeName ( ANODE *node, const char *str )
 {
@@ -184,6 +260,15 @@ ANODE* setAstNodeName ( ANODE *node, const char *str )
   return node;
 }
 
+/**
+ * Function that returns the parent of a given AST node
+ *
+ * @param  node ANODE* The AST node whose parent is required
+ *
+ * @return ANODE* The parent of the provided node
+ *
+ **/
+
 ANODE* getParent ( ANODE *node )
 {
   if ( node == NULL )
@@ -194,6 +279,21 @@ ANODE* getParent ( ANODE *node )
 
   return node -> parent;
 }
+
+/**
+ * Function that adds a child to an existing AST node.
+ *
+ * @param  node ANODE* The AST node to which the child
+ *                     must be added
+ * @param  type int The type of the child node
+ * @param  action int The action to be taken on adding
+ *                    the child, encoded into the bits
+ *
+ * @return ANODE* The node to be returned depending on
+ *                the action, either the child, current
+ *                node, or the parent
+ *
+ **/
 
 ANODE* addChild ( ANODE *node, int type, int action )
 {
@@ -235,6 +335,18 @@ ANODE* addChild ( ANODE *node, int type, int action )
   else
     return node;
 }
+
+/**
+ * Function that converts an input instruction string
+ * into the corresponding binary encoding, stored in
+ * an integer
+ *
+ * @param  instruction char* The string that has the
+ *                           instruction as chars
+ *
+ * @return int The integer encoding on the instruction
+ *
+ **/
 
 int createProperty ( char *instruction )
 {
