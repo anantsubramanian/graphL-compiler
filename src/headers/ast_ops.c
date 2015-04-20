@@ -13,6 +13,7 @@
 #include "ast.h"
 
 #define TRUE 1
+#define MAXNAMELEN 50
 
 /**
  * Function that allocates memory for, and returns a pointer
@@ -334,6 +335,93 @@ ANODE* addChild ( ANODE *node, int type, int action )
   }
   else
     return node;
+}
+
+/**
+ * Function that dumps the data in a node to the dump file.
+ * The function has the side effect of moving the file pointer.
+ *
+ * @param  node ANODE* The node to dump
+ * @param  dumpfile FILE* The open file to dump to
+ *
+ * @return ANODE* The dumped node, intact if the dump was successful
+ *
+ */
+
+ANODE* dumpNode  ( ANODE *node, FILE *dumpfile )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot dump non existent AST node\n" );
+    return NULL;
+  }
+
+  if ( dumpfile == NULL )
+  {
+    fprintf ( stderr, "Cannot dump AST node to non existent file\n" );
+    return NULL;
+  }
+
+  fprintf ( dumpfile, "%s\n", node -> name );
+  fprintf ( dumpfile, "%d ", node -> node_type );
+  fprintf ( dumpfile, "%d ", node -> num_of_children );
+
+  // ************************ Important note: ****************************
+  // All members of the union are integers, so it doesn't really matter
+  // which one is dumped. But needs to be checked if extra_data is changed.
+  fprintf ( dumpfile, "%d\n", node -> extra_data . data_type );
+
+  return node;
+}
+
+/**
+ * Function that reads the next dump from the dump file pointed to by
+ * the parameter passed. The function has the side effect of moving
+ * the file pointer.
+ *
+ * @param  parent ANODE* The parent of the node to be created
+ * @param  dumpfile FILE* The open dump file to read from
+ *
+ * @return ANODE* The pointer to the created node if successful
+ *
+ */
+
+ANODE* readDumpNode  ( ANODE *parent, FILE *dumpfile )
+{
+  if ( parent == NULL )
+  {
+    fprintf ( stderr, "Parent node cannot be NULL while reading from AST dump\n" );
+    return NULL;
+  }
+
+  if ( dumpfile == NULL )
+  {
+    fprintf ( stderr, "Cannot read AST node from a non existent dump file\n" );
+    return NULL;
+  }
+
+  char buffer [ MAXNAMELEN ];
+  int type_to_create = 0;
+
+  fscanf ( dumpfile, "%s", buffer );
+  fscanf ( dumpfile, "%d", & type_to_create );
+
+  ANODE *createdNode = addChild ( parent, type_to_create, GOTOCH );
+
+  createdNode = setAstNodeName ( createdNode, buffer );
+
+  fscanf ( dumpfile, "%d", & ( createdNode -> num_of_children ) );
+
+  // ************************ Important note: ****************************
+  // All members of the union are integers, so it doesn't really matter
+  // which one is assigned from the dump read. Needs to be re-checked
+  // if extra_data is ever changed.
+
+  int union_value = 0;
+  fscanf ( dumpfile, "%d", & union_value );
+  createdNode -> extra_data . data_type = union_value;
+
+  return createdNode;
 }
 
 /**

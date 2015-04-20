@@ -123,5 +123,9 @@ extern ANODE* getParent ( ANODE * );
 
 extern ANODE* addChild ( ANODE * , int nodeType, int action );
 
+extern ANODE* dumpNode ( ANODE * , FILE * );
+
+extern ANODE* readDumpNode ( ANODE * , FILE * );
+
 extern int createProperty ( char * );
 
