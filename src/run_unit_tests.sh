@@ -308,7 +308,7 @@ for (( i = 1; i <= $numcases; i++ )); do
 
   printf "PASSED!\n"
 
-  rm PARSEOUTPUT ASTOUTPUT TOKENMAP STBDUMP
+  rm PARSEOUTPUT ASTOUTPUT TOKENMAP STBDUMP ASTDUMP
 done
 
 printf "All tests passed!"

@@ -362,8 +362,9 @@ ANODE* dumpNode  ( ANODE *node, FILE *dumpfile )
     return NULL;
   }
 
-  fprintf ( dumpfile, "%s\n", node -> name );
-  fprintf ( dumpfile, "%d ", node -> node_type );
+  fprintf ( dumpfile, "%d %d\n", node -> node_type, ( node -> name != NULL ) );
+  if ( node -> name != NULL )
+    fprintf ( dumpfile, "%s\n", node -> name );
   fprintf ( dumpfile, "%d ", node -> num_of_children );
 
   // ************************ Important note: ****************************
@@ -401,10 +402,13 @@ ANODE* readDumpNode  ( ANODE *parent, FILE *dumpfile )
   }
 
   char buffer [ MAXNAMELEN ];
-  int type_to_create = 0;
+  int type_to_create = 0, hasname = 0;
 
-  fscanf ( dumpfile, "%s", buffer );
   fscanf ( dumpfile, "%d", & type_to_create );
+  fscanf ( dumpfile, "%d", & hasname );
+
+  if ( hasname )
+    fscanf ( dumpfile, "%s", buffer );
 
   ANODE *createdNode = addChild ( parent, type_to_create, GOTOCH );
 

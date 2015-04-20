@@ -29,11 +29,12 @@
 #define ATTRIBUTES_FILE "TOKENMAP"
 #define AST_OUTPUT_FILE "ASTOUTPUT"
 #define STB_DUMP_FILE "STBDUMP"
+#define AST_DUMP_FILE "ASTDUMP"
 #define AST_NODETYPES_FILE "config/ast_nodetypes"
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
-#define ROOTNODE_NAME "AST Root Node"
+#define ROOTNODE_NAME "AST_ROOT_NODE"
 #define AST_STACK_NAME "AST Generation Stack"
 
 #define DEBUG_ALL 0
@@ -1518,6 +1519,21 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   return ast;
 }
 
+void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
+{
+  dumpNode ( node, astdumpfile );
+
+  LNODE iterator;
+  getIterator ( node -> children, &iterator );
+
+  while ( hasNext ( &iterator ) )
+  {
+    getNext ( node -> children, &iterator );
+
+    preOrderDumpAst ( * ( ANODE ** ) ( iterator . data . generic_val ), astdumpfile );
+  }
+}
+
 int main ( )
 {
   // Get the system block size
@@ -1666,6 +1682,20 @@ int main ( )
     fprintf ( stderr, "Failed to close AST output file\n" );
     return -1;
   }
+
+  FILE *astdumpfile = NULL;
+  astdumpfile = fopen ( AST_DUMP_FILE, "w+" );
+
+  if ( astdumpfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open AST dump file to write\n" );
+    return -1;
+  }
+
+  preOrderDumpAst ( ast -> root, astdumpfile );
+
+  if ( fclose ( astdumpfile ) != 0 )
+    fprintf ( stderr, "Failed to close AST dump file\n" );
 
   if ( DEBUG_ALL ) printf ( "AST successfully built\n" );
 
