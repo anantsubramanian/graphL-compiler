@@ -81,6 +81,7 @@ typedef struct function_entry
   char *name;
   int num_params;
   LINKEDLIST *parameters;
+  LINKEDLIST *paramtypes;
   DATATYPE ret_type;
   int returndata_stbindex;
   int decl_line;

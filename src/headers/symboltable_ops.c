@@ -312,6 +312,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
     funcobj -> num_params = -1;
     // LINKEDLIST of integers that stores the indices of the paramters in the Symbol Table
     funcobj -> parameters = getLinkedList ( LL_INT_TYPE );
+    funcobj -> paramtypes = getLinkedList ( LL_INT_TYPE );
     funcobj -> ret_type = -1;
     funcobj -> returndata_stbindex = -1;
     funcobj -> decl_line = -1;
