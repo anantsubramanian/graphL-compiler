@@ -254,6 +254,8 @@ void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
 
   ANODE *createdNode = readDumpNode ( node, astdumpfile );
 
+  createdNode -> parent = node;
+
   if ( DEBUG_AST_CONSTRUCTION )
     printf ( "Created node: %s with %d children\n\n",
              getNodeTypeName ( createdNode -> node_type ), createdNode -> num_of_children );
@@ -280,7 +282,35 @@ void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
 
 void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 {
+  ANODE *programNode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
 
+  STACK *stack = getStack ( STACK_GENERIC_TYPE );
+
+  stack = setStackGenericSize ( stack, sizeof ( ANODE ** ) );
+
+  stack = push ( stack, & programNode );
+
+  while ( ! isEmpty ( stack ) )
+  {
+    ANODE *currnode = * ( ANODE ** ) top ( stack );
+
+    printf ( "Analyzing node %s\n", getNodeTypeName ( currnode -> node_type ) );
+
+    pop ( stack );
+
+    LNODE iterator;
+
+    getReverseIterator ( currnode -> children, & iterator );
+
+    while ( hasPrevious ( & iterator ) )
+    {
+      getPrevious ( currnode -> children, & iterator );
+
+      ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+      stack = push ( stack, & child );
+    }
+  }
 }
 
 
