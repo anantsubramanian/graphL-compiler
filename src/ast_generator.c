@@ -1063,30 +1063,32 @@ void handleAuxiliaryTerminalOperations (
 
     STBENTRY *entry = getEntryByName ( symboltable, tokenname );
 
+    // If entry doesn't exist, the entry needs to be added for the literal
+    // If the entry already exists, nothing further needs to be done.
     if ( entry == NULL )
     {
       unsigned int entryIndex = addEntry ( symboltable, tokenname, ENTRY_LIT_TYPE );
       entry = getEntryByIndex ( symboltable, entryIndex );
+
+      // Entry now has the entry index. Set the value appropriately
+      if ( terminalvalue == intlitint )
+        entry -> data . lit_data . lit_type = D_INT_TYPE;
+      else if ( terminalvalue == floatlitint )
+        entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
+      else if ( terminalvalue == stringlitint )
+        entry -> data . lit_data . lit_type = D_STRING_TYPE;
+
+      int len = strlen ( tokenname );
+      entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
+
+      if ( entry -> data . lit_data . value == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for literal\n" );
+        exit (-1);
+      }
+
+      strcpy ( entry -> data . lit_data . value, tokenname );
     }
-
-    // Entry now has the entry index. Set the value appropriately
-    if ( terminalvalue == intlitint )
-      entry -> data . lit_data . lit_type = D_INT_TYPE;
-    else if ( terminalvalue == floatlitint )
-      entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
-    else if ( terminalvalue == stringlitint )
-      entry -> data . lit_data . lit_type = D_STRING_TYPE;
-
-    int len = strlen ( tokenname );
-    entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
-
-    if ( entry -> data . lit_data . value == NULL )
-    {
-      fprintf ( stderr, "Failed to allocate memory for literal\n" );
-      exit (-1);
-    }
-
-    strcpy ( entry -> data . lit_data . value, tokenname );
   }
 
   // End handling aux ops for terminals
