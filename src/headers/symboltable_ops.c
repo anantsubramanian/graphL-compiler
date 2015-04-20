@@ -233,7 +233,7 @@ SYMBOLTABLE* closeEnv ( SYMBOLTABLE *symboltable )
  *
  */
 
-SYMBOLTABLE* dumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, unsigned int index )
+SYMBOLTABLE* dumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, unsigned int index, char dumptype )
 {
   if ( symboltable == NULL )
   {
@@ -263,34 +263,44 @@ SYMBOLTABLE* dumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, unsigned int 
 
   if ( entry -> entry_type == ENTRY_LIT_TYPE )
   {
-    fprintf ( dumpfile, "L\n" );
-    fprintf ( dumpfile, "%d\n", entry -> index );
+    fprintf ( dumpfile, "L " );
+    fprintf ( dumpfile, "%d ", entry -> index );
     LITERAL *litentry = & ( entry -> data . lit_data );
     fprintf ( dumpfile, "%d\n", litentry -> lit_type );
     fprintf ( dumpfile, "%s\n", litentry -> value );
   }
   else if ( entry -> entry_type == ENTRY_VAR_TYPE )
   {
-    fprintf ( dumpfile, "V\n" );
+    fprintf ( dumpfile, "V " );
     fprintf ( dumpfile, "%d\n", entry -> index );
-    VARIABLE *varentry = & ( entry -> data . var_data );
-    fprintf ( dumpfile, "%s\n", varentry -> name );
-    fprintf ( dumpfile, "%d\n", varentry -> data_type );
-    fprintf ( dumpfile, "%d\n", varentry -> var_type );
-    fprintf ( dumpfile, "%d\n", varentry -> scope_level );
-    fprintf ( dumpfile, "%d\n", varentry -> scope_sublevel );
-    fprintf ( dumpfile, "%d\n", varentry -> decl_line );
+
+    // Dump extra data only for definitions, not for references
+    if ( dumptype == 'd' )
+    {
+      VARIABLE *varentry = & ( entry -> data . var_data );
+      fprintf ( dumpfile, "%s\n", varentry -> name );
+      fprintf ( dumpfile, "%d ", varentry -> data_type );
+      fprintf ( dumpfile, "%d ", varentry -> var_type );
+      fprintf ( dumpfile, "%d ", varentry -> scope_level );
+      fprintf ( dumpfile, "%d ", varentry -> scope_sublevel );
+      fprintf ( dumpfile, "%d\n", varentry -> decl_line );
+    }
   }
   else if ( entry -> entry_type == ENTRY_FUNC_TYPE )
   {
-    fprintf ( dumpfile, "F\n" );
+    fprintf ( dumpfile, "F " );
     fprintf ( dumpfile, "%d\n", entry -> index );
-    FUNCTION *funcentry = & ( entry -> data . func_data );
-    fprintf ( dumpfile, "%s\n", funcentry -> name );
-    fprintf ( dumpfile, "%d\n", funcentry -> num_params );
-    fprintf ( dumpfile, "%d\n", funcentry -> ret_type );
-    fprintf ( dumpfile, "%d\n", funcentry -> returndata_stbindex );
-    fprintf ( dumpfile, "%d\n", funcentry -> decl_line );
+
+    // Dump extra data only for definitions, not for references
+    if ( dumptype == 'd' )
+    {
+      FUNCTION *funcentry = & ( entry -> data . func_data );
+      fprintf ( dumpfile, "%s\n", funcentry -> name );
+      fprintf ( dumpfile, "%d ", funcentry -> num_params );
+      fprintf ( dumpfile, "%d ", funcentry -> ret_type );
+      fprintf ( dumpfile, "%d ", funcentry -> returndata_stbindex );
+      fprintf ( dumpfile, "%d\n", funcentry -> decl_line );
+    }
   }
 
   return symboltable;
@@ -308,7 +318,7 @@ SYMBOLTABLE* dumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, unsigned int 
  *
  */
 
-int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile )
+int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dumptype )
 {
   if ( symboltable == NULL )
   {
@@ -391,58 +401,68 @@ int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile )
   {
     newentry -> entry_type = ENTRY_VAR_TYPE;
     fscanf ( dumpfile, "%d", & ( newentry -> index ) );
-    VARIABLE *varentry = & ( newentry -> data . var_data );
-    fscanf ( dumpfile, "%s", varentry -> name );
 
-    int datatype = 0;
-    fscanf ( dumpfile, "%d", & datatype );
-    varentry -> data_type = datatype;
-
-    int vartype = 0;
-    fscanf ( dumpfile, "%d", & vartype );
-    varentry -> var_type = vartype;
-
-    fscanf ( dumpfile, "%d", & ( varentry -> scope_level ) );
-    fscanf ( dumpfile, "%d", & ( varentry -> scope_sublevel ) );
-    fscanf ( dumpfile, "%d", & ( varentry -> decl_line ) );
-
-    int addindex = addEntry ( symboltable, varentry -> name, ENTRY_VAR_TYPE );
-
-    if ( addindex != newentry -> index )
+    // Only perform extra reads and ops for define dumps
+    if ( dumptype == 'd' )
     {
-      fprintf ( stderr, "Insertion index and dump index don't match!\n" );
-      return -1;
+      VARIABLE *varentry = & ( newentry -> data . var_data );
+      fscanf ( dumpfile, "%s", varentry -> name );
+
+      int datatype = 0;
+      fscanf ( dumpfile, "%d", & datatype );
+      varentry -> data_type = datatype;
+
+      int vartype = 0;
+      fscanf ( dumpfile, "%d", & vartype );
+      varentry -> var_type = vartype;
+
+      fscanf ( dumpfile, "%d", & ( varentry -> scope_level ) );
+      fscanf ( dumpfile, "%d", & ( varentry -> scope_sublevel ) );
+      fscanf ( dumpfile, "%d", & ( varentry -> decl_line ) );
+
+      int addindex = addEntry ( symboltable, varentry -> name, ENTRY_VAR_TYPE );
+
+      if ( addindex != newentry -> index )
+      {
+        fprintf ( stderr, "Insertion index and dump index don't match!\n" );
+        return -1;
+      }
     }
 
-    return addindex;
+    return newentry -> index;
   }
   else if ( entrytype == 'F' )
   {
     newentry -> entry_type = ENTRY_FUNC_TYPE;
     fscanf ( dumpfile, "%d", & ( newentry -> index ) );
-    FUNCTION *funcentry = & ( newentry -> data . func_data );
-    fscanf ( dumpfile, "%s", funcentry -> name );
-    fscanf ( dumpfile, "%d", & ( funcentry -> num_params ) );
 
-    int returntype = 0;
-    fscanf ( dumpfile, "%d", & returntype );
-    funcentry -> ret_type = returntype;
-
-    fscanf ( dumpfile, "%d", & ( funcentry -> returndata_stbindex ) );
-    fscanf ( dumpfile, "%d", & ( funcentry -> decl_line ) );
-
-    // This function just adds the dump file entry. Onus is on the API user
-    // to ensure that functions aren't added twice if this is not allowed
-    // in the lang
-    int addindex = addEntry ( symboltable, funcentry -> name, ENTRY_FUNC_TYPE );
-
-    if ( addindex != newentry -> index )
+    // Only perform extra reads and ops for define dumps
+    if ( dumptype == 'd' )
     {
-      fprintf ( stderr, "Insertion index and dump index don't match!\n" );
-      return -1;
+      FUNCTION *funcentry = & ( newentry -> data . func_data );
+      fscanf ( dumpfile, "%s", funcentry -> name );
+      fscanf ( dumpfile, "%d", & ( funcentry -> num_params ) );
+
+      int returntype = 0;
+      fscanf ( dumpfile, "%d", & returntype );
+      funcentry -> ret_type = returntype;
+
+      fscanf ( dumpfile, "%d", & ( funcentry -> returndata_stbindex ) );
+      fscanf ( dumpfile, "%d", & ( funcentry -> decl_line ) );
+
+      // This function just adds the dump file entry. Onus is on the API user
+      // to ensure that functions aren't added twice if this is not allowed
+      // in the lang
+      int addindex = addEntry ( symboltable, funcentry -> name, ENTRY_FUNC_TYPE );
+
+      if ( addindex != newentry -> index )
+      {
+        fprintf ( stderr, "Insertion index and dump index don't match!\n" );
+        return -1;
+      }
     }
 
-    return addindex;
+    return newentry -> index;
   }
 
   // Unknown entry read from dump

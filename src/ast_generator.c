@@ -28,6 +28,7 @@
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
 #define ATTRIBUTES_FILE "TOKENMAP"
 #define AST_OUTPUT_FILE "ASTOUTPUT"
+#define STB_DUMP_FILE "STBDUMP"
 #define AST_NODETYPES_FILE "config/ast_nodetypes"
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
@@ -770,7 +771,8 @@ void handleAuxiliaryTerminalOperations (
     int ltint, int gteint, int lteint, int eqint,
     int bftint, int dftint, int functionint, int terminalvalue,
     ANODE *currnode, SYMBOLTABLE *symboltable, int *should_start_function,
-    int *function_scope_started, char *tokenname, int linenumber )
+    int *function_scope_started, char *tokenname, int linenumber,
+    FILE *stbdumpfile )
 {
 
   // Here  'topvalue' = the string that was popped from the stack
@@ -986,6 +988,8 @@ void handleAuxiliaryTerminalOperations (
           strcpy ( funcdata -> name, tokenname );
 
           currnode -> extra_data . symboltable_index = insertedIndex;
+
+          dumpEntry ( symboltable, stbdumpfile, insertedIndex, 'd' );
         }
         else
         {
@@ -1016,6 +1020,8 @@ void handleAuxiliaryTerminalOperations (
           if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
 
           currnode -> extra_data . symboltable_index = insertedIndex;
+
+          dumpEntry ( symboltable, stbdumpfile, insertedIndex, 'd' );
         }
       }
     }
@@ -1047,6 +1053,8 @@ void handleAuxiliaryTerminalOperations (
       }
 
       currnode -> extra_data . symboltable_index = foundEntry -> index;
+
+      dumpEntry ( symboltable, stbdumpfile, foundEntry -> index, 'r' );
     }
 
     // Finished processing the identifier, if this identifier was a function name,
@@ -1097,6 +1105,9 @@ void handleAuxiliaryTerminalOperations (
     }
 
     currnode -> extra_data . symboltable_index = entry -> index;
+
+    // Dump literal entries every time, no difference b/w definition and reference
+    dumpEntry ( symboltable, stbdumpfile, entry -> index, 'd' );
   }
 
   // End handling aux ops for terminals
@@ -1264,6 +1275,15 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
                  TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
                  SYMBOLTABLE *symboltable, FILE *astoutput )
 {
+  FILE *stbdumpfile = NULL;
+  stbdumpfile = fopen ( STB_DUMP_FILE, "w+" );
+
+  if ( stbdumpfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open STB dump file\n" );
+    return NULL;
+  }
+
   // We start processing from the root node
   ANODE *currnode = ast -> root;
 
@@ -1385,7 +1405,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
               gtint, ltint, gteint, lteint, eqint, bftint, dftint,
               functionint, terminalvalue, currnode, symboltable,
               & should_start_function, & function_scope_started,
-              tokenname, linenumber );
+              tokenname, linenumber, stbdumpfile );
         }
 
         // If the current node has any properties according to the instructions file, then
@@ -1491,6 +1511,9 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
     else
       token [ tokencounter++ ] = c;
   }
+
+  if ( fclose ( stbdumpfile ) != 0 )
+    fprintf ( stderr, "Failed to close STB dump file\n" );
 
   return ast;
 }
