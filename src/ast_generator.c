@@ -1285,6 +1285,8 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
     return NULL;
   }
 
+  fprintf ( stbdumpfile, "%u\n", symboltable -> num_entries );
+
   // We start processing from the root node
   ANODE *currnode = ast -> root;
 

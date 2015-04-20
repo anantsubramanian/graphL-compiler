@@ -277,6 +277,13 @@ void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
     printf ( "Done with: %s\n\n", getNodeTypeName ( createdNode -> node_type ) );
 }
 
+
+void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
+{
+
+}
+
+
 int main ( )
 {
   // Get the system block size
@@ -344,6 +351,38 @@ int main ( )
 
   if ( fclose ( astdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close AST dump file after reading\n" );
+
+
+
+
+  /*********************************************************
+    *                                                      *
+    *    PHASE 3 : Parse AST and populate Symbol Table     *
+    *                                                      *
+    ********************************************************
+   */
+
+  FILE *stbdumpfile = NULL;
+  stbdumpfile = fopen ( STB_DUMP_FILE, "r" );
+
+  if ( stbdumpfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open Symbol Table dump file\n" );
+    return -1;
+  }
+
+  unsigned int num_entries = 0;
+
+  fscanf ( stbdumpfile, "%u", & num_entries );
+
+  SYMBOLTABLE *symboltable = getSymbolTable ();
+
+  symboltable = setNumEntries ( symboltable, num_entries );
+
+  analyzeAst ( ast, symboltable, stbdumpfile );
+
+  if ( fclose ( stbdumpfile ) != 0 )
+    fprintf ( stderr, "Failed to close Symbol Table dump file\n" );
 
   return 0;
 }
