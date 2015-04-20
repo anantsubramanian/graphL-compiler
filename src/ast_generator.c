@@ -1692,7 +1692,9 @@ int main ( )
     return -1;
   }
 
-  preOrderDumpAst ( ast -> root, astdumpfile );
+  ANODE *firstnode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
+
+  preOrderDumpAst ( firstnode, astdumpfile );
 
   if ( fclose ( astdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close AST dump file\n" );

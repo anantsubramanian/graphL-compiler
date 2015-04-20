@@ -412,7 +412,8 @@ ANODE* readDumpNode  ( ANODE *parent, FILE *dumpfile )
 
   ANODE *createdNode = addChild ( parent, type_to_create, GOTOCH );
 
-  createdNode = setAstNodeName ( createdNode, buffer );
+  if ( hasname )
+    createdNode = setAstNodeName ( createdNode, buffer );
 
   fscanf ( dumpfile, "%d", & ( createdNode -> num_of_children ) );
 
