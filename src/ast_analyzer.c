@@ -280,8 +280,42 @@ void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
 }
 
 
+void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
+{
+  ANODE *parent = currnode -> parent;
+
+  if ( currnode -> node_type == AST_IDENTIFIER_NODE
+       || currnode -> node_type == AST_LITERAL_NODE )
+  {
+    if ( parent -> node_type == AST_FUNCTION_NODE
+         || parent -> node_type == AST_GLOBALDEFINE_NODE
+         || parent -> node_type == AST_DEFINE_NODE
+         || parent -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+    {
+      // Entry to be read from dump file is a define entry
+      unsigned int entryindex = readDumpEntry ( symboltable, stbdumpfile, 'd' );
+
+      printf ( "Definition\n" );
+
+      currnode -> extra_data . symboltable_index = entryindex;
+    }
+    else
+    {
+      // Entry to be read is a reference entry
+      unsigned int entryindex = readDumpEntry ( symboltable, stbdumpfile, 'r' );
+
+      printf ( "Reference\n" );
+
+      currnode -> extra_data . symboltable_index = entryindex;
+    }
+  }
+}
+
+
 void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 {
+  symboltable = openEnv ( symboltable );
+
   ANODE *programNode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
 
   STACK *stack = getStack ( STACK_GENERIC_TYPE );
@@ -297,6 +331,8 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
     printf ( "Analyzing node %s\n", getNodeTypeName ( currnode -> node_type ) );
 
     pop ( stack );
+
+    handleTypeSpecificActions ( currnode, symboltable, stbdumpfile );
 
     LNODE iterator;
 
