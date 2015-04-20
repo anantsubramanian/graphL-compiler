@@ -191,7 +191,7 @@ typedef struct property_data
 
 typedef enum coditionalval_type
 {
-  CONDITIONAL_TYPE_FIRST,
+  CONDITIONAL_TYPE_FIRST = 0,
   CONDITIONAL_TERMINAL,
   CONDITIONAL_NONTERMINAL,
   CONDITIONAL_NODETYPE,
@@ -984,6 +984,8 @@ void handleAuxiliaryTerminalOperations (
           }
 
           strcpy ( funcdata -> name, tokenname );
+
+          currnode -> extra_data . symboltable_index = insertedIndex;
         }
         else
         {
@@ -1012,6 +1014,8 @@ void handleAuxiliaryTerminalOperations (
           vardata -> decl_line = linenumber;
 
           if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
+
+          currnode -> extra_data . symboltable_index = insertedIndex;
         }
       }
     }
@@ -1041,6 +1045,8 @@ void handleAuxiliaryTerminalOperations (
             insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
 
       }
+
+      currnode -> extra_data . symboltable_index = foundEntry -> index;
     }
 
     // Finished processing the identifier, if this identifier was a function name,
@@ -1089,6 +1095,8 @@ void handleAuxiliaryTerminalOperations (
 
       strcpy ( entry -> data . lit_data . value, tokenname );
     }
+
+    currnode -> extra_data . symboltable_index = entry -> index;
   }
 
   // End handling aux ops for terminals

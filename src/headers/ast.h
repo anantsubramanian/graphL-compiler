@@ -20,7 +20,7 @@
 
 typedef enum data_types
 {
-  D_TYPE_FIRST,
+  D_TYPE_FIRST = 0,
   D_INT_TYPE,
   D_FLOAT_TYPE,
   D_STRING_TYPE,
@@ -42,7 +42,7 @@ typedef enum data_types
 
 typedef enum arop_types
 {
-  A_TYPE_FIRST,
+  A_TYPE_FIRST = 0,
   A_PLUS_TYPE,
   A_MINUS_TYPE,
   A_MUL_TYPE,
@@ -53,7 +53,7 @@ typedef enum arop_types
 
 typedef enum compareop_type
 {
-  C_TYPE_FIRST,
+  C_TYPE_FIRST = 0,
   C_LT_TYPE,
   C_GT_TYPE,
   C_LTE_TYPE,
@@ -64,7 +64,7 @@ typedef enum compareop_type
 
 typedef enum boolop_type
 {
-  B_TYPE_FIRST,
+  B_TYPE_FIRST = 0,
   B_AND_TYPE,
   B_OR_TYPE,
   B_NOT_TYPE,
@@ -73,7 +73,7 @@ typedef enum boolop_type
 
 typedef enum bdft_type
 {
-  BDFT_TYPE_FIRST,
+  BDFT_TYPE_FIRST = 0,
   BDFT_BFT_TYPE,
   BDFT_DFT_TYPE,
   BDFT_TYPE_LAST
@@ -88,8 +88,8 @@ typedef struct ast_node
   LINKEDLIST *children;
   union
   {
-    DATATYPE data_type;              // For DATATYPE nodes and ENDASSIGNABLE nodes
-    int symboltable_index;      // For VARIABLE and LITERAL nodes
+    DATATYPE data_type;          // For DATATYPE nodes and ENDASSIGNABLE nodes
+    int symboltable_index;       // For VARIABLE and LITERAL nodes
     AROPTYPE arop_type;
     COMPOPTYPE compop_type;
     BOOLOPTYPE boolop_type;
