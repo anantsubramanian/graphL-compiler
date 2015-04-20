@@ -16,6 +16,7 @@
 #define TO_APPEND_LENGTH 13
 #define TO_APPEND "'s STB Stack"
 #define STRINGLITLEN 400
+#define VARFUNCLEN 400
 #define NEWLINECHAR '\n'
 
 /**
@@ -318,7 +319,7 @@ SYMBOLTABLE* dumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, unsigned int 
  *
  */
 
-int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dumptype )
+unsigned int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dumptype )
 {
   if ( symboltable == NULL )
   {
@@ -406,7 +407,20 @@ int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dumptype )
     if ( dumptype == 'd' )
     {
       VARIABLE *varentry = & ( newentry -> data . var_data );
-      fscanf ( dumpfile, "%s", varentry -> name );
+
+      char buffer [ VARFUNCLEN ];
+      fscanf ( dumpfile, "%s", buffer );
+
+      int len = strlen ( buffer ) + 1;
+      varentry -> name  = malloc ( len * sizeof ( char ) );
+
+      if ( varentry -> name == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for entry name while reading STB dump\n" );
+        return -1;
+      }
+
+      strcpy ( varentry -> name, buffer );
 
       int datatype = 0;
       fscanf ( dumpfile, "%d", & datatype );
@@ -440,7 +454,21 @@ int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dumptype )
     if ( dumptype == 'd' )
     {
       FUNCTION *funcentry = & ( newentry -> data . func_data );
-      fscanf ( dumpfile, "%s", funcentry -> name );
+
+      char buffer [ VARFUNCLEN ];
+      fscanf ( dumpfile, "%s", buffer );
+
+      int len = strlen ( buffer ) + 1;
+      funcentry -> name = malloc ( len * sizeof ( char ) );
+
+      if ( funcentry -> name == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for name while reading STB dump\n" );
+        return -1;
+      }
+
+      strcpy ( funcentry -> name, buffer );
+
       fscanf ( dumpfile, "%d", & ( funcentry -> num_params ) );
 
       int returntype = 0;

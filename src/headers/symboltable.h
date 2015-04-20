@@ -163,7 +163,7 @@ extern SYMBOLTABLE* closeEnv ( SYMBOLTABLE * );
 
 extern SYMBOLTABLE* dumpEntry ( SYMBOLTABLE * , FILE * , unsigned int , char );
 
-extern SYMBOLTABLE* readEntry ( SYMBOLTABLE * , FILE * , char );
+extern unsigned int readDumpEntry ( SYMBOLTABLE * , FILE * , char );
 
 extern int addEntry ( SYMBOLTABLE * , char * , STB_ENTRYTYPE );
 
