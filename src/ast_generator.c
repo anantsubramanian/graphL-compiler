@@ -1582,6 +1582,8 @@ int main ( )
                         nonterminals, terminals, properties );
 
 
+  if ( fclose ( instructionsfile ) != 0 )
+    fprintf ( stderr, "Failed to close instructions file\n" );
 
   /*********************************************************
     *                                                      *
@@ -1600,6 +1602,9 @@ int main ( )
   }
 
   int stbentries = getLineCount ( attributesFile, blocksize );
+
+  if ( fclose ( attributesFile ) != 0 )
+    fprintf ( stderr, "Failed to close attributes file\n" );
 
   SYMBOLTABLE *symboltable = getSymbolTable();
 
