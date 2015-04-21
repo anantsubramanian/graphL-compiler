@@ -339,21 +339,13 @@ unsigned int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dump
     fscanf ( dumpfile, "%c", &entrytype );
   } while ( entrytype != 'L' && entrytype != 'V' && entrytype != 'F' );
 
-  STBENTRY *newentry = NULL;
-  newentry = malloc ( sizeof ( STBENTRY ) );
-  if ( newentry == NULL )
-  {
-    fprintf ( stderr, "Failed to create entry while reading STB dump\n" );
-    return -1;
-  }
+  unsigned int entryindex;
 
   if ( entrytype == 'L' )
   {
-    newentry -> entry_type = ENTRY_LIT_TYPE;
-    fscanf ( dumpfile, "%d", & ( newentry -> index ) );
+    fscanf ( dumpfile, "%d", & entryindex );
     int littype = 0;
     fscanf ( dumpfile, "%d", & littype );
-    newentry -> data . lit_data . lit_type = littype;
 
     // The processing being done below is necessary as string literals could have spaces
     char buffer [ STRINGLITLEN ];
@@ -374,21 +366,25 @@ unsigned int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dump
     buffer [ index ] = '\0';
 
     int len = strlen ( buffer ) + 1;
-    newentry -> data . lit_data . value = malloc ( len * sizeof ( char ) );
 
-    strcpy ( newentry -> data . lit_data . value, buffer );
-    // Emd literal value processing
-
-    int entryindex = newentry -> index;
-
-    if ( checkIndexExistence ( symboltable, newentry -> index ) )
+    if ( ! checkIndexExistence ( symboltable, entryindex ) )
     {
-      // Entry already exists in symbol table, no additional work for literals
-      free ( newentry );
-    }
-    else
-    {
-      int addindex = addEntry ( symboltable, newentry -> data . lit_data . value, ENTRY_LIT_TYPE );
+      unsigned int addindex = addEntry ( symboltable, buffer, ENTRY_LIT_TYPE );
+
+      LITERAL *litdata = & ( getEntryByIndex ( symboltable, addindex ) -> data . lit_data );
+
+      litdata -> value = malloc ( len * sizeof ( char ) );
+
+      if ( litdata -> value == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for literal while reading STB dump\n" );
+        return -1;
+      }
+
+      strcpy ( litdata -> value, buffer );
+
+      litdata -> lit_type = littype;
+
       if ( entryindex != addindex )
       {
         fprintf ( stderr, "Insertion index and dump index don't match!\n" );
@@ -400,97 +396,109 @@ unsigned int readDumpEntry ( SYMBOLTABLE *symboltable, FILE *dumpfile, char dump
   }
   else if ( entrytype == 'V' )
   {
-    newentry -> entry_type = ENTRY_VAR_TYPE;
-    fscanf ( dumpfile, "%d", & ( newentry -> index ) );
+    fscanf ( dumpfile, "%d", & entryindex );
 
     // Only perform extra reads and ops for define dumps
     if ( dumptype == 'd' )
     {
-      VARIABLE *varentry = & ( newentry -> data . var_data );
-
       char buffer [ VARFUNCLEN ];
       fscanf ( dumpfile, "%s", buffer );
 
       int len = strlen ( buffer ) + 1;
-      varentry -> name  = malloc ( len * sizeof ( char ) );
-
-      if ( varentry -> name == NULL )
-      {
-        fprintf ( stderr, "Failed to allocate memory for entry name while reading STB dump\n" );
-        return -1;
-      }
-
-      strcpy ( varentry -> name, buffer );
 
       int datatype = 0;
       fscanf ( dumpfile, "%d", & datatype );
-      varentry -> data_type = datatype;
 
       int vartype = 0;
       fscanf ( dumpfile, "%d", & vartype );
-      varentry -> var_type = vartype;
 
-      fscanf ( dumpfile, "%d", & ( varentry -> scope_level ) );
-      fscanf ( dumpfile, "%d", & ( varentry -> scope_sublevel ) );
-      fscanf ( dumpfile, "%d", & ( varentry -> decl_line ) );
+      int scope_level, scope_sublevel, decl_line;
 
-      int addindex = addEntry ( symboltable, varentry -> name, ENTRY_VAR_TYPE );
+      fscanf ( dumpfile, "%d", & scope_level );
+      fscanf ( dumpfile, "%d", & scope_sublevel );
+      fscanf ( dumpfile, "%d", & decl_line );
 
-      if ( addindex != newentry -> index )
+      unsigned int addindex = addEntry ( symboltable, buffer, ENTRY_VAR_TYPE );
+
+      VARIABLE *vardata = & ( getEntryByIndex ( symboltable, addindex ) -> data . var_data );
+
+      vardata -> name = malloc ( len * sizeof ( char ) );
+
+      if ( vardata -> name == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for variable while reading STB dump\n" );
+        return -1;
+      }
+
+      strcpy ( vardata -> name, buffer );
+
+      vardata -> scope_level = scope_level;
+      vardata -> scope_sublevel = scope_sublevel;
+      vardata -> decl_line = decl_line;
+      vardata -> data_type = datatype;
+      vardata -> var_type = vartype;
+
+      if ( addindex != entryindex )
       {
         fprintf ( stderr, "Insertion index and dump index don't match!\n" );
         return -1;
       }
     }
 
-    return newentry -> index;
+    return entryindex;
   }
   else if ( entrytype == 'F' )
   {
-    newentry -> entry_type = ENTRY_FUNC_TYPE;
-    fscanf ( dumpfile, "%d", & ( newentry -> index ) );
+    fscanf ( dumpfile, "%d", & entryindex );
 
     // Only perform extra reads and ops for define dumps
     if ( dumptype == 'd' )
     {
-      FUNCTION *funcentry = & ( newentry -> data . func_data );
-
       char buffer [ VARFUNCLEN ];
       fscanf ( dumpfile, "%s", buffer );
 
       int len = strlen ( buffer ) + 1;
-      funcentry -> name = malloc ( len * sizeof ( char ) );
 
-      if ( funcentry -> name == NULL )
+      int num_params;
+      fscanf ( dumpfile, "%d", & num_params );
+
+      int returntype = 0;
+      fscanf ( dumpfile, "%d", & returntype );
+
+      int returndata_stbindex, decl_line;
+      fscanf ( dumpfile, "%d", & returndata_stbindex );
+      fscanf ( dumpfile, "%d", & decl_line );
+
+      // This function just adds the dump file entry. Onus is on the API user
+      // to ensure that functions aren't added twice if this is not allowed
+      // in the lang
+      unsigned int addindex = addEntry ( symboltable, buffer, ENTRY_FUNC_TYPE );
+
+      FUNCTION *funcdata = & ( getEntryByIndex ( symboltable, addindex ) -> data . func_data );
+
+      funcdata -> name = malloc ( len * sizeof ( char ) );
+
+      if ( funcdata -> name == NULL )
       {
         fprintf ( stderr, "Failed to allocate memory for name while reading STB dump\n" );
         return -1;
       }
 
-      strcpy ( funcentry -> name, buffer );
+      strcpy ( funcdata -> name, buffer );
 
-      fscanf ( dumpfile, "%d", & ( funcentry -> num_params ) );
+      funcdata -> num_params = num_params;
+      funcdata -> ret_type = returntype;
+      funcdata -> returndata_stbindex = returndata_stbindex;
+      funcdata -> decl_line = decl_line;
 
-      int returntype = 0;
-      fscanf ( dumpfile, "%d", & returntype );
-      funcentry -> ret_type = returntype;
-
-      fscanf ( dumpfile, "%d", & ( funcentry -> returndata_stbindex ) );
-      fscanf ( dumpfile, "%d", & ( funcentry -> decl_line ) );
-
-      // This function just adds the dump file entry. Onus is on the API user
-      // to ensure that functions aren't added twice if this is not allowed
-      // in the lang
-      int addindex = addEntry ( symboltable, funcentry -> name, ENTRY_FUNC_TYPE );
-
-      if ( addindex != newentry -> index )
+      if ( addindex != entryindex )
       {
         fprintf ( stderr, "Insertion index and dump index don't match!\n" );
         return -1;
       }
     }
 
-    return newentry -> index;
+    return entryindex;
   }
 
   // Unknown entry read from dump

@@ -19,6 +19,7 @@
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
+#define DEBUG_STB_AUXOPS 1
 
 #define BUFFERLEN 400
 #define NEWLINE '\n'
@@ -193,6 +194,17 @@ char* getDataTypeName ( DATATYPE type )
   return dataTypes [0];
 }
 
+ANODE* getFirstChild ( ANODE *node )
+{
+  if ( node -> num_of_children == 0 )
+  {
+    fprintf ( stderr, "Cannot get first child of node with no children\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> data . generic_val );
+}
+
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {
   char buffers [2] [ blocksize ];
@@ -295,18 +307,82 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
       // Entry to be read from dump file is a define entry
       unsigned int entryindex = readDumpEntry ( symboltable, stbdumpfile, 'd' );
 
-      printf ( "Definition\n" );
+      if ( DEBUG_STB_AUXOPS )
+      {
+        char *name = NULL;
+        if ( parent -> node_type == AST_FUNCTION_NODE )
+          name = getEntryByIndex ( symboltable, entryindex ) -> data . func_data . name;
+        else
+          name = getEntryByIndex ( symboltable, entryindex ) -> data . var_data . name;
+
+        printf ( "Definition of %s registered\n", name);
+      }
 
       currnode -> extra_data . symboltable_index = entryindex;
     }
     else
     {
-      // Entry to be read is a reference entry
+      // Entry to be read is a variable reference entry (or a literal entry)
+      // Perform the same action for both
       unsigned int entryindex = readDumpEntry ( symboltable, stbdumpfile, 'r' );
 
-      printf ( "Reference\n" );
+      if ( DEBUG_STB_AUXOPS )
+      {
+        char *name = NULL;
+        if ( currnode -> node_type == AST_LITERAL_NODE )
+        {
+          printf ( "sdf %s\n", getEntryByIndex ( symboltable, entryindex ) -> data . lit_data . value );
+          name = getEntryByIndex ( symboltable, entryindex ) -> data . lit_data . value;
+        }
+        else if ( getEntryByIndex ( symboltable, entryindex ) -> entry_type == ENTRY_FUNC_TYPE )
+          name = getEntryByIndex ( symboltable, entryindex ) -> data . func_data . name;
+        else
+          name = getEntryByIndex ( symboltable, entryindex ) -> data . var_data . name;
+
+        printf ( "Reference of %s registered\n", name );
+      }
 
       currnode -> extra_data . symboltable_index = entryindex;
+    }
+  }
+  else if ( currnode -> node_type == AST_QUALIFIEDPARAMETERS_NODE )
+  {
+    // Parent WILL be a function node, so set its number and type of parameters
+    ANODE *funciden = getFirstChild ( parent );
+
+    unsigned int funcindex = funciden -> extra_data . symboltable_index;
+
+    STBENTRY *funcentry = getEntryByIndex ( symboltable, funcindex );
+
+    if ( funcentry == NULL )
+    {
+      fprintf ( stderr, "Function entry not found in symbol table for some reason...\n" );
+      return;
+    }
+
+    FUNCTION *funcdata = & ( funcentry -> data . func_data );
+
+    // The number of parameters of the function = num of children of qualified parameters node
+    funcdata -> num_params = currnode -> num_of_children;
+
+    // Iterate over children of qualified parameters node, each one is a qualified parameter
+    // whose first child is a datatype node from which we can extract the data types of the
+    // parameters to this function
+    LNODE iterator;
+
+    getIterator ( currnode -> children, & iterator );
+
+    while ( hasNext ( & iterator ) )
+    {
+      getNext ( currnode -> children, & iterator );
+
+      ANODE *qualifiedparamnode = * ( ANODE ** ) ( iterator . data . generic_val );
+      DATATYPE dtype = getFirstChild ( qualifiedparamnode ) -> extra_data . data_type;
+
+      funcdata -> paramtypes = insertAtBack ( funcdata -> paramtypes, & dtype );
+
+      if ( DEBUG_STB_AUXOPS )
+        printf ( "Set the data type of %s's param as %s\n", funcdata -> name, getDataTypeName ( dtype ) );
     }
   }
 }
