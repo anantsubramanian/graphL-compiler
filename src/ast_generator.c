@@ -937,6 +937,20 @@ void handleAuxiliaryTerminalOperations (
         if ( parentnode -> node_type != AST_FUNCTION_NODE )
         {
           STBENTRY *previousentry = getEntryByName ( symboltable, tokenname );
+
+          if ( previousentry -> entry_type == ENTRY_FUNC_TYPE )
+          {
+            // A variable is being declared now, but the previous entry by this name is a function
+            // Throw an error and ignore this variable definition
+            fprintf ( stderr, "Redeclaration of variable %s at line %d\n", tokenname, linenumber );
+            fprintf ( stderr, "Note: Previous declaration of %s as a function on line %d.\n",
+                      tokenname, previousentry -> data . func_data . decl_line );
+
+            // Do not count this variable declaration
+            // Return from the function to avoid further processing
+            return;
+          }
+
           if ( previousentry -> data . var_data . scope_level == symboltable -> cur_scope )
           {
             fprintf ( stderr, "Redeclaration of variable %s at line number %d\n", tokenname, linenumber );
