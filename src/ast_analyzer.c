@@ -385,6 +385,25 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
         printf ( "Set the data type of %s's param as %s\n", funcdata -> name, getDataTypeName ( dtype ) );
     }
   }
+  else if ( currnode -> node_type == AST_RETURNTYPE_NODE )
+  {
+    ANODE *returniden = getFirstChild ( parent );
+    unsigned int retindex = returniden -> extra_data . symboltable_index;
+    STBENTRY *retentry = getEntryByIndex ( symboltable, retindex );
+
+    if ( retentry == NULL )
+    {
+      fprintf ( stderr, "Return type entry not found in the symbol table" );
+      return;
+    }
+
+    FUNCTION *funcdata = & ( retentry -> data . func_data );
+    funcdata -> ret_type = getFirstChild ( currnode ) -> extra_data . data_type;
+
+    if ( DEBUG_STB_AUXOPS )
+      printf ( "Set the return type of %s as %s\n", funcdata -> name, getDataTypeName ( funcdata -> ret_type ) );
+
+  }
 }
 
 
