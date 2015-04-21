@@ -19,7 +19,7 @@
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
-#define DEBUG_STB_AUXOPS 1
+#define DEBUG_STB_AUXOPS 0
 
 #define BUFFERLEN 400
 #define NEWLINE '\n'
@@ -107,6 +107,18 @@
 #define AST_BREAK_NODE 39
 
 // End AST node types #defines
+
+#define DOWN 0
+#define UP 1
+
+// The structure that is pushed on the stack to check whether this node is being
+// poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
+typedef struct stack_entry
+{
+  ANODE *node;
+  int upordown;
+} STACKENTRY;
+
 
 char nodeTypes[][30] = {
 
@@ -409,37 +421,60 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
 
 void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 {
+  // The function traverses the AST first top down then bottom with the aid of the
+  // STACKENTRY structure
+
   symboltable = openEnv ( symboltable );
 
   ANODE *programNode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
 
   STACK *stack = getStack ( STACK_GENERIC_TYPE );
 
-  stack = setStackGenericSize ( stack, sizeof ( ANODE ** ) );
+  stack = setStackGenericSize ( stack, sizeof ( STACKENTRY ) );
 
-  stack = push ( stack, & programNode );
+  STACKENTRY temp;
+  temp . node = programNode;
+  temp . upordown = DOWN;
+
+  stack = push ( stack, & temp );
 
   while ( ! isEmpty ( stack ) )
   {
-    ANODE *currnode = * ( ANODE ** ) top ( stack );
-
-    printf ( "Analyzing node %s\n", getNodeTypeName ( currnode -> node_type ) );
+    ANODE *currnode = ( ( STACKENTRY * ) top ( stack ) ) -> node;
+    int updown = ( ( STACKENTRY * ) top ( stack ) ) -> upordown;
 
     pop ( stack );
 
-    handleTypeSpecificActions ( currnode, symboltable, stbdumpfile );
-
-    LNODE iterator;
-
-    getReverseIterator ( currnode -> children, & iterator );
-
-    while ( hasPrevious ( & iterator ) )
+    if ( updown == DOWN )
     {
-      getPrevious ( currnode -> children, & iterator );
+      temp . node = currnode;
+      temp . upordown = UP;
 
-      ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+      printf ( "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
 
-      stack = push ( stack, & child );
+      stack = push ( stack, & temp );
+
+      handleTypeSpecificActions ( currnode, symboltable, stbdumpfile );
+
+      LNODE iterator;
+
+      getReverseIterator ( currnode -> children, & iterator );
+
+      while ( hasPrevious ( & iterator ) )
+      {
+        getPrevious ( currnode -> children, & iterator );
+
+        ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+        temp . node = child;
+        temp . upordown = DOWN;
+
+        stack = push ( stack, & temp );
+      }
+    }
+    else
+    {
+      printf ( "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
     }
   }
 }
