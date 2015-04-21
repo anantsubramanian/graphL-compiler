@@ -85,6 +85,7 @@ typedef struct ast_node
   int node_type;
   int num_of_children;
   struct ast_node *parent;
+  DATATYPE result_type;
   LINKEDLIST *children;
   union
   {

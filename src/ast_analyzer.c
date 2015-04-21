@@ -217,6 +217,50 @@ ANODE* getFirstChild ( ANODE *node )
   return * ( ANODE ** ) ( node -> children -> head -> data . generic_val );
 }
 
+ANODE* getSecondChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 2 )
+  {
+    fprintf ( stderr, "Cannot get non existent second child of node\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> data . generic_val );
+}
+
+ANODE* getThirdChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 3 )
+  {
+    fprintf ( stderr, "Cannot get non existent 3rd child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> data . generic_val );
+}
+
+ANODE* getFourthChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 4 )
+  {
+    fprintf ( stderr, "Cannot get non existent 4th child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> data . generic_val );
+}
+
+ANODE* getFifthChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 5 )
+  {
+    fprintf ( stderr, "Cannot get non existent 5th child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> next -> data . generic_val );
+}
+
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {
   char buffers [2] [ blocksize ];
@@ -418,6 +462,396 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
   }
 }
 
+void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *infunction, int *loopcount, int *bdftcount )
+{
+  if ( currnode -> node_type == AST_BREAK_NODE && *loopcount <= 0 )
+  {
+    fprintf ( stderr, "Error: Break statements can only occur inside loops.\n" );
+
+    // Continue processing after ignoring the node
+    return;
+  }
+  else if ( currnode -> node_type == AST_RETURNSTMT_NODE && *infunction == 0 )
+  {
+    fprintf ( stderr, "Error: Return statements can only occur inside function definitions.\n" );
+    return;
+  }
+  else if ( currnode -> node_type == AST_DEPTH_NODE && *loopcount <= 0 && *bdftcount <= 0 )
+  {
+    fprintf ( stderr, "Error: Depth can only be used inside a BFT / DFT based loop.\n" );
+    return;
+  }
+  else if ( currnode -> node_type == AST_LET_NODE )
+  {
+    // The left and right children of Let node should have the same type
+    if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
+    {
+      if ( getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE
+           && getSecondChild ( currnode ) -> result_type == D_INT_TYPE )
+        fprintf ( stderr, "Warning: Implicit conversion from Int to Float in Let statement\n" );
+      else
+        fprintf ( stderr, "Error: Assigning incompatible types in let statement\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_ASSIGNABLE_NODE )
+  {
+    // The type of an assignable node is either the type of the identifier
+    // or the member of the identifier if there are more than one children
+
+    if ( currnode -> num_of_children == 1 )
+      currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+    else if ( currnode -> num_of_children == 2 )
+    {
+      fprintf ( stderr, "Invalid tree produced! Assignable can't have exactly 2 children\n" );
+      return;
+    }
+    else if ( currnode -> num_of_children == 3 )
+      currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+    else
+    {
+      fprintf ( stderr, "Invalid tree produced! Assignable can't have more than 3 children\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_IDENTIFIER_NODE )
+  {
+    // The type of an identifier node is that of the variable in the symbol table, of the return
+    // type of the function in the symbol table
+
+    unsigned int index = currnode -> extra_data . symboltable_index;
+
+    STBENTRY *entry = getEntryByIndex ( symboltable, index );
+
+    if ( entry -> entry_type == ENTRY_VAR_TYPE )
+      currnode -> node_type = entry -> data . var_data . data_type;
+    else if ( entry -> entry_type == ENTRY_FUNC_TYPE )
+      currnode -> node_type = entry -> data . func_data . ret_type;
+  }
+  else if ( currnode -> node_type == AST_READ_NODE )
+  {
+    // The type of the assignable child of a read node should be an integer or a float
+
+    ANODE *child = getFirstChild ( currnode );
+
+    if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE )
+    {
+      fprintf ( stderr, "Error: Cannot read non-primitive value using the read statement\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_PRINT_NODE )
+  {
+    // The type of the assignable or literal child of a print node should be an integer, a float
+    // or a string
+
+    ANODE *child = getFirstChild ( currnode );
+
+    if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE
+         && child -> result_type != D_STRING_TYPE )
+    {
+      fprintf ( stderr, "Error: Cannot print a value that is not a string, an int or a float\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_COMPARE_NODE )
+  {
+    // The two children of a compare node MUST be of the exact same type
+    // Otherwise throw an error
+
+    if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
+    {
+      fprintf ( stderr, "Error: Values on the two sides of the compare expression are not the same\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_EXP_NODE || currnode -> node_type == AST_AROP_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+      currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+    else if ( currnode -> num_of_children == 2 )
+    {
+      DATATYPE firsttype, secondtype, result;
+
+      firsttype = getFirstChild ( currnode ) -> result_type;
+      secondtype = getSecondChild ( currnode ) -> result_type;
+
+      if ( firsttype == D_INT_TYPE || firsttype == D_FLOAT_TYPE )
+      {
+        if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
+        {
+          fprintf ( stderr, "Error: Floats and Ints can only be added to other Floats and Ints respectively\n" );
+          return;
+        }
+
+        if ( firsttype == D_FLOAT_TYPE && currnode -> node_type == AST_EXP_NODE
+             && getSecondChild ( currnode ) -> extra_data .arop_type == A_MODULO_TYPE )
+        {
+          // The right child gives us the operation type
+          fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
+          return;
+        }
+        else if ( firsttype == D_FLOAT_TYPE && currnode -> node_type == AST_AROP_NODE
+                  && currnode -> extra_data . arop_type == A_MODULO_TYPE )
+        {
+          fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
+          return;
+        }
+
+        result = firsttype;
+      }
+      else if ( firsttype == D_STRING_TYPE || secondtype == D_STRING_TYPE )
+      {
+        fprintf ( stderr, "Error: Operations on String are not allowed\n" );
+        return;
+      }
+      else if ( firsttype == D_GRAPH_TYPE || firsttype == D_TREE_TYPE )
+      {
+        if ( currnode -> node_type == AST_EXP_NODE
+             && getSecondChild ( currnode ) -> extra_data . arop_type != A_PLUS_TYPE
+             && getSecondChild ( currnode ) -> extra_data . arop_type != A_MINUS_TYPE )
+          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+        else if ( currnode -> node_type == AST_AROP_NODE
+                  && currnode -> extra_data . arop_type != A_PLUS_TYPE
+                  && currnode -> extra_data . arop_type != A_MINUS_TYPE )
+          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs/Trees\n" );
+        else if ( secondtype != D_VERTEX_TYPE && secondtype != D_EDGE_TYPE )
+          fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+
+        result = firsttype;
+      }
+      else if ( secondtype == D_GRAPH_TYPE || secondtype == D_TREE_TYPE )
+      {
+        if ( currnode -> node_type == AST_EXP_NODE
+             && getSecondChild ( currnode ) -> extra_data . arop_type != A_PLUS_TYPE
+             && getSecondChild ( currnode ) -> extra_data . arop_type != A_MINUS_TYPE )
+          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+        else if ( currnode -> node_type == AST_AROP_NODE
+                  && currnode -> extra_data . arop_type != A_PLUS_TYPE
+                  && currnode -> extra_data . arop_type != A_MINUS_TYPE )
+          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs/Trees\n" );
+        else if ( firsttype != D_VERTEX_TYPE && firsttype != D_EDGE_TYPE )
+          fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+
+        result = secondtype;
+      }
+      else
+        fprintf ( stderr, "Error: Invalid operands provided in expression\n" );
+
+      currnode -> result_type = result;
+    }
+    else
+      fprintf ( stderr, "Invalid tree produced! EXP node should not have more than 2 children\n" );
+  }
+  else if ( currnode -> node_type == AST_PASSEDPARAMS_NODE )
+  {
+    // At a passed params node, we need to check that all the parameters are of the
+    // same type as the called function
+
+    // The first child of the parent will help us get the function identifier name from the STB
+    unsigned int index = getFirstChild ( currnode -> parent ) -> extra_data . symboltable_index;
+
+    FUNCTION *funcentry = & ( getEntryByIndex ( symboltable, index ) -> data . func_data );
+
+    // Firstly, the number of parameters must match with the number of children of currnode
+    if ( funcentry -> num_params != currnode -> num_of_children )
+    {
+      fprintf ( stderr, "Error: Number of passed parameters don't match with the function definition\n" );
+      return;
+    }
+
+    // If the number of parameters match, their types must also match
+    LNODE funciterator, paramiterator;
+
+    getIterator ( funcentry -> parameters, & funciterator );
+    getIterator ( currnode -> children, & paramiterator );
+
+    while ( hasNext ( & funciterator ) )
+    {
+      getNext ( funcentry -> parameters, & funciterator );
+      getNext ( currnode -> children, & paramiterator );
+
+      DATATYPE paramtype = funciterator . data . int_val;
+      DATATYPE passedtype = ( * ( ANODE ** ) ( paramiterator . data . generic_val ) ) -> result_type;
+
+      if ( paramtype != passedtype )
+      {
+        fprintf ( stderr, "Error: The type of the passed parameter to the function doesn't match the definition\n" );
+        return;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_RETURNSTMT_NODE )
+  {
+    // The type being returned should match the type in the function definition
+    // Get the function data in the symbol table by getting the identifier node
+    // which is the first child of the grandparent of currnode
+
+    unsigned int index = getFirstChild ( currnode -> parent -> parent ) -> extra_data . symboltable_index;
+
+    if ( getFirstChild ( currnode ) -> result_type
+         != getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type )
+    {
+      fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_FUNCTIONCALL_NODE )
+  {
+    unsigned int index = getFirstChild ( currnode ) -> extra_data . symboltable_index;
+
+    if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
+    {
+      fprintf ( stderr, "Warning: Return value of function is not being used\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_FOR_NODE )
+  {
+    // A for node could have 1, 3 or 5 children. We need to deal with each of the cases
+
+    if ( currnode -> num_of_children == 1 )
+    {
+      ANODE *child = getFirstChild ( currnode );
+
+      if ( child -> node_type == AST_LITERAL_NODE && child -> result_type != D_INT_TYPE )
+        fprintf ( stderr, "Error: The number of iterations of a for loop must be an Integer\n" );
+      else if ( child -> node_type == AST_IDENTIFIER_NODE )
+      {
+        unsigned int index = child -> extra_data . symboltable_index;
+
+        STBENTRY *entry = getEntryByIndex ( symboltable, index );
+
+        if ( entry -> entry_type == ENTRY_FUNC_TYPE || entry -> data . var_data .data_type != D_INT_TYPE )
+        {
+          fprintf ( stderr, "Error: The identifier in a for loop must be an integer variable\n" );
+          return;
+        }
+      }
+    }
+    else if ( currnode -> num_of_children == 2 )
+      fprintf ( stderr, "Invalid tree produced! For node cannot have 2 children\n" );
+    else if ( currnode -> num_of_children == 3 )
+    {
+      // The first child must be a Vertex or an Edge and the third child must be a Graph or Tree
+
+      if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
+           && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
+      {
+        fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        return;
+      }
+
+      if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
+           && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
+      {
+        fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+        return;
+      }
+    }
+    else if ( currnode -> num_of_children == 4 )
+      fprintf ( stderr, "Invalid tree produced! For node cannot have 4 children\n" );
+    else if ( currnode -> num_of_children == 5 )
+    {
+      // We can have two cases here. Either the construct can be:
+      // For u in G adjacent to v:
+      // or it can be:
+      // For u in BFT ( G, v )
+      // We use the third node (which might be a BDFT node) to differentiate b/w the two
+
+      if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
+           && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
+      {
+        fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        return;
+      }
+
+      if ( getThirdChild ( currnode ) -> node_type == AST_BDFT_NODE )
+      {
+        if ( getFourthChild ( currnode ) -> result_type != D_GRAPH_TYPE
+             && getFourthChild ( currnode ) -> result_type != D_TREE_TYPE )
+        {
+          fprintf ( stderr, "Error: The first parameter to BFT or DFT must be a Graph or Tree\n" );
+          return;
+        }
+
+        if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
+        {
+          fprintf ( stderr, "Error: The second parameter to BFT/DFT must be a Vertex\n" );
+          return;
+        }
+      }
+      else
+      {
+        // The third child is not BDFT, thus adjacent to must be there
+
+        if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
+             && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
+        {
+          fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+          return;
+        }
+
+        if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
+        {
+          fprintf ( stderr, "Error: The adjacent to parameter must be a Vertex\n" );
+          return;
+        }
+      }
+    }
+    else
+      fprintf ( stderr, "Invalid tree produced! For node cannot have >5 children\n" );
+  }
+  else if ( currnode -> node_type == AST_EDGECREATE_NODE )
+  {
+    if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
+         || getSecondChild ( currnode ) -> result_type != D_VERTEX_TYPE )
+    {
+      fprintf ( stderr, "Error: The components of an edge must be vertices\n" );
+      return;
+    }
+  }
+  else if ( currnode -> node_type == AST_LITERAL_NODE )
+  {
+    // The type of a literal is the type of its entry in the symbol table
+    currnode -> result_type = getEntryByIndex (
+        symboltable, currnode -> extra_data . symboltable_index ) -> data . lit_data . lit_type;
+  }
+  else if ( currnode -> node_type == AST_DEPTH_NODE )
+    currnode -> result_type = D_INT_TYPE;
+  else if ( currnode -> node_type == AST_DEST_NODE || currnode -> node_type == AST_SOURCE_NODE
+            || currnode -> node_type == AST_ROOT_NODE )
+    currnode -> result_type = D_VERTEX_TYPE;
+  else if ( currnode -> node_type == AST_WEIGHT_NODE )
+    currnode -> result_type = D_FLOAT_TYPE;
+  else if ( currnode -> node_type == AST_ASSIGNFUNC_NODE )
+  {
+    // ASSIGNFUNC node could have 1, 2 or 3 children
+
+    // If it has one child or two children, then the result type is the type of the
+    // first child (i.e. the identifier)
+    if ( currnode -> num_of_children == 1 || currnode -> num_of_children == 2 )
+      currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+    else if ( currnode -> num_of_children == 3 )
+    {
+      currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+    }
+  }
+  else if ( currnode -> node_type == AST_ENDASSIGN_NODE )
+  {
+    // It could have one or two children. If it has one child then it is the type of that child
+    // else it is the type of the current node
+
+    if ( currnode -> num_of_children == 1 )
+      currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+    else
+      currnode -> result_type = currnode -> extra_data . data_type;
+  }
+
+  // End of semantic analysis for different nodes
+
+}
+
 
 void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 {
@@ -436,6 +870,10 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
   temp . node = programNode;
   temp . upordown = DOWN;
 
+  int loopcount = 0;
+  int infunction = 0;
+  int bdftcount = 0;
+
   stack = push ( stack, & temp );
 
   while ( ! isEmpty ( stack ) )
@@ -447,6 +885,21 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 
     if ( updown == DOWN )
     {
+      if ( currnode -> node_type == AST_FUNCTION_NODE )
+        infunction = 1;
+
+      if ( currnode -> node_type == AST_FOR_NODE )
+        loopcount ++;
+
+      if ( currnode -> node_type == AST_BDFT_NODE )
+        bdftcount ++;
+
+      if ( currnode -> node_type == AST_QUALIFIEDPARAMETERS_NODE )
+        symboltable = openEnv ( symboltable );
+      else if ( currnode -> node_type == AST_BLOCK_NODE &&
+                currnode -> parent -> node_type != AST_FUNCTION_NODE )
+        symboltable = openEnv ( symboltable );
+
       temp . node = currnode;
       temp . upordown = UP;
 
@@ -474,6 +927,22 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
     }
     else
     {
+      // Now in the bottom-up traversal portion
+      if ( currnode -> node_type == AST_FUNCTION_NODE )
+        infunction = 0;
+
+      if ( currnode -> node_type == AST_FOR_NODE )
+      {
+        loopcount --;
+        if ( currnode -> num_of_children >= 3 && getThirdChild ( currnode ) -> node_type == AST_BDFT_NODE )
+          bdftcount --;
+      }
+
+      if ( currnode -> node_type == AST_BLOCK_NODE )
+        symboltable = closeEnv ( symboltable );
+
+      performSemanticChecks ( currnode, symboltable, & infunction, & loopcount, & bdftcount );
+
       printf ( "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
     }
   }
