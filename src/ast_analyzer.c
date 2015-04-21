@@ -524,9 +524,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     STBENTRY *entry = getEntryByIndex ( symboltable, index );
 
     if ( entry -> entry_type == ENTRY_VAR_TYPE )
-      currnode -> node_type = entry -> data . var_data . data_type;
+      currnode -> result_type = entry -> data . var_data . data_type;
     else if ( entry -> entry_type == ENTRY_FUNC_TYPE )
-      currnode -> node_type = entry -> data . func_data . ret_type;
+      currnode -> result_type = entry -> data . func_data . ret_type;
   }
   else if ( currnode -> node_type == AST_READ_NODE )
   {
@@ -708,9 +708,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
   }
   else if ( currnode -> node_type == AST_FOR_NODE )
   {
-    // A for node could have 1, 3 or 5 children. We need to deal with each of the cases
+    // A for node could have 2, 4 or 6 children. We need to deal with each of the cases
 
-    if ( currnode -> num_of_children == 1 )
+    if ( currnode -> num_of_children == 2 )
     {
       ANODE *child = getFirstChild ( currnode );
 
@@ -729,9 +729,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         }
       }
     }
-    else if ( currnode -> num_of_children == 2 )
-      fprintf ( stderr, "Invalid tree produced! For node cannot have 2 children\n" );
     else if ( currnode -> num_of_children == 3 )
+      fprintf ( stderr, "Invalid tree produced! For node cannot have 3 children\n" );
+    else if ( currnode -> num_of_children == 4 )
     {
       // The first child must be a Vertex or an Edge and the third child must be a Graph or Tree
 
@@ -749,9 +749,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         return;
       }
     }
-    else if ( currnode -> num_of_children == 4 )
-      fprintf ( stderr, "Invalid tree produced! For node cannot have 4 children\n" );
     else if ( currnode -> num_of_children == 5 )
+      fprintf ( stderr, "Invalid tree produced! For node cannot have 5 children\n" );
+    else if ( currnode -> num_of_children == 6 )
     {
       // We can have two cases here. Either the construct can be:
       // For u in G adjacent to v:
@@ -799,8 +799,6 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         }
       }
     }
-    else
-      fprintf ( stderr, "Invalid tree produced! For node cannot have >5 children\n" );
   }
   else if ( currnode -> node_type == AST_EDGECREATE_NODE )
   {
@@ -896,8 +894,7 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 
       if ( currnode -> node_type == AST_QUALIFIEDPARAMETERS_NODE )
         symboltable = openEnv ( symboltable );
-      else if ( currnode -> node_type == AST_BLOCK_NODE &&
-                currnode -> parent -> node_type != AST_FUNCTION_NODE )
+      else if ( currnode -> node_type == AST_BLOCK_NODE )
         symboltable = openEnv ( symboltable );
 
       temp . node = currnode;
@@ -938,7 +935,7 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
           bdftcount --;
       }
 
-      if ( currnode -> node_type == AST_BLOCK_NODE )
+      if ( currnode -> node_type == AST_BLOCK_NODE || currnode -> node_type == AST_FUNCBODY_NODE )
         symboltable = closeEnv ( symboltable );
 
       performSemanticChecks ( currnode, symboltable, & infunction, & loopcount, & bdftcount );
