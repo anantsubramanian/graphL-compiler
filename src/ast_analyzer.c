@@ -663,7 +663,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     // If the number of parameters match, their types must also match
     LNODE funciterator, paramiterator;
 
-    getIterator ( funcentry -> parameters, & funciterator );
+    getIterator ( funcentry -> paramtypes, & funciterator );
     getIterator ( currnode -> children, & paramiterator );
 
     while ( hasNext ( & funciterator ) )

@@ -5,7 +5,17 @@ fi
 
 make
 ./lexer $1 2>/dev/null
+e=$(cat ERRORS)
+if [ "$e" != "" ]; then
+  echo "Lexing failed!"
+  exit
+fi
 ./parser 2>/dev/null $1
-./ast_generator
+e=$(cat PARSEERRORS)
+if [ "$e" != "" ]; then
+  echo "Parsing failed!"
+  exit
+fi
+./ast_generator >/dev/null
 
 printf "Done!\n"
