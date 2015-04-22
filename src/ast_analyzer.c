@@ -211,6 +211,7 @@ ANODE* getFirstChild ( ANODE *node )
   if ( node -> num_of_children == 0 )
   {
     fprintf ( stderr, "Cannot get first child of node with no children\n" );
+    fprintf ( stderr, "At node %s\n", getNodeTypeName ( node -> node_type ) );
     return NULL;
   }
 
@@ -443,6 +444,8 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
   }
   else if ( currnode -> node_type == AST_RETURNTYPE_NODE )
   {
+    // A returntype node could have no children, in which case the return type is nothing
+
     ANODE *returniden = getFirstChild ( parent );
     unsigned int retindex = returniden -> extra_data . symboltable_index;
     STBENTRY *retentry = getEntryByIndex ( symboltable, retindex );
@@ -454,7 +457,10 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
     }
 
     FUNCTION *funcdata = & ( retentry -> data . func_data );
-    funcdata -> ret_type = getFirstChild ( currnode ) -> extra_data . data_type;
+    if ( currnode -> num_of_children > 0 )
+      funcdata -> ret_type = getFirstChild ( currnode ) -> extra_data . data_type;
+    else
+      funcdata -> ret_type = D_NOTHING_TYPE;
 
     if ( DEBUG_STB_AUXOPS )
       printf ( "Set the return type of %s as %s\n", funcdata -> name, getDataTypeName ( funcdata -> ret_type ) );
@@ -507,7 +513,48 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       return;
     }
     else if ( currnode -> num_of_children == 3 )
+    {
+      // If Assignable has three children, then its first child should be a complex type
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+
+      if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
+           || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
+           || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
+      {
+        fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
+      {
+        fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_EDGE_TYPE )
+      {
+        if ( getThirdChild ( currnode ) -> num_of_children > 0
+             && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
+        {
+          fprintf ( stderr, "Error: Edge object has no root member\n" );
+          return;
+        }
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
+      {
+        fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_TREE_TYPE
+           && getThirdChild ( currnode ) -> num_of_children > 0
+           && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
+      {
+        fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        return;
+      }
+    }
     else
     {
       fprintf ( stderr, "Invalid tree produced! Assignable can't have more than 3 children\n" );
@@ -584,16 +631,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
           return;
         }
 
-        if ( firsttype == D_FLOAT_TYPE && currnode -> node_type == AST_EXP_NODE
-             && getSecondChild ( currnode ) -> extra_data .arop_type == A_MODULO_TYPE )
+        if ( firsttype == D_FLOAT_TYPE && currnode -> extra_data . arop_type == A_MODULO_TYPE )
         {
           // The right child gives us the operation type
-          fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
-          return;
-        }
-        else if ( firsttype == D_FLOAT_TYPE && currnode -> node_type == AST_AROP_NODE
-                  && currnode -> extra_data . arop_type == A_MODULO_TYPE )
-        {
           fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
           return;
         }
@@ -607,14 +647,12 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       }
       else if ( firsttype == D_GRAPH_TYPE || firsttype == D_TREE_TYPE )
       {
-        if ( currnode -> node_type == AST_EXP_NODE
-             && getSecondChild ( currnode ) -> extra_data . arop_type != A_PLUS_TYPE
-             && getSecondChild ( currnode ) -> extra_data . arop_type != A_MINUS_TYPE )
+        if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
+             && currnode -> extra_data . arop_type != A_MINUS_TYPE )
+        {
+          fprintf ( stderr, "Operator type: %d\n", getSecondChild ( currnode ) -> extra_data . arop_type );
           fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
-        else if ( currnode -> node_type == AST_AROP_NODE
-                  && currnode -> extra_data . arop_type != A_PLUS_TYPE
-                  && currnode -> extra_data . arop_type != A_MINUS_TYPE )
-          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs/Trees\n" );
+        }
         else if ( secondtype != D_VERTEX_TYPE && secondtype != D_EDGE_TYPE )
           fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
 
@@ -622,14 +660,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       }
       else if ( secondtype == D_GRAPH_TYPE || secondtype == D_TREE_TYPE )
       {
-        if ( currnode -> node_type == AST_EXP_NODE
-             && getSecondChild ( currnode ) -> extra_data . arop_type != A_PLUS_TYPE
-             && getSecondChild ( currnode ) -> extra_data . arop_type != A_MINUS_TYPE )
+        if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
+             && currnode -> extra_data . arop_type != A_MINUS_TYPE )
           fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
-        else if ( currnode -> node_type == AST_AROP_NODE
-                  && currnode -> extra_data . arop_type != A_PLUS_TYPE
-                  && currnode -> extra_data . arop_type != A_MINUS_TYPE )
-          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs/Trees\n" );
         else if ( firsttype != D_VERTEX_TYPE && firsttype != D_EDGE_TYPE )
           fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
 
@@ -687,7 +720,20 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     // Get the function data in the symbol table by getting the identifier node
     // which is the first child of the grandparent of currnode
 
+    // Scenario 2: The return type is nothing, in which case the data_type extra data is set
+    // and RETURNSTMT node has no children
+
     unsigned int index = getFirstChild ( currnode -> parent -> parent ) -> extra_data . symboltable_index;
+
+    if ( currnode -> num_of_children == 0 )
+    {
+      // The return type is nothing
+
+      if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
+        fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+
+      return;
+    }
 
     if ( getFirstChild ( currnode ) -> result_type
          != getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type )
@@ -808,6 +854,8 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       fprintf ( stderr, "Error: The components of an edge must be vertices\n" );
       return;
     }
+
+    currnode -> result_type = D_EDGE_TYPE;
   }
   else if ( currnode -> node_type == AST_LITERAL_NODE )
   {
@@ -828,11 +876,59 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     // If it has one child or two children, then the result type is the type of the
     // first child (i.e. the identifier)
-    if ( currnode -> num_of_children == 1 || currnode -> num_of_children == 2 )
+    if ( currnode -> num_of_children == 1 )
       currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+    else if ( currnode -> num_of_children == 2 )
+    {
+      currnode -> result_type = getFirstChild ( currnode ) -> result_type;
+      if ( getEntryByIndex ( symboltable,
+            getFirstChild ( currnode ) -> extra_data . symboltable_index ) -> entry_type != ENTRY_FUNC_TYPE )
+      {
+        fprintf ( stderr, "Error: Attempting to call a variable like a function\n" );
+        return;
+      }
+    }
     else if ( currnode -> num_of_children == 3 )
     {
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+
+      if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
+           || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
+           || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
+      {
+        fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
+      {
+        fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_EDGE_TYPE )
+      {
+        if ( getThirdChild ( currnode ) -> num_of_children > 0
+             && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
+        {
+          fprintf ( stderr, "Error: Edge object has no root member\n" );
+          return;
+        }
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
+      {
+        fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        return;
+      }
+
+      if ( getFirstChild ( currnode ) -> result_type == D_TREE_TYPE
+           && getThirdChild ( currnode ) -> num_of_children > 0
+           && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
+      {
+        fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        return;
+      }
     }
   }
   else if ( currnode -> node_type == AST_ENDASSIGN_NODE )
@@ -840,10 +936,21 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     // It could have one or two children. If it has one child then it is the type of that child
     // else it is the type of the current node
 
-    if ( currnode -> num_of_children == 1 )
+
+    if ( currnode -> num_of_children == 0 )
+      currnode -> result_type = currnode -> extra_data . data_type;
+    else if ( currnode -> num_of_children == 1 )
       currnode -> result_type = getFirstChild ( currnode ) -> result_type;
     else
+    {
       currnode -> result_type = currnode -> extra_data . data_type;
+
+      if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
+      {
+        fprintf ( stderr, "Error: Primitive type objects have no members\n" );
+        return;
+      }
+    }
   }
 
   // End of semantic analysis for different nodes
