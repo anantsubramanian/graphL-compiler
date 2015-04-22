@@ -825,18 +825,33 @@ void handleAuxiliaryTerminalOperations (
   }
   else if ( terminalvalue == andint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_AND_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_AND_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got AND at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == orint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_OR_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_OR_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got OR at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == notint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_NOT_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_NOT_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got NOT at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == bftint )
   {
