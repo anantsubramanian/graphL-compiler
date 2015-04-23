@@ -23,7 +23,7 @@
 
 typedef enum data_types
 {
-  D_TYPE_FIRST,
+  D_TYPE_FIRST = 0,
   D_INT_TYPE,
   D_FLOAT_TYPE,
   D_STRING_TYPE,
@@ -39,7 +39,7 @@ typedef enum data_types
 
 typedef enum variable_types
 {
-  V_TYPE_FIRST,
+  V_TYPE_FIRST = 0,
   V_GLOBAL_TYPE,
   V_LOCAL_TYPE,
   V_PARAM_TYPE,
@@ -48,7 +48,7 @@ typedef enum variable_types
 
 typedef enum st_entry_type
 {
-  ENTRY_TYPE_FIRST,
+  ENTRY_TYPE_FIRST = 0,
   ENTRY_VAR_TYPE,
   ENTRY_FUNC_TYPE,
   ENTRY_LIT_TYPE,
@@ -81,6 +81,7 @@ typedef struct function_entry
   char *name;
   int num_params;
   LINKEDLIST *parameters;
+  LINKEDLIST *paramtypes;
   DATATYPE ret_type;
   int returndata_stbindex;
   int decl_line;
@@ -96,6 +97,7 @@ typedef struct literal_entry
 typedef struct symboltable_entry
 {
   STB_ENTRYTYPE entry_type;
+  int index;
   union
   {
     VARIABLE var_data;
@@ -108,7 +110,7 @@ typedef struct symbol_table
 {
   char *name;
   TRIE *indexmap;
-  int num_entries;
+  unsigned int num_entries;
   int size;
   int cur_scope;
   int cur_subscope;
@@ -158,6 +160,10 @@ extern SYMBOLTABLE* setNumEntries ( SYMBOLTABLE * , unsigned int );
 extern SYMBOLTABLE* openEnv ( SYMBOLTABLE * );
 
 extern SYMBOLTABLE* closeEnv ( SYMBOLTABLE * );
+
+extern SYMBOLTABLE* dumpEntry ( SYMBOLTABLE * , FILE * , unsigned int , char );
+
+extern unsigned int readDumpEntry ( SYMBOLTABLE * , FILE * , char );
 
 extern int addEntry ( SYMBOLTABLE * , char * , STB_ENTRYTYPE );
 

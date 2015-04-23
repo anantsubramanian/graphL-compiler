@@ -288,6 +288,7 @@ for (( i = 1; i <= $numcases; i++ )); do
   ./ast_generator 2>/dev/null
 
   diffres=$(diff ASTOUTPUT unit-testing/ast_test${i}_output)
+  diffres1=$(diff STBDUMP unit-testing/ast_test${i}_stbdump)
 
   if [[ "$diffres" != "" ]]; then
     printf "FAILED!\n\n"
@@ -297,9 +298,17 @@ for (( i = 1; i <= $numcases; i++ )); do
     exit
   fi
 
+  if [[ "$diffres1" != "" ]]; then
+    printf "FAILED!\n\n"
+    printf "Errors reported:\n\n"
+    diff STBDUMP unit-testing/ast_test${i}_stbdump
+    printf "\n\n"
+    exit
+  fi
+
   printf "PASSED!\n"
 
-  rm PARSEOUTPUT ASTOUTPUT TOKENMAP
+  rm PARSEOUTPUT ASTOUTPUT TOKENMAP STBDUMP ASTDUMP
 done
 
 printf "All tests passed!"

@@ -28,11 +28,13 @@
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
 #define ATTRIBUTES_FILE "TOKENMAP"
 #define AST_OUTPUT_FILE "ASTOUTPUT"
+#define STB_DUMP_FILE "STBDUMP"
+#define AST_DUMP_FILE "ASTDUMP"
 #define AST_NODETYPES_FILE "config/ast_nodetypes"
 #define AST_INSTRUCTIONS_FILE "config/ast_instructions"
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
-#define ROOTNODE_NAME "AST Root Node"
+#define ROOTNODE_NAME "AST_ROOT_NODE"
 #define AST_STACK_NAME "AST Generation Stack"
 
 #define DEBUG_ALL 0
@@ -191,7 +193,7 @@ typedef struct property_data
 
 typedef enum coditionalval_type
 {
-  CONDITIONAL_TYPE_FIRST,
+  CONDITIONAL_TYPE_FIRST = 0,
   CONDITIONAL_TERMINAL,
   CONDITIONAL_NONTERMINAL,
   CONDITIONAL_NODETYPE,
@@ -355,10 +357,7 @@ int getLineCount ( FILE *inputfile, int blocksize )
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == NEWLINE )
       lines++;
@@ -394,10 +393,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == ' ' )
     {
@@ -462,10 +458,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( isfirst == 1 && c == COMMENT_START )
       incomment = 1;
@@ -770,7 +763,8 @@ void handleAuxiliaryTerminalOperations (
     int ltint, int gteint, int lteint, int eqint,
     int bftint, int dftint, int functionint, int terminalvalue,
     ANODE *currnode, SYMBOLTABLE *symboltable, int *should_start_function,
-    int *function_scope_started, char *tokenname, int linenumber )
+    int *function_scope_started, char *tokenname, int linenumber,
+    FILE *stbdumpfile )
 {
 
   // Here  'topvalue' = the string that was popped from the stack
@@ -822,18 +816,33 @@ void handleAuxiliaryTerminalOperations (
   }
   else if ( terminalvalue == andint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_AND_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning AND type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_AND_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got AND at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == orint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_OR_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning OR type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_OR_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got OR at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == notint )
   {
-    if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
-    currnode -> extra_data . boolop_type = B_NOT_TYPE;
+    if ( currnode -> node_type == AST_BOOLEXP_NODE || currnode -> node_type == AST_BOOLOP_NODE )
+    {
+      if ( DEBUG_AUXOPS || DEBUG_ALL ) printf ( "Assigning NOT type to node %s\n\n", getNodeTypeName ( currnode -> node_type ) );
+      currnode -> extra_data . boolop_type = B_NOT_TYPE;
+    }
+    else if ( DEBUG_ALL )
+      printf ( "Got NOT at non-boolop/boolexp node so ignoring...\n" );
   }
   else if ( terminalvalue == bftint )
   {
@@ -934,6 +943,20 @@ void handleAuxiliaryTerminalOperations (
         if ( parentnode -> node_type != AST_FUNCTION_NODE )
         {
           STBENTRY *previousentry = getEntryByName ( symboltable, tokenname );
+
+          if ( previousentry -> entry_type == ENTRY_FUNC_TYPE )
+          {
+            // A variable is being declared now, but the previous entry by this name is a function
+            // Throw an error and ignore this variable definition
+            fprintf ( stderr, "Redeclaration of variable %s at line %d\n", tokenname, linenumber );
+            fprintf ( stderr, "Note: Previous declaration of %s as a function on line %d.\n",
+                      tokenname, previousentry -> data . func_data . decl_line );
+
+            // Do not count this variable declaration
+            // Return from the function to avoid further processing
+            return;
+          }
+
           if ( previousentry -> data . var_data . scope_level == symboltable -> cur_scope )
           {
             fprintf ( stderr, "Redeclaration of variable %s at line number %d\n", tokenname, linenumber );
@@ -984,6 +1007,10 @@ void handleAuxiliaryTerminalOperations (
           }
 
           strcpy ( funcdata -> name, tokenname );
+
+          currnode -> extra_data . symboltable_index = insertedIndex;
+
+          dumpEntry ( symboltable, stbdumpfile, insertedIndex, 'd' );
         }
         else
         {
@@ -1012,6 +1039,10 @@ void handleAuxiliaryTerminalOperations (
           vardata -> decl_line = linenumber;
 
           if ( DEBUG_AUXOPS ) printf ( "Set data type of %s as %s in Symbol Table\n", tokenname, getDataTypeName ( vardata -> data_type ) );
+
+          currnode -> extra_data . symboltable_index = insertedIndex;
+
+          dumpEntry ( symboltable, stbdumpfile, insertedIndex, 'd' );
         }
       }
     }
@@ -1041,6 +1072,10 @@ void handleAuxiliaryTerminalOperations (
             insertAtBack ( foundEntry -> data . func_data . refr_lines, &linenumber );
 
       }
+
+      currnode -> extra_data . symboltable_index = foundEntry -> index;
+
+      dumpEntry ( symboltable, stbdumpfile, foundEntry -> index, 'r' );
     }
 
     // Finished processing the identifier, if this identifier was a function name,
@@ -1063,30 +1098,37 @@ void handleAuxiliaryTerminalOperations (
 
     STBENTRY *entry = getEntryByName ( symboltable, tokenname );
 
+    // If entry doesn't exist, the entry needs to be added for the literal
+    // If the entry already exists, nothing further needs to be done.
     if ( entry == NULL )
     {
       unsigned int entryIndex = addEntry ( symboltable, tokenname, ENTRY_LIT_TYPE );
       entry = getEntryByIndex ( symboltable, entryIndex );
+
+      // Entry now has the entry index. Set the value appropriately
+      if ( terminalvalue == intlitint )
+        entry -> data . lit_data . lit_type = D_INT_TYPE;
+      else if ( terminalvalue == floatlitint )
+        entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
+      else if ( terminalvalue == stringlitint )
+        entry -> data . lit_data . lit_type = D_STRING_TYPE;
+
+      int len = strlen ( tokenname );
+      entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
+
+      if ( entry -> data . lit_data . value == NULL )
+      {
+        fprintf ( stderr, "Failed to allocate memory for literal\n" );
+        exit (-1);
+      }
+
+      strcpy ( entry -> data . lit_data . value, tokenname );
     }
 
-    // Entry now has the entry index. Set the value appropriately
-    if ( terminalvalue == intlitint )
-      entry -> data . lit_data . lit_type = D_INT_TYPE;
-    else if ( terminalvalue == floatlitint )
-      entry -> data . lit_data . lit_type = D_FLOAT_TYPE;
-    else if ( terminalvalue == stringlitint )
-      entry -> data . lit_data . lit_type = D_STRING_TYPE;
+    currnode -> extra_data . symboltable_index = entry -> index;
 
-    int len = strlen ( tokenname );
-    entry -> data . lit_data . value = malloc ( (len+1) * sizeof ( char ) );
-
-    if ( entry -> data . lit_data . value == NULL )
-    {
-      fprintf ( stderr, "Failed to allocate memory for literal\n" );
-      exit (-1);
-    }
-
-    strcpy ( entry -> data . lit_data . value, tokenname );
+    // Dump literal entries every time, no difference b/w definition and reference
+    dumpEntry ( symboltable, stbdumpfile, entry -> index, 'd' );
   }
 
   // End handling aux ops for terminals
@@ -1254,6 +1296,17 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
                  TRIE *auxdata, TRIE *nonterminals, TRIE *terminals, TRIE *properties,
                  SYMBOLTABLE *symboltable, FILE *astoutput )
 {
+  FILE *stbdumpfile = NULL;
+  stbdumpfile = fopen ( STB_DUMP_FILE, "w+" );
+
+  if ( stbdumpfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open STB dump file\n" );
+    return NULL;
+  }
+
+  fprintf ( stbdumpfile, "%u\n", symboltable -> num_entries );
+
   // We start processing from the root node
   ANODE *currnode = ast -> root;
 
@@ -1316,10 +1369,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == NEWLINE )
     {
@@ -1375,7 +1425,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
               gtint, ltint, gteint, lteint, eqint, bftint, dftint,
               functionint, terminalvalue, currnode, symboltable,
               & should_start_function, & function_scope_started,
-              tokenname, linenumber );
+              tokenname, linenumber, stbdumpfile );
         }
 
         // If the current node has any properties according to the instructions file, then
@@ -1482,7 +1532,25 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
       token [ tokencounter++ ] = c;
   }
 
+  if ( fclose ( stbdumpfile ) != 0 )
+    fprintf ( stderr, "Failed to close STB dump file\n" );
+
   return ast;
+}
+
+void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
+{
+  dumpNode ( node, astdumpfile );
+
+  LNODE iterator;
+  getIterator ( node -> children, &iterator );
+
+  while ( hasNext ( &iterator ) )
+  {
+    getNext ( node -> children, &iterator );
+
+    preOrderDumpAst ( * ( ANODE ** ) ( iterator . data . generic_val ), astdumpfile );
+  }
 }
 
 int main ( )
@@ -1572,6 +1640,8 @@ int main ( )
                         nonterminals, terminals, properties );
 
 
+  if ( fclose ( instructionsfile ) != 0 )
+    fprintf ( stderr, "Failed to close instructions file\n" );
 
   /*********************************************************
     *                                                      *
@@ -1590,6 +1660,9 @@ int main ( )
   }
 
   int stbentries = getLineCount ( attributesFile, blocksize );
+
+  if ( fclose ( attributesFile ) != 0 )
+    fprintf ( stderr, "Failed to close attributes file\n" );
 
   SYMBOLTABLE *symboltable = getSymbolTable();
 
@@ -1628,6 +1701,22 @@ int main ( )
     fprintf ( stderr, "Failed to close AST output file\n" );
     return -1;
   }
+
+  FILE *astdumpfile = NULL;
+  astdumpfile = fopen ( AST_DUMP_FILE, "w+" );
+
+  if ( astdumpfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open AST dump file to write\n" );
+    return -1;
+  }
+
+  ANODE *firstnode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
+
+  preOrderDumpAst ( firstnode, astdumpfile );
+
+  if ( fclose ( astdumpfile ) != 0 )
+    fprintf ( stderr, "Failed to close AST dump file\n" );
 
   if ( DEBUG_ALL ) printf ( "AST successfully built\n" );
 
