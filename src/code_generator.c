@@ -1130,8 +1130,14 @@ void writeIntPrintFunction ( FILE *assemblyfile )
 }
 
 void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
-                    FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile )
+                    FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile,
+                    int infunction )
 {
+  FILE *outputfile = codefile;
+
+  if ( infunction == 1 )
+    outputfile = functionfile;
+
   if ( currnode -> node_type == AST_GLOBALDEFINE_NODE )
   {
     LNODE iterator;
@@ -1228,34 +1234,31 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
       {
         shouldintprint = 1;
-        fprintf ( codefile, "\tpusha\n" );
-        fprintf ( codefile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
-        fprintf ( codefile, "\tcall printInt\n" );
-        fprintf ( codefile, "\tpopa\n" );
+        fprintf ( outputfile, "\tpusha\n" );
+        fprintf ( outputfile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tcall printInt\n" );
+        fprintf ( outputfile, "\tpopa\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
-        fprintf ( codefile, "\tmov\teax, 4\n" );
-        fprintf ( codefile, "\tmov\tebx, 1\n" );
-        fprintf ( codefile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
-        fprintf ( codefile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
-        fprintf ( codefile, "\tint\t80h\n\n" );
+        fprintf ( outputfile, "\tmov\teax, 4\n" );
+        fprintf ( outputfile, "\tmov\tebx, 1\n" );
+        fprintf ( outputfile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
+        fprintf ( outputfile, "\tint\t80h\n\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_FLOAT_TYPE )
       {
-        fprintf ( codefile, "\tfld\tdword\t[%s]\n", literals [ foundlit -> data . int_val ] . name );
-        fprintf ( codefile, "\tfstp\tqword\t[_float_temp]\n" );
-        fprintf ( codefile, "\tpush\tdword\t[_float_temp+4]\n" );
-        fprintf ( codefile, "\tpush\tdword\t[_float_temp]\n" );
-        fprintf ( codefile, "\tpush\tdword\t_float_format\n" );
-        fprintf ( codefile, "\tcall\tprintf\n" );
-        fprintf ( codefile, "\tadd\tesp, 12\n" );
+        fprintf ( outputfile, "\tfld\tdword\t[%s]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+        fprintf ( outputfile, "\tcall\tprintf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n" );
       }
     }
   }
-
-  if ( functionfile == NULL )
-    fprintf ( stderr, "Function file should not be NULL\n" );
 }
 
 void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile,
@@ -1350,7 +1353,7 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
       performSemanticChecks ( currnode, symboltable, & infunction, & loopcount, & bdftcount );
 
       generateCode ( currnode, symboltable, assemblyfile, codefile, functionfile,
-                     literaltrie, literals, datafile );
+                     literaltrie, literals, datafile, infunction );
 
       printf ( "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
     }
