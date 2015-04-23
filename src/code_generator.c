@@ -1078,6 +1078,7 @@ void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
   fprintf ( datafile, "\t_int_string:\t\tdb\t'0000000000',10,0\n" );
   fprintf ( datafile, "\t_float_format:\t\tdb\t\"%%f\",10,0\n" );
   fprintf ( datafile, "\t_float_temp:\t\tdq\t0\n" );
+  fprintf ( datafile, "\t_string_format:\t\tdb\t\"%%s\",0\n" );
   fprintf ( datafile, "\tintoffset:\t\tequ\t0\n" );
   fprintf ( datafile, "\tfloatoffset:\t\tequ\t1\n" );
   fprintf ( datafile, "\tstringoffset:\t\tequ\t2\n" );
@@ -1250,6 +1251,37 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       else if ( entry -> data . lit_data . lit_type == D_FLOAT_TYPE )
       {
         fprintf ( outputfile, "\tfld\tdword\t[%s]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+        fprintf ( outputfile, "\tcall\tprintf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n" );
+      }
+    }
+    else
+    {
+      // The entry MUST be a variable type
+      // Get its offset, which is inherited and stored in the assignable node child
+      // Use result_type to decide the type and print accordingly
+
+      if ( getFirstChild ( currnode ) -> result_type == D_INT_TYPE )
+      {
+        shouldintprint = 1;
+        fprintf ( outputfile, "\tpusha\n" );
+        fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", getFirstChild ( currnode ) -> offset );
+        fprintf ( outputfile, "\tcall printInt\n" );
+        fprintf ( outputfile, "\tpopa\n" );
+      }
+      else if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE )
+      {
+        fprintf ( outputfile, "\tpush\tdword\t[ebp-%d]\n", getFirstChild ( currnode ) -> offset );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 4\n" );
+      }
+      else if ( getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
+      {
+        fprintf ( outputfile, "\tfld\tdword\t[ebp-%d]\n", getFirstChild ( currnode ) -> offset );
         fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
         fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
         fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
