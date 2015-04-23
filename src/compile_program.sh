@@ -26,7 +26,7 @@ if [ "$ext" == "G" ]; then
   ./lexer $1 2>/dev/null
   e=$(cat ERRORS)
   if [ "$e" != "" ]; then
-    echo "Lexing failed!"
+    cat ERRORS
     exit
   fi
 
@@ -38,7 +38,7 @@ if [ "$ext" == "G" ]; then
   ./parser 2>/dev/null $1
   e=$(cat PARSEERRORS)
   if [ "$e" != "" ]; then
-    echo "Parsing failed!"
+    cat PARSEERRORS
     exit
   fi
 
@@ -48,6 +48,9 @@ if [ "$ext" == "G" ]; then
   fi
 
   ./ast_generator >/dev/null
+  if [ "$?" != "0" ]; then
+    exit
+  fi
 
   # Stop at AST generator
   if [ "$2" == "ag" ]; then
@@ -55,6 +58,9 @@ if [ "$ext" == "G" ]; then
   fi
 
   ./code_generator >/dev/null
+  if [ "$?" != "0" ]; then
+    exit
+  fi
 
   # Stop at assembly code
   if [ "$2" == "as" ]; then

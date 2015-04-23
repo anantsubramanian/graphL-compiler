@@ -125,6 +125,8 @@
 
 // End AST node types #defines
 
+int erroroccured;
+
 char nodeTypes[][30] = {
 
   "AST_PROGRAM_NODE",
@@ -211,12 +213,14 @@ int makeTrieProperty ( char *instr )
   if ( instr == NULL )
   {
     fprintf ( stderr, "Cannot make property from non-existent instruction\n" );
+    erroroccured = 1;
     return -1;
   }
 
   if ( strlen ( instr ) < 2 )
   {
     fprintf ( stderr, "Instruction should be 2 characters in length\n" );
+    erroroccured = 1;
     return -1;
   }
 
@@ -239,12 +243,14 @@ DATATYPE getDataType ( ANODE *currnode )
   if ( currnode == NULL )
   {
     fprintf ( stderr, "Cannot get data type of child of non-existent node\n" );
+    erroroccured = 1;
     return -1;
   }
 
   if ( currnode -> num_of_children <= 0 )
   {
     fprintf ( stderr, "Trying to get data type of child of node with no children\n" );
+    erroroccured = 1;
     return -1;
   }
 
@@ -285,6 +291,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
   if ( inputtoken == NULL )
   {
     fprintf ( stderr, "Cannot extract non-existent token data\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -301,6 +308,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
   if ( i == len )
   {
     fprintf ( stderr, "No auxiliary data seems to be present?\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -317,6 +325,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
   if ( i == len )
   {
     fprintf ( stderr, "Insufficient amount of auxiliary data\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -951,6 +960,7 @@ void handleAuxiliaryTerminalOperations (
             fprintf ( stderr, "Redeclaration of variable %s at line %d\n", tokenname, linenumber );
             fprintf ( stderr, "Note: Previous declaration of %s as a function on line %d.\n",
                       tokenname, previousentry -> data . func_data . decl_line );
+            erroroccured = 1;
 
             // Do not count this variable declaration
             // Return from the function to avoid further processing
@@ -963,6 +973,7 @@ void handleAuxiliaryTerminalOperations (
             fprintf ( stderr, "Note: Previous declaration of %s as type %s on line %d.\n",
                       tokenname, getDataTypeName ( previousentry -> data . var_data . data_type ),
                       previousentry -> data . var_data . decl_line );
+            erroroccured = 1;
 
             // Do not count the redeclaration, process the rest of the input as
             // though this declaration didn't occur
@@ -976,6 +987,7 @@ void handleAuxiliaryTerminalOperations (
           fprintf ( stderr, "Redeclaration of function %s at line number %d\n", tokenname, linenumber );
           fprintf ( stderr, "Note: Previous declaration of %s at line number %d.\n", tokenname,
                     previousentry -> data . func_data . decl_line );
+          erroroccured = 1;
 
           // Update the function to the latest declaration, and let the
           // parameters be updated automatically.
@@ -1032,6 +1044,7 @@ void handleAuxiliaryTerminalOperations (
           else
           {
             fprintf ( stderr, "At node %s did not recognize variable type\n", getNodeTypeName ( currnode -> node_type ) );
+            erroroccured = 1;
           }
 
           // Set the data type using the data type of the first child
@@ -1057,6 +1070,8 @@ void handleAuxiliaryTerminalOperations (
       {
         fprintf ( stderr, "Variable %s used but has not been declared in this scope\n", tokenname );
         fprintf ( stderr, "Note: Error at line %d.\n", linenumber );
+
+        erroroccured = 1;
 
         // Let all the rest of the errors associated with the undeclared variable
         // show up as well, for ease of debugging
@@ -1302,6 +1317,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   if ( stbdumpfile == NULL )
   {
     fprintf ( stderr, "Failed to open STB dump file\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -1560,7 +1576,7 @@ int main ( )
   stat ( "/", &fi );
   int blocksize = fi.st_blksize;
 
-
+  erroroccured = 0;
 
   /*********************************************************
     *                                                      *
@@ -1719,6 +1735,9 @@ int main ( )
     fprintf ( stderr, "Failed to close AST dump file\n" );
 
   if ( DEBUG_ALL ) printf ( "AST successfully built\n" );
+
+  if ( erroroccured == 1 )
+    return -1;
 
   return 0;
 }

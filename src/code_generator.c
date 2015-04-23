@@ -125,6 +125,7 @@ typedef struct stack_entry
   int upordown;
 } STACKENTRY;
 
+int erroroccured = 0;
 int shouldintprint = 0;
 int hasglobalvars = 0;
 int hasfunctions = 0;
@@ -238,6 +239,7 @@ ANODE* getFirstChild ( ANODE *node )
   {
     fprintf ( stderr, "Cannot get first child of node with no children\n" );
     fprintf ( stderr, "At node %s\n", getNodeTypeName ( node -> node_type ) );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -249,6 +251,7 @@ ANODE* getSecondChild ( ANODE *node )
   if ( node -> num_of_children < 2 )
   {
     fprintf ( stderr, "Cannot get non existent second child of node\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -260,6 +263,7 @@ ANODE* getThirdChild ( ANODE *node )
   if ( node -> num_of_children < 3 )
   {
     fprintf ( stderr, "Cannot get non existent 3rd child\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -271,6 +275,7 @@ ANODE* getFourthChild ( ANODE *node )
   if ( node -> num_of_children < 4 )
   {
     fprintf ( stderr, "Cannot get non existent 4th child\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -282,6 +287,7 @@ ANODE* getFifthChild ( ANODE *node )
   if ( node -> num_of_children < 5 )
   {
     fprintf ( stderr, "Cannot get non existent 5th child\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -446,6 +452,7 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
     if ( funcentry == NULL )
     {
       fprintf ( stderr, "Function entry not found in symbol table for some reason...\n" );
+      erroroccured = 1;
       return;
     }
 
@@ -485,6 +492,7 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
     if ( retentry == NULL )
     {
       fprintf ( stderr, "Return type entry not found in the symbol table" );
+      erroroccured = 1;
       return;
     }
 
@@ -506,17 +514,20 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
   {
     fprintf ( stderr, "Error: Break statements can only occur inside loops.\n" );
 
+    erroroccured = 1;
     // Continue processing after ignoring the node
     return;
   }
   else if ( currnode -> node_type == AST_RETURNSTMT_NODE && *infunction == 0 )
   {
     fprintf ( stderr, "Error: Return statements can only occur inside function definitions.\n" );
+    erroroccured = 1;
     return;
   }
   else if ( currnode -> node_type == AST_DEPTH_NODE && *loopcount <= 0 && *bdftcount <= 0 )
   {
     fprintf ( stderr, "Error: Depth can only be used inside a BFT / DFT based loop.\n" );
+    erroroccured = 1;
     return;
   }
   else if ( currnode -> node_type == AST_LET_NODE )
@@ -528,7 +539,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getSecondChild ( currnode ) -> result_type == D_INT_TYPE )
         fprintf ( stderr, "Warning: Implicit conversion from Int to Float in Let statement\n" );
       else
+      {
         fprintf ( stderr, "Error: Assigning incompatible types in let statement\n" );
+        erroroccured = 1;
+      }
       return;
     }
 
@@ -538,6 +552,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( entry -> entry_type == ENTRY_FUNC_TYPE )
     {
       fprintf ( stderr, "Error: Attempting to assign to a function identifier\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -551,6 +566,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     else if ( currnode -> num_of_children == 2 )
     {
       fprintf ( stderr, "Invalid tree produced! Assignable can't have exactly 2 children\n" );
+      erroroccured = 1;
       return;
     }
     else if ( currnode -> num_of_children == 3 )
@@ -563,12 +579,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
         fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        erroroccured = 1;
         return;
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
         fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -578,6 +596,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
           fprintf ( stderr, "Error: Edge object has no root member\n" );
+          erroroccured = 1;
           return;
         }
       }
@@ -585,6 +604,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
         fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -593,12 +613,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
         fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        erroroccured = 1;
         return;
       }
     }
     else
     {
       fprintf ( stderr, "Invalid tree produced! Assignable can't have more than 3 children\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -625,6 +647,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE )
     {
       fprintf ( stderr, "Error: Cannot read non-primitive value using the read statement\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -639,6 +662,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
          && child -> result_type != D_STRING_TYPE )
     {
       fprintf ( stderr, "Error: Cannot print a value that is not a string, an int or a float\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -650,6 +674,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
     {
       fprintf ( stderr, "Error: Values on the two sides of the compare expression are not the same\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -669,6 +694,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
         {
           fprintf ( stderr, "Error: Floats and Ints can only be added to other Floats and Ints respectively\n" );
+          erroroccured = 1;
           return;
         }
 
@@ -676,6 +702,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         {
           // The right child gives us the operation type
           fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
+          erroroccured = 1;
           return;
         }
 
@@ -684,6 +711,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       else if ( firsttype == D_STRING_TYPE || secondtype == D_STRING_TYPE )
       {
         fprintf ( stderr, "Error: Operations on String are not allowed\n" );
+        erroroccured = 1;
         return;
       }
       else if ( firsttype == D_GRAPH_TYPE || firsttype == D_TREE_TYPE )
@@ -693,9 +721,11 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         {
           fprintf ( stderr, "Operator type: %d\n", getSecondChild ( currnode ) -> extra_data . arop_type );
           fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+          erroroccured = 1;
         }
         else if ( secondtype != D_VERTEX_TYPE && secondtype != D_EDGE_TYPE )
           fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+        erroroccured = 1;
 
         result = firsttype;
       }
@@ -703,19 +733,31 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       {
         if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
              && currnode -> extra_data . arop_type != A_MINUS_TYPE )
+        {
           fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+          erroroccured = 1;
+        }
         else if ( firsttype != D_VERTEX_TYPE && firsttype != D_EDGE_TYPE )
+        {
           fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+          erroroccured = 1;
+        }
 
         result = secondtype;
       }
       else
+      {
         fprintf ( stderr, "Error: Invalid operands provided in expression\n" );
+        erroroccured = 1;
+      }
 
       currnode -> result_type = result;
     }
     else
+    {
       fprintf ( stderr, "Invalid tree produced! EXP node should not have more than 2 children\n" );
+      erroroccured = 1;
+    }
   }
   else if ( currnode -> node_type == AST_PASSEDPARAMS_NODE )
   {
@@ -731,6 +773,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( funcentry -> num_params != currnode -> num_of_children )
     {
       fprintf ( stderr, "Error: Number of passed parameters don't match with the function definition\n" );
+      erroroccured = 1;
       return;
     }
 
@@ -751,6 +794,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( paramtype != passedtype )
       {
         fprintf ( stderr, "Error: The type of the passed parameter to the function doesn't match the definition\n" );
+        erroroccured = 1;
         return;
       }
     }
@@ -771,7 +815,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       // The return type is nothing
 
       if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
+      {
         fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+        erroroccured = 1;
+      }
 
       return;
     }
@@ -780,6 +827,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
          != getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type )
     {
       fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -802,7 +850,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       ANODE *child = getFirstChild ( currnode );
 
       if ( child -> node_type == AST_LITERAL_NODE && child -> result_type != D_INT_TYPE )
+      {
         fprintf ( stderr, "Error: The number of iterations of a for loop must be an Integer\n" );
+        erroroccured = 1;
+      }
       else if ( child -> node_type == AST_IDENTIFIER_NODE )
       {
         unsigned int index = child -> extra_data . symboltable_index;
@@ -812,12 +863,16 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( entry -> entry_type == ENTRY_FUNC_TYPE || entry -> data . var_data .data_type != D_INT_TYPE )
         {
           fprintf ( stderr, "Error: The identifier in a for loop must be an integer variable\n" );
+          erroroccured = 1;
           return;
         }
       }
     }
     else if ( currnode -> num_of_children == 3 )
+    {
       fprintf ( stderr, "Invalid tree produced! For node cannot have 3 children\n" );
+      erroroccured = 1;
+    }
     else if ( currnode -> num_of_children == 4 )
     {
       // The first child must be a Vertex or an Edge and the third child must be a Graph or Tree
@@ -826,6 +881,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
         fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -833,11 +889,15 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
       {
         fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+        erroroccured = 1;
         return;
       }
     }
     else if ( currnode -> num_of_children == 5 )
+    {
       fprintf ( stderr, "Invalid tree produced! For node cannot have 5 children\n" );
+      erroroccured = 1;
+    }
     else if ( currnode -> num_of_children == 6 )
     {
       // We can have two cases here. Either the construct can be:
@@ -850,6 +910,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
         fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -859,12 +920,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
              && getFourthChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
           fprintf ( stderr, "Error: The first parameter to BFT or DFT must be a Graph or Tree\n" );
+          erroroccured = 1;
           return;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
           fprintf ( stderr, "Error: The second parameter to BFT/DFT must be a Vertex\n" );
+          erroroccured = 1;
           return;
         }
       }
@@ -876,12 +939,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
              && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
           fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+          erroroccured = 1;
           return;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
           fprintf ( stderr, "Error: The adjacent to parameter must be a Vertex\n" );
+          erroroccured = 1;
           return;
         }
       }
@@ -893,6 +958,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
          || getSecondChild ( currnode ) -> result_type != D_VERTEX_TYPE )
     {
       fprintf ( stderr, "Error: The components of an edge must be vertices\n" );
+      erroroccured = 1;
       return;
     }
 
@@ -926,6 +992,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
             getFirstChild ( currnode ) -> extra_data . symboltable_index ) -> entry_type != ENTRY_FUNC_TYPE )
       {
         fprintf ( stderr, "Error: Attempting to call a variable like a function\n" );
+        erroroccured = 1;
         return;
       }
     }
@@ -938,12 +1005,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
         fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        erroroccured = 1;
         return;
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
         fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -953,6 +1022,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
           fprintf ( stderr, "Error: Edge object has no root member\n" );
+          erroroccured = 1;
           return;
         }
       }
@@ -960,6 +1030,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
         fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        erroroccured = 1;
         return;
       }
 
@@ -968,6 +1039,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
         fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        erroroccured = 1;
         return;
       }
     }
@@ -989,6 +1061,7 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
       {
         fprintf ( stderr, "Error: Primitive type objects have no members\n" );
+        erroroccured = 1;
         return;
       }
     }
@@ -1299,6 +1372,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( codefile == NULL )
   {
     fprintf ( stderr, "Failed to open assembly code file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1308,6 +1382,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( functionfile == NULL )
   {
     fprintf ( stderr, "Failed to open assembly functions file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1317,6 +1392,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( varfile == NULL )
   {
     fprintf ( stderr, "Failed to open variables file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1510,6 +1586,9 @@ int main ( )
 
   if ( fclose ( stbdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close Symbol Table dump file\n" );
+
+  if ( erroroccured == 1 )
+    return -1;
 
   return 0;
 }
