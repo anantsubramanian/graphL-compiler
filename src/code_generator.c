@@ -19,7 +19,7 @@
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
-#define DEBUG_STB_AUXOPS 1
+#define DEBUG_STB_AUXOPS 0
 
 #define BUFFERLEN 400
 #define NEWLINE '\n'
@@ -125,6 +125,7 @@ typedef struct stack_entry
   int upordown;
 } STACKENTRY;
 
+int curroffset = 0;
 int erroroccured = 0;
 int shouldintprint = 0;
 int hasglobalvars = 0;
@@ -1130,6 +1131,69 @@ void writeIntPrintFunction ( FILE *assemblyfile )
   fprintf ( assemblyfile, "\tret\n" );
 }
 
+int getSize ( DATATYPE type )
+{
+  switch ( type )
+  {
+    case D_INT_TYPE    :
+    case D_FLOAT_TYPE  :
+    case D_STRING_TYPE : return 1;
+    case D_VERTEX_TYPE :
+    case D_TREE_TYPE   : return 3;
+    case D_GRAPH_TYPE  : return 2;
+    case D_EDGE_TYPE   : return 6;
+    default            : fprintf ( stderr, "Querying for size of unrecognized type\n" );
+                         return 0;
+  }
+}
+
+int getSubtreeActivationSize ( ANODE *root )
+{
+  if ( root -> node_type == AST_DATATYPE_NODE )
+    return ( getParent ( root ) -> num_of_children - 1 ) * getSize ( root -> extra_data . data_type );
+
+  int value = 0;
+  LNODE iterator;
+  getIterator ( root -> children, & iterator );
+
+  while ( hasNext ( & iterator ) )
+  {
+    getNext ( root -> children, & iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    value += getSubtreeActivationSize ( child );
+  }
+
+  return value;
+}
+
+int getProgramSize ( ANODE *programNode )
+{
+  if ( programNode -> node_type != AST_PROGRAM_NODE )
+  {
+    fprintf ( stderr, "Call getProgramSize on a program node next time\n" );
+    return -1;
+  }
+
+  int value = 0;
+  LNODE iterator;
+  getIterator ( programNode -> children, & iterator );
+
+  while ( hasNext ( & iterator ) )
+  {
+    getNext ( programNode -> children, & iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    if ( child -> node_type == AST_GLOBALDEFINE_NODE
+         || child -> node_type == AST_FUNCTION_NODE )
+      continue;
+
+    value += getSubtreeActivationSize ( child );
+  }
+
+  return value;
+}
+
 void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
                     FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile,
                     int infunction )
@@ -1201,12 +1265,6 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
     }
 
     curlitindex ++;
-  }
-  else if ( currnode -> node_type == AST_GLOBALDEFINES_NODE )
-  {
-    hasglobalvars = 1;
-    startwritten = 1;
-    fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
   }
   else if ( currnode -> node_type == AST_LET_NODE )
   {
@@ -1291,6 +1349,37 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       }
     }
   }
+  else if ( currnode -> node_type == AST_IDENTIFIER_NODE )
+  {
+    STBENTRY *entry = getEntryByIndex ( symboltable, currnode -> extra_data . symboltable_index );
+
+    if ( getParent ( currnode ) -> node_type == AST_DEFINE_NODE )
+    {
+      entry -> offset = curroffset;
+      curroffset += getSize ( entry -> data . var_data . data_type );
+    }
+    else if ( entry -> entry_type == ENTRY_VAR_TYPE )
+      currnode -> offset = entry -> offset;
+  }
+  else if ( currnode -> node_type == AST_ASSIGNABLE_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+      currnode -> offset = getFirstChild ( currnode ) -> offset;
+  }
+}
+
+void topDownCodeGeneration ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile,
+                             FILE *codefile, FILE *functionfile, TRIE *literaltrie,
+                             LITDATA *literals, FILE *datafile, int infunction )
+{
+  // Function used primarily to reserve stack space
+  if ( currnode -> node_type == AST_PROGRAM_NODE )
+  {
+    int toReserve = getProgramSize ( currnode );
+    fprintf ( codefile, "\tpush\tebp\n" );
+    fprintf ( codefile, "\tmov\tebp, esp\n" );
+    fprintf ( codefile, "\n\tsub\tesp, %d\t\t;Reserve %d stack space\n\n", toReserve, toReserve );
+  }
 }
 
 void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile,
@@ -1365,6 +1454,9 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
 
         stack = push ( stack, & temp );
       }
+
+      topDownCodeGeneration ( currnode, symboltable, assemblyfile, codefile, functionfile,
+                              literaltrie, literals, datafile, infunction );
     }
     else
     {
@@ -1394,6 +1486,8 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
 
 void writeReturnZero ( FILE *codefile )
 {
+  fprintf ( codefile, "\n\tmov esp, ebp\n" );
+  fprintf ( codefile, "\tpop ebp\n" );
   fprintf ( codefile, "\n\tmov eax, 1\n" );
   fprintf ( codefile, "\tmov ebx, 0\n" );
   fprintf ( codefile, "\tint 80h\n\n" );
