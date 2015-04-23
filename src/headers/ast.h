@@ -85,7 +85,12 @@ typedef struct ast_node
   int node_type;
   int num_of_children;
   struct ast_node *parent;
-  int offset;
+  int global_or_local;
+  int offsetcount;
+  int offsetreg;
+  int offset1;
+  int offset2;
+  int offset3;
   DATATYPE result_type;
   LINKEDLIST *children;
   union

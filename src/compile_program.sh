@@ -3,10 +3,10 @@
 # file.
 # Argument 1 = <program_file>
 # Argument 2 = [Option]
-#              l  - Stop after lexer
-#              p  - Stop after parser
-#              ag - Stop after AST generator
-#              as - Stop after Assembly code generation
+#              -l   - Stop after lexer
+#              -p   - Stop after parser
+#              -ast - Stop after AST generator
+#              -asm - Stop after Assembly code generation
 #
 # If no argument 2 is provided, the input is compiled in full to
 # an executable
@@ -31,7 +31,7 @@ if [ "$ext" == "G" ]; then
   fi
 
   # Stop at lexer
-  if [ "$2" == "l" ]; then
+  if [ "$2" == "-l" ]; then
     exit
   fi
 
@@ -43,7 +43,7 @@ if [ "$ext" == "G" ]; then
   fi
 
   # Stop at parser
-  if [ "$2" == "p" ]; then
+  if [ "$2" == "-p" ]; then
     exit
   fi
 
@@ -53,7 +53,7 @@ if [ "$ext" == "G" ]; then
   fi
 
   # Stop at AST generator
-  if [ "$2" == "ag" ]; then
+  if [ "$2" == "-ast" ]; then
     exit
   fi
 
@@ -63,7 +63,8 @@ if [ "$ext" == "G" ]; then
   fi
 
   # Stop at assembly code
-  if [ "$2" == "as" ]; then
+  if [ "$2" == "-asm" ]; then
+    mv ASMFILE.asm ${name}.asm
     exit
   fi
 elif [ "$ext" == "asm" ]; then

@@ -192,7 +192,11 @@ ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
   node -> result_type = D_TYPE_FIRST;
   node -> children = getLinkedList ( LL_GENERIC_TYPE );
   node -> children = setGenericSize ( node -> children, sizeof ( ANODE * ) );
-  node -> offset = 0;
+  node -> offsetcount = 0;
+  node -> offsetreg = 0;
+  node -> offset1 = 0;
+  node -> offset2 = 0;
+  node -> offset3 = 0;
   node -> extra_data . data_type = 0;
 
   return node;

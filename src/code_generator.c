@@ -20,7 +20,9 @@
 
 #define DEBUG_AST_CONSTRUCTION 0
 #define DEBUG_STB_AUXOPS 0
+#define DEBUG_REGISTER_ALLOC 1
 
+#define NUMREG 6
 #define BUFFERLEN 400
 #define NEWLINE '\n'
 #define STB_DUMP_FILE "STBDUMP"
@@ -34,6 +36,12 @@
 #define ROOTNODENAME "AST_ROOT_NODE"
 #define LOWER16MASK 0b00000000000000001111111111111111
 #define UPPER16MASK 0b11111111111111110000000000000000
+#define ONE_OFFSET 1
+#define TWO_OFFSETS 2
+#define THREE_OFFSETS 3
+#define DATA_IN_REG 4
+#define IS_GLOBAL 0
+#define IS_LOCAL 1
 
 // Required language-specific tokens for semantic analysis
 #define TK_BEGIN "TK_BEGIN"
@@ -117,6 +125,22 @@
 #define DOWN 0
 #define UP 1
 
+// Begin offsets
+#define INTOFFSET 0
+#define FLOATOFFSET 4
+#define STRINGOFFSET 8
+#define SOURCEOFFSET 12
+#define DESTOFFSET 16
+#define WEIGHTOFFSET 20
+#define VLISTOFFSET 0
+#define ELISTOFFSET 4
+#define ROOTOFFSET 8
+// End offsets
+
+#define NO_SPECIFIC_REG -1
+#define OFFSET_ANY -1
+#define EAX_REG 0
+
 // The structure that is pushed on the stack to check whether this node is being
 // poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
 typedef struct stack_entry
@@ -124,6 +148,131 @@ typedef struct stack_entry
   ANODE *node;
   int upordown;
 } STACKENTRY;
+
+typedef struct register_data
+{
+  int flushed;
+  int stbindex;
+  int offset1;
+  int offset2;
+  int offset3;
+  int istemp;
+  int isglobal;
+} REGISTER;
+
+REGISTER registers [ NUMREG ];
+int roundrobinreg = 0;
+
+char registerNames[][4] = {
+
+  "eax",
+  "ebx",
+  "ecx",
+  "edx",
+  "esi",
+  "edi"
+};
+
+char* getRegisterName ( int regid )
+{
+  return registerNames [ regid ];
+}
+
+void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
+{
+  if ( registers [ topick ] . isglobal == IS_GLOBAL )
+  {
+    if ( topick == EAX_REG )
+      fprintf ( codefile, "\tpush\tebx\n" );
+    else
+      fprintf ( codefile, "\tpush\teax\n" );
+
+    char *varname = getEntryByIndex ( symboltable, registers [ topick ] . stbindex ) -> data . var_data . name;
+    char midc = ((topick == EAX_REG) ? 'b' : 'a');
+
+    if ( registers [ topick ] . offset2 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[%s], %s\n", varname, getRegisterName ( topick ) );
+    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[%s+%d], %s\n", varname, registers [ topick ] . offset2, getRegisterName ( topick ) );
+    else
+    {
+      fprintf ( codefile, "\tmov\te%cx, [%s+%d]\n", midc, varname, registers [ topick ] . offset2 );
+      fprintf ( codefile, "\tadd\te%cx, %d\n", midc, registers [ topick] . offset3 );
+      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
+    }
+
+    fprintf ( codefile, "\tpop\te%cx\n", midc );
+  }
+  else
+  {
+    if ( topick == EAX_REG )
+      fprintf ( codefile, "\tpush\tebx\n" );
+    else
+      fprintf ( codefile, "\tpush\teax\n" );
+
+    char midc = ((topick == EAX_REG) ? 'b' : 'a');
+
+    if ( registers [ topick ] . offset2 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", registers [ topick ] . offset1, getRegisterName ( topick ) );
+    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
+    {
+      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
+      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", resultant, getRegisterName ( topick ) );
+    }
+    else
+    {
+      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
+      fprintf ( codefile, "\tmov\te%cx, [ebp-%d]\n", midc, resultant );
+      fprintf ( codefile, "\tsub\te%cx, %d\n", midc, registers [ topick ] . offset3 );
+      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
+    }
+
+    fprintf ( codefile, "\tpop\te%cx\n", midc );
+  }
+
+  registers [ topick ] . flushed = 1;
+}
+
+int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_index, int offset1,
+                  int offset2, int offset3, int topick, int istemp )
+{
+  int i;
+  if ( ! istemp )
+  {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . stbindex == symboltable_index
+           && ( registers [i] . offset1 == offset1 || offset1 == OFFSET_ANY )
+           && ( registers [i] . offset2 == offset2 || offset2 == OFFSET_ANY )
+           && ( registers [i] . offset3 == offset3 || offset3 == OFFSET_ANY )
+           && registers [i] . flushed == 0
+           && registers [i] . istemp != 1 )
+      {
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
+        return i;
+      }
+
+    if ( DEBUG_REGISTER_ALLOC )
+      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
+  }
+
+  for ( i = 0; i < NUMREG; i++ )
+    if ( registers [i] . flushed )
+      return i;
+
+  // All registers need to be flushed, so pick one and flush
+  if ( topick == NO_SPECIFIC_REG )
+  {
+    topick = (roundrobinreg + 1) % NUMREG;
+    while ( registers [ topick ] . istemp )
+      topick = (roundrobinreg + 1) % NUMREG;
+  }
+
+  flushRegister ( topick, codefile, symboltable );
+
+  registers [topick] . flushed = 1;
+  return topick;
+}
 
 int curroffset = 0;
 int erroroccured = 0;
@@ -1076,19 +1225,10 @@ void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
 {
   fprintf ( datafile, "extern printf\n\n" );
   fprintf ( datafile, "section .data\n" );
-  fprintf ( datafile, "\t_int_string:\t\tdb\t'0000000000',10,0\n" );
+  fprintf ( datafile, "\t_int_string:\t\t\tdb\t'0000000000',10,0\n" );
   fprintf ( datafile, "\t_float_format:\t\tdb\t\"%%f\",10,0\n" );
-  fprintf ( datafile, "\t_float_temp:\t\tdq\t0\n" );
+  fprintf ( datafile, "\t_float_temp:\t\t\tdq\t0\n" );
   fprintf ( datafile, "\t_string_format:\t\tdb\t\"%%s\",0\n" );
-  fprintf ( datafile, "\tintoffset:\t\tequ\t0\n" );
-  fprintf ( datafile, "\tfloatoffset:\t\tequ\t1\n" );
-  fprintf ( datafile, "\tstringoffset:\t\tequ\t2\n" );
-  fprintf ( datafile, "\tsourceoffset:\t\tequ\t3\n" );
-  fprintf ( datafile, "\tdestoffset:\t\tequ\t4\n" );
-  fprintf ( datafile, "\tweightoffset:\t\tequ\t5\n" );
-  fprintf ( datafile, "\trootoffset:\t\tequ\t2\n" );
-  fprintf ( datafile, "\tvlistoffset:\t\tequ\t0\n" );
-  fprintf ( datafile, "\telistoffset:\t\tequ\t1\n" );
 
   fprintf ( assemblyfile, "\nsection .bss\n" );
 
@@ -1194,6 +1334,74 @@ int getProgramSize ( ANODE *programNode )
   return value;
 }
 
+int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable )
+{
+  int o1 = assignable -> offset1;
+  int o2 = (assignable -> offsetcount > 1) ? assignable -> offset2 : OFFSET_ANY;
+  int o3 = (assignable -> offsetcount > 2) ? assignable -> offset3 : OFFSET_ANY;
+
+  int target = getRegister ( codefile, symboltable, getFirstChild ( assignable ) -> extra_data . symboltable_index,
+                             o1, o2, o3, NO_SPECIFIC_REG, 0 );
+
+  if ( assignable -> global_or_local == IS_LOCAL )
+  {
+    if ( assignable -> offsetcount == ONE_OFFSET )
+    {
+      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset1 );
+    }
+    else
+    {
+      int resultant = assignable -> offset2 + assignable -> offset1;
+      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), resultant );
+    }
+
+    if ( assignable -> offsetcount == THREE_OFFSETS )
+    {
+      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+    }
+  }
+  else
+  {
+    // Is a global variable
+    char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+    if ( assignable -> offsetcount == ONE_OFFSET )
+      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
+    else
+    {
+      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
+      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset2 );
+    }
+
+    if ( assignable -> offsetcount == THREE_OFFSETS )
+    {
+      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
+      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+    }
+  }
+
+  registers [ target ] . isglobal = assignable -> global_or_local;
+  registers [ target ] . istemp = 0;
+  registers [ target ] . flushed = 0;
+  registers [ target ] . stbindex = getFirstChild ( assignable ) -> extra_data . symboltable_index;
+  registers [ target ] . offset1 = assignable -> offset1;
+  registers [ target ] . offset3 = assignable -> offset3;
+
+  if ( assignable -> offsetcount > 1 )
+    registers [ target ] . offset2 = assignable -> offset2;
+  else
+    registers [ target ] . offset2 = OFFSET_ANY;
+
+  if ( assignable -> offsetcount > 2 )
+    registers [ target ] . offset3 = assignable -> offset3;
+  else
+    registers [ target ] . offset3 = OFFSET_ANY;
+
+  return target;
+}
+
 void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
                     FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile,
                     int infunction )
@@ -1268,14 +1476,15 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
   }
   else if ( currnode -> node_type == AST_LET_NODE )
   {
-    STBENTRY *entry = getEntryByIndex ( symboltable,
-        getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+    ANODE *assignable = getFirstChild ( currnode );
 
-    if ( entry -> data . var_data . var_type == V_GLOBAL_TYPE )
-    {
-      // Entry is a global type, so we can copy to it using its name
+    int targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
 
-    }
+    int resultreg = getSecondChild ( currnode ) -> offsetreg;
+
+    fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
+
+    registers [ resultreg ] . flushed = 1;
   }
   else if ( currnode -> node_type == AST_PRINT_NODE )
   {
@@ -1296,7 +1505,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         fprintf ( outputfile, "\tpusha\n" );
         fprintf ( outputfile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
         fprintf ( outputfile, "\tcall printInt\n" );
-        fprintf ( outputfile, "\tpopa\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
@@ -1314,7 +1523,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
         fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
         fprintf ( outputfile, "\tcall\tprintf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 12\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n\n" );
       }
     }
     else
@@ -1323,29 +1532,170 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       // Get its offset, which is inherited and stored in the assignable node child
       // Use result_type to decide the type and print accordingly
 
-      if ( getFirstChild ( currnode ) -> result_type == D_INT_TYPE )
+      ANODE *assignable = getFirstChild ( currnode );
+
+      if ( assignable -> result_type == D_INT_TYPE )
       {
         shouldintprint = 1;
         fprintf ( outputfile, "\tpusha\n" );
-        fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", getFirstChild ( currnode ) -> offset );
+        if ( assignable -> global_or_local == IS_LOCAL )
+        {
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", assignable -> offset1 );
+          else
+          {
+            int resultant = assignable -> offset2 + assignable -> offset1;
+            fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", resultant );
+          }
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+        }
+        else
+        {
+          // Is a global variable
+          char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tmov\teax, [%s]\n", varname );
+          else
+            fprintf ( outputfile, "\tmov\teax, [%s+%d]\n", varname, assignable -> offset2 );
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+        }
         fprintf ( outputfile, "\tcall printInt\n" );
-        fprintf ( outputfile, "\tpopa\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
-      else if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE )
+      else if ( assignable -> result_type == D_STRING_TYPE )
       {
-        fprintf ( outputfile, "\tpush\tdword\t[ebp-%d]\n", getFirstChild ( currnode ) -> offset );
-        fprintf ( outputfile, "\tcall printf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 4\n" );
+        if ( assignable -> global_or_local == IS_LOCAL )
+        {
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tpush\tdword\t[ebp-%d]\n", assignable -> offset1 );
+          else
+          {
+            fprintf ( outputfile, "\tpush\teax\n" );
+            int resultant = assignable -> offset2 + assignable -> offset1;
+            fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", resultant );
+          }
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpush\tdword\teax\n" );
+
+          fprintf ( outputfile, "\tpush\tdword\t_string_format\n" );
+          fprintf ( outputfile, "\tcall printf\n" );
+          fprintf ( outputfile, "\tadd\tesp, 4\n\n" );
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpop\teax\n\n" );
+        }
+        else
+        {
+          // Is a global variable
+
+          char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tpush\tdword\t[%s]\n", varname );
+          else
+          {
+            fprintf ( outputfile, "\tpush\teax\n" );
+            fprintf ( outputfile, "\tmov\teax, [%s+%d]\n", varname, assignable -> offset2 );
+          }
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpush\tdword\teax\n" );
+
+          fprintf ( outputfile, "\tpush\tdword\t_string_format\n" );
+          fprintf ( outputfile, "\tcall printf\n" );
+          fprintf ( outputfile, "\tadd\tesp, 4\n\n" );
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpop\teax\n\n" );
+        }
       }
-      else if ( getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
+      else if ( assignable -> result_type == D_FLOAT_TYPE )
       {
-        fprintf ( outputfile, "\tfld\tdword\t[ebp-%d]\n", getFirstChild ( currnode ) -> offset );
-        fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
-        fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
-        fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
-        fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
-        fprintf ( outputfile, "\tcall\tprintf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 12\n" );
+        if ( assignable -> global_or_local == IS_LOCAL )
+        {
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tfld\tdword\t[ebp-%d]\n", assignable -> offset1 );
+          else
+          {
+            fprintf ( outputfile, "\tpush\teax\n" );
+            int resultant = assignable -> offset2 + assignable -> offset1;
+            fprintf ( outputfile, "\tmov\teax, [ebp-%d]\n", resultant );
+          }
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tfld\tdword\teax\n" );
+
+          fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+          fprintf ( outputfile, "\tcall\tprintf\n" );
+          fprintf ( outputfile, "\tadd\tesp, 12\n\n" );
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpop\teax\n\n" );
+        }
+        else
+        {
+          // Is a global variable
+          char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+
+          if ( assignable -> offsetcount == ONE_OFFSET )
+            fprintf ( outputfile, "\tfld\tdword\t[%s]\n", varname );
+          else
+          {
+            fprintf ( outputfile, "\tpush\teax\n" );
+            int resultant = assignable -> offset2 - assignable -> offset1;
+            fprintf ( outputfile, "\tmov\teax, [%s+%d]\n", varname, resultant );
+          }
+
+          if ( assignable -> offsetcount == THREE_OFFSETS )
+          {
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tmov\teax, [eax]\n" );
+          }
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tfld\tdword\teax\n" );
+
+          fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+          fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+          fprintf ( outputfile, "\tcall\tprintf\n" );
+          fprintf ( outputfile, "\tadd\tesp, 12\n\n" );
+
+          if ( assignable -> offsetcount > ONE_OFFSET )
+            fprintf ( outputfile, "\tpop\teax\n\n" );
+        }
       }
     }
   }
@@ -1355,16 +1705,117 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     if ( getParent ( currnode ) -> node_type == AST_DEFINE_NODE )
     {
+      fprintf ( stderr, "Offset for %s is %d\n", entry -> data . var_data . name, curroffset );
       entry -> offset = curroffset;
-      curroffset += getSize ( entry -> data . var_data . data_type );
+      curroffset += getSize ( entry -> data . var_data . data_type ) * 4;
     }
     else if ( entry -> entry_type == ENTRY_VAR_TYPE )
-      currnode -> offset = entry -> offset;
+    {
+      if ( entry -> data . var_data . var_type == V_GLOBAL_TYPE )
+      {
+        currnode -> global_or_local = IS_GLOBAL;
+        currnode -> offsetcount = ONE_OFFSET;
+        currnode -> offset1 = entry -> index;
+      }
+      else
+      {
+        currnode -> global_or_local = IS_LOCAL;
+        currnode -> offsetcount = ONE_OFFSET;
+        currnode -> offset1 = entry -> offset;
+      }
+    }
   }
   else if ( currnode -> node_type == AST_ASSIGNABLE_NODE )
   {
     if ( currnode -> num_of_children == 1 )
-      currnode -> offset = getFirstChild ( currnode ) -> offset;
+    {
+      currnode -> offsetcount = getFirstChild ( currnode ) -> offsetcount;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+    }
+    else if ( currnode -> num_of_children == 3 )
+    {
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+
+      currnode -> offsetcount = 1 + getThirdChild ( currnode ) -> offsetcount;
+
+      currnode -> offset2 = getThirdChild ( currnode ) -> offset1;
+      currnode -> offset3 = getThirdChild ( currnode ) -> offset2;
+    }
+  }
+  else if ( currnode -> node_type == AST_ENDASSIGN_NODE )
+  {
+    if ( currnode -> num_of_children == 0 )
+    {
+      currnode -> offsetcount = ONE_OFFSET;
+      if ( currnode -> extra_data . data_type == D_INT_TYPE )
+        currnode -> offset1 = INTOFFSET;
+      else if ( currnode -> extra_data . data_type == D_FLOAT_TYPE )
+        currnode -> offset1 = FLOATOFFSET;
+      else if ( currnode -> extra_data . data_type == D_STRING_TYPE )
+        currnode -> offset1 = STRINGOFFSET;
+    }
+    else if ( currnode -> num_of_children == 1 || currnode -> num_of_children == 2 )
+    {
+      if ( currnode -> num_of_children == 1 )
+        currnode -> offsetcount = ONE_OFFSET;
+      else
+        currnode -> offsetcount = TWO_OFFSETS;
+
+      if ( getFirstChild ( currnode ) -> node_type == AST_ROOT_NODE )
+        currnode -> offset1 = ROOTOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_SOURCE_NODE )
+        currnode -> offset1 = SOURCEOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_DEST_NODE )
+        currnode -> offset1 = DESTOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
+        currnode -> offset1 = WEIGHTOFFSET;
+
+      if ( currnode -> num_of_children == 2 )
+      {
+        if ( currnode -> extra_data . data_type == D_INT_TYPE )
+          currnode -> offset2 = INTOFFSET;
+        else if ( currnode -> extra_data . data_type == D_FLOAT_TYPE )
+          currnode -> offset2 = FLOATOFFSET;
+        else if ( currnode -> extra_data . data_type == D_STRING_TYPE )
+          currnode -> offset2 = STRINGOFFSET;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_EXP_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+    {
+      if ( getFirstChild ( currnode ) -> node_type == AST_LITERAL_NODE )
+      {
+        LITERAL *litdata = & ( getEntryByIndex ( symboltable,
+          getFirstChild ( currnode ) -> extra_data . symboltable_index ) -> data . lit_data );
+
+        TNODE *foundlit = findString ( literaltrie, litdata -> value );
+
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getRegister ( codefile, symboltable,
+            getFirstChild ( currnode ) -> extra_data . symboltable_index,
+            OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, 1 );
+
+        int gotreg = currnode -> offsetreg;
+        registers [ gotreg ] . isglobal = -1;
+        registers [ gotreg ] . istemp = 1;
+        registers [ gotreg ] . flushed = 0;
+        registers [ gotreg ] . stbindex = -1;
+        registers [ gotreg ] . offset1 = OFFSET_ANY;
+        registers [ gotreg ] . offset2 = OFFSET_ANY;
+        registers [ gotreg ] . offset3 = OFFSET_ANY;
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( currnode -> offsetreg ) );
+
+        fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( currnode -> offsetreg ),
+                                                 literals [ foundlit -> data . int_val ] . name );
+      }
+    }
   }
 }
 
@@ -1375,7 +1826,7 @@ void topDownCodeGeneration ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *as
   // Function used primarily to reserve stack space
   if ( currnode -> node_type == AST_PROGRAM_NODE )
   {
-    int toReserve = getProgramSize ( currnode );
+    int toReserve = getProgramSize ( currnode ) * 4;
     fprintf ( codefile, "\tpush\tebp\n" );
     fprintf ( codefile, "\tmov\tebp, esp\n" );
     fprintf ( codefile, "\n\tsub\tesp, %d\t\t;Reserve %d stack space\n\n", toReserve, toReserve );
@@ -1627,6 +2078,10 @@ int main ( )
     *                                                      *
     ********************************************************
    */
+
+  int i;
+  for ( i = 0; i < NUMREG; i++ )
+    registers [i] . flushed = 1;
 
   FILE *stbdumpfile = NULL;
   stbdumpfile = fopen ( STB_DUMP_FILE, "r" );
