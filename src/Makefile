@@ -15,16 +15,16 @@ PTOUTPUT=parse_table_generator
 PRSOUTPUT=parser
 PSTOUTPUT=parsetree_generator
 ASTOUTPUT=ast_generator
-ATAOUTPUT=ast_analyzer
+CGROUTPUT=code_generator
 RM=rm
 ALLFILES=lexer parse_table_generator dfa_ops.o trie_ops.o \
 				 lexer.o parse_table_generator.o linkedlist_ops.o \
 				 parser parser.o stack_ops.o parsetree_generator.o \
 				 parsetree_generator parsetree_ops.o ast_ops.o \
 				 ast_generator ast_generator.o symboltable_ops.o \
-				 ast_analyzer.o ast_analyzer
+				 code_generator.o code_generator
 
-all: lexer parse_table_generator parser parsetree_generator ast_generator ast_analyzer
+all: lexer parse_table_generator parser parsetree_generator ast_generator code_generator
 
 lexer: lexer.o dfa_ops.o trie_ops.o
 	$(CC) lexer.o dfa_ops.o trie_ops.o $(CFLAGS) $(LEXOUTPUT)
@@ -41,8 +41,8 @@ parsetree_generator: parsetree_generator.o trie_ops.o parsetree_ops.o
 ast_generator: ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o
 	$(CC) ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o $(CFLAGS) $(ASTOUTPUT)
 
-ast_analyzer: ast_analyzer.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o
-	$(CC) ast_analyzer.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o $(CFLAGS) $(ATAOUTPUT)
+code_generator: code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o
+	$(CC) code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o $(CFLAGS) $(CGROUTPUT)
 
 lexer.o: lexer.c
 	$(CC) $(OBJFLAG) lexer.c
@@ -59,8 +59,8 @@ parsetree_generator.o: parsetree_generator.c
 ast_generator.o: ast_generator.c
 	$(CC) $(OBJFLAG) ast_generator.c
 
-ast_analyzer.o: ast_analyzer.c
-	$(CC) $(OBJFLAG) ast_analyzer.c
+code_generator.o: code_generator.c
+	$(CC) $(OBJFLAG) code_generator.c
 
 dfa_ops.o: headers/dfa_ops.c headers/dfa.h
 	$(CC) $(OBJFLAG) headers/dfa_ops.c

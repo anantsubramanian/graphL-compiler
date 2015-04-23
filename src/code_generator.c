@@ -19,15 +19,21 @@
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
-#define DEBUG_STB_AUXOPS 0
+#define DEBUG_STB_AUXOPS 1
 
 #define BUFFERLEN 400
 #define NEWLINE '\n'
 #define STB_DUMP_FILE "STBDUMP"
 #define AST_DUMP_FILE "ASTDUMP"
+#define ASSEMBLY_FILE "VARFILE"
+#define ASSEMBLY_CODE_FILE "CODEFILE"
+#define ASSEMBLY_FUNCTIONS_FILE "FUNCTIONFILE"
+#define ASSEMBLY_DATA_FILE "ASMFILE.asm"
 #define T_INDEX_FILE "config/terminals_index"
 #define NT_INDEX_FILE "config/nonterminals_index"
 #define ROOTNODENAME "AST_ROOT_NODE"
+#define LOWER16MASK 0b00000000000000001111111111111111
+#define UPPER16MASK 0b11111111111111110000000000000000
 
 // Required language-specific tokens for semantic analysis
 #define TK_BEGIN "TK_BEGIN"
@@ -119,6 +125,19 @@ typedef struct stack_entry
   int upordown;
 } STACKENTRY;
 
+int shouldintprint = 0;
+int hasglobalvars = 0;
+int hasfunctions = 0;
+int startwritten = 0;
+char *intoffset = "intoffset";
+char *floatoffset = "floatoffset";
+char *stringoffset = "stringoffset";
+char *sourceoffset = "sourceoffset";
+char *destoffset = "destoffset";
+char *weightoffset = "weightoffset";
+char *rootoffset = "rootoffset";
+char *vlistoffset = "vlistoffset";
+char *elistoffset = "elistoffset";
 
 char nodeTypes[][30] = {
 
@@ -178,6 +197,13 @@ char dataTypes[][10] = {
   "NOTHING",
   ""
 };
+
+int curlitindex;
+
+typedef struct literal_data
+{
+  char *name;
+} LITDATA;
 
 char* getNodeTypeName ( int type )
 {
@@ -289,10 +315,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == ' ' )
     {
@@ -374,6 +397,15 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
 
         printf ( "Definition of %s registered\n", name);
       }
+
+      VARIABLE *vardata = & ( getEntryByIndex ( symboltable, entryindex ) -> data . var_data );
+
+      if ( parent -> node_type == AST_GLOBALDEFINE_NODE )
+        vardata -> var_type = V_GLOBAL_TYPE;
+      else if ( parent -> node_type == AST_QUALIFIEDPARAMETER_NODE )
+        vardata -> var_type = V_PARAM_TYPE;
+      else if ( parent -> node_type == AST_DEFINE_NODE )
+        vardata -> var_type = V_LOCAL_TYPE;
 
       currnode -> extra_data . symboltable_index = entryindex;
     }
@@ -497,6 +529,15 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         fprintf ( stderr, "Warning: Implicit conversion from Int to Float in Let statement\n" );
       else
         fprintf ( stderr, "Error: Assigning incompatible types in let statement\n" );
+      return;
+    }
+
+    STBENTRY *entry = getEntryByIndex (
+        symboltable, getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+
+    if ( entry -> entry_type == ENTRY_FUNC_TYPE )
+    {
+      fprintf ( stderr, "Error: Attempting to assign to a function identifier\n" );
       return;
     }
   }
@@ -957,8 +998,186 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
 }
 
+void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
+{
+  fprintf ( datafile, "section .data\n" );
+  fprintf ( datafile, "\t_int_string:\t\tdb\t'0000000000',10,0\n" );
+  fprintf ( datafile, "\tintoffset:\t\tequ\t0\n" );
+  fprintf ( datafile, "\tfloatoffset:\t\tequ\t1\n" );
+  fprintf ( datafile, "\tstringoffset:\t\tequ\t2\n" );
+  fprintf ( datafile, "\tsourceoffset:\t\tequ\t3\n" );
+  fprintf ( datafile, "\tdestoffset:\t\tequ\t4\n" );
+  fprintf ( datafile, "\tweightoffset:\t\tequ\t5\n" );
+  fprintf ( datafile, "\trootoffset:\t\tequ\t2\n" );
+  fprintf ( datafile, "\tvlistoffset:\t\tequ\t0\n" );
+  fprintf ( datafile, "\telistoffset:\t\tequ\t1\n" );
 
-void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
+  fprintf ( assemblyfile, "\nsection .bss\n" );
+
+  fprintf ( codefile, "_start:\n\n" );
+
+  return;
+}
+
+void writeIntPrintFunction ( FILE *assemblyfile )
+{
+  fprintf ( assemblyfile, "\nprintInt:\n" );
+  fprintf ( assemblyfile, "\tmov ebx, _int_string+9\n" );
+  fprintf ( assemblyfile, "\tmov ecx, 10\n" );
+  fprintf ( assemblyfile, "\tmov edi, 10\n\n" );
+  fprintf ( assemblyfile, "l:\n" );
+  fprintf ( assemblyfile, "\tmov edx, 0\n" );
+  fprintf ( assemblyfile, "\tdiv edi\n" );
+  fprintf ( assemblyfile, "\tadd edx, 48\n" );
+  fprintf ( assemblyfile, "\tmov [ebx], dl\n" );
+  fprintf ( assemblyfile, "\tdec ebx\n" );
+  fprintf ( assemblyfile, "\tloop l\n\n" );
+  fprintf ( assemblyfile, "\tmov edi, _int_string\n" );
+  fprintf ( assemblyfile, "\tmov ecx, 10\n\n" );
+  fprintf ( assemblyfile, "\tmov ebx, 0\n" );
+  fprintf ( assemblyfile, "nz:\n" );
+  fprintf ( assemblyfile, "\tmov bl, [edi]\n" );
+  fprintf ( assemblyfile, "\tcmp bl, 48\n" );
+  fprintf ( assemblyfile, "\tjne fnz\n" );
+  fprintf ( assemblyfile, "\tinc edi\n\tloop nz\n\n" );
+  fprintf ( assemblyfile, "\tmov edx, 2\n" );
+  fprintf ( assemblyfile, "\tmov ecx, _int_string+9\n" );
+  fprintf ( assemblyfile, "\tjmp print\n\n" );
+  fprintf ( assemblyfile, "fnz:\n\tmov edx, ecx\n" );
+  fprintf ( assemblyfile, "\tinc edx\n" );
+  fprintf ( assemblyfile, "\tmov ecx, edi\n\n" );
+  fprintf ( assemblyfile, "print:\n" );
+  fprintf ( assemblyfile, "\tmov eax, 4\n" );
+  fprintf ( assemblyfile, "\tmov ebx, 1\n" );
+  fprintf ( assemblyfile, "\tint 80h\n\n" );
+  fprintf ( assemblyfile, "\tret\n" );
+}
+
+void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
+                    FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile )
+{
+  if ( currnode -> node_type == AST_GLOBALDEFINE_NODE )
+  {
+    LNODE iterator;
+    getIterator ( currnode -> children , &iterator );
+
+    getNext ( currnode -> children, &iterator );
+
+    while ( hasNext ( &iterator ) )
+    {
+      getNext ( currnode -> children, & iterator );
+
+      ANODE *node = * ( ANODE ** ) ( iterator . data . generic_val );
+      VARIABLE *vardata = & ( getEntryByIndex ( symboltable,
+            node -> extra_data . symboltable_index ) -> data . var_data );
+
+      fprintf ( assemblyfile, "\t%s:\t", vardata -> name );
+
+      if ( vardata -> data_type == D_INT_TYPE || vardata -> data_type == D_FLOAT_TYPE )
+        fprintf ( assemblyfile, "resw\t1\n" );
+      else if ( vardata -> data_type == D_VERTEX_TYPE )
+        fprintf ( assemblyfile, "resw\t3\n" );
+      else if ( vardata -> data_type == D_STRING_TYPE )
+        fprintf ( assemblyfile, "resw\t1\n" );
+      else if ( vardata -> data_type == D_EDGE_TYPE )
+        fprintf ( assemblyfile, "resw\t6\n" );
+      else if ( vardata -> data_type == D_TREE_TYPE )
+        fprintf ( assemblyfile, "resw\t3\n" );
+      else if ( vardata -> data_type == D_GRAPH_TYPE )
+        fprintf ( assemblyfile, "resw\t2\n" );
+    }
+  }
+  else if ( currnode -> node_type == AST_LITERAL_NODE )
+  {
+    LITERAL *litdata = & ( getEntryByIndex ( symboltable,
+        currnode -> extra_data . symboltable_index ) -> data . lit_data );
+
+    TNODE *foundlit = findString ( literaltrie, litdata -> value );
+
+    if ( foundlit == NULL )
+    {
+      foundlit = insertString ( literaltrie, litdata -> value );
+      foundlit -> data . int_val = curlitindex;
+
+      int len = 11;
+      literals [ curlitindex ] . name = malloc ( len * sizeof ( char ) );
+      snprintf ( literals [ curlitindex ] . name, 11, "l%d", curlitindex );
+
+      fprintf ( datafile, "\t%s:\t", literals [ curlitindex ] . name );
+
+      if ( litdata -> lit_type == D_STRING_TYPE )
+        fprintf ( datafile, "db\t%s,10\n", litdata -> value );
+      else if ( litdata -> lit_type == D_INT_TYPE )
+      {
+        int value = atoi ( litdata -> value );
+        int lower = ( value & LOWER16MASK ), upper = ( ( value & UPPER16MASK ) >> 16 );
+        fprintf ( datafile, "dw\t%d,%d\n", lower, upper );
+      }
+      else if ( litdata -> lit_type == D_FLOAT_TYPE )
+        fprintf ( datafile, "dd\t%s\n", litdata -> value );
+    }
+
+    curlitindex ++;
+  }
+  else if ( currnode -> node_type == AST_GLOBALDEFINES_NODE )
+  {
+    hasglobalvars = 1;
+    startwritten = 1;
+    fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
+  }
+  else if ( currnode -> node_type == AST_LET_NODE )
+  {
+    STBENTRY *entry = getEntryByIndex ( symboltable,
+        getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+
+    if ( entry -> data . var_data . var_type == V_GLOBAL_TYPE )
+    {
+      // Entry is a global type, so we can copy to it using its name
+
+    }
+  }
+  else if ( currnode -> node_type == AST_PRINT_NODE )
+  {
+    ANODE *child = getFirstChild ( currnode );
+
+    if ( child -> num_of_children > 0 )
+      child = getFirstChild ( child );
+
+    STBENTRY *entry = getEntryByIndex ( symboltable, child -> extra_data . symboltable_index );
+
+    if ( entry -> entry_type == ENTRY_LIT_TYPE )
+    {
+      // Check and print the int or float literal
+      if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
+      {
+        shouldintprint = 1;
+        fprintf ( codefile, "\tpusha\n" );
+
+        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
+        fprintf ( codefile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
+
+        fprintf ( codefile, "\tcall printInt\n" );
+        fprintf ( codefile, "\tpopa\n" );
+      }
+      else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
+      {
+        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
+        fprintf ( codefile, "\tmov\teax, 4\n" );
+        fprintf ( codefile, "\tmov\tebx, 1\n" );
+        fprintf ( codefile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( codefile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
+        fprintf ( codefile, "\tint\t80h\n\n" );
+      }
+    }
+  }
+
+  if ( functionfile == NULL )
+    fprintf ( stderr, "Function file should not be NULL\n" );
+}
+
+void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile,
+                            FILE *assemblyfile, FILE *codefile, FILE *functionfile,
+                            TRIE *literaltrie, LITDATA *literals, FILE *datafile )
 {
   // The function traverses the AST first top down then bottom with the aid of the
   // STACKENTRY structure
@@ -1047,11 +1266,75 @@ void analyzeAst ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 
       performSemanticChecks ( currnode, symboltable, & infunction, & loopcount, & bdftcount );
 
+      generateCode ( currnode, symboltable, assemblyfile, codefile, functionfile,
+                     literaltrie, literals, datafile );
+
       printf ( "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
     }
   }
 }
 
+void writeReturnZero ( FILE *codefile )
+{
+  fprintf ( codefile, "\n\tmov eax, 1\n" );
+  fprintf ( codefile, "\tmov ebx, 0\n" );
+  fprintf ( codefile, "\tint 80h\n\n" );
+}
+
+void joinCodeFiles ( FILE *assemblyfile )
+{
+  FILE *codefile = NULL;
+  codefile = fopen ( ASSEMBLY_CODE_FILE, "r" );
+
+  if ( codefile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assembly code file\n" );
+    return;
+  }
+
+  FILE *functionfile = NULL;
+  functionfile = fopen ( ASSEMBLY_FUNCTIONS_FILE, "r" );
+
+  if ( functionfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assembly functions file\n" );
+    return;
+  }
+
+  FILE *varfile = NULL;
+  varfile = fopen ( ASSEMBLY_FILE, "r" );
+
+  if ( varfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open variables file\n" );
+    return;
+  }
+
+  char c;
+  while ( fscanf ( varfile, "%c", &c ) > 0 )
+    fprintf ( assemblyfile, "%c", c );
+
+  fprintf ( assemblyfile, "\n" );
+
+  while ( fscanf ( functionfile, "%c", &c ) > 0 )
+    fprintf ( assemblyfile, "%c", c );
+
+  fprintf ( assemblyfile, "\n" );
+
+  while ( fscanf ( codefile, "%c", &c ) > 0 )
+    fprintf ( assemblyfile, "%c", c );
+
+  fprintf ( assemblyfile, "\n" );
+
+  if ( fclose ( codefile ) != 0 )
+    fprintf ( stderr, "Failed to close code file\n" );
+
+  if ( fclose ( functionfile ) != 0 )
+    fprintf ( stderr, "Failed to close functions file\n" );
+
+  if ( fclose ( varfile ) != 0 )
+    fprintf ( stderr, "Failed to close functions file\n" );
+}
 
 int main ( )
 {
@@ -1059,7 +1342,6 @@ int main ( )
   struct stat fi;
   stat ( "/", &fi );
   int blocksize = fi.st_blksize;
-
 
   /*********************************************************
     *                                                      *
@@ -1140,6 +1422,42 @@ int main ( )
     return -1;
   }
 
+  FILE *assemblyfile = NULL;
+  assemblyfile = fopen ( ASSEMBLY_FILE, "w+" );
+
+  if ( assemblyfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assembly file to write\n" );
+    return -1;
+  }
+
+  FILE *codefile = NULL;
+  codefile = fopen ( ASSEMBLY_CODE_FILE, "w+" );
+
+  if ( codefile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assemly code file to write\n" );
+    return -1;
+  }
+
+  FILE *functionfile = NULL;
+  functionfile = fopen ( ASSEMBLY_FUNCTIONS_FILE, "w+" );
+
+  if ( functionfile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assembly functions file\n" );
+    return -1;
+  }
+
+  FILE *datafile = NULL;
+  datafile = fopen ( ASSEMBLY_DATA_FILE, "w+" );
+
+  if ( datafile == NULL )
+  {
+    fprintf ( stderr, "Failed to open assembly data file\n" );
+    return -1;
+  }
+
   unsigned int num_entries = 0;
 
   fscanf ( stbdumpfile, "%u", & num_entries );
@@ -1148,7 +1466,37 @@ int main ( )
 
   symboltable = setNumEntries ( symboltable, num_entries );
 
-  analyzeAst ( ast, symboltable, stbdumpfile );
+  LITDATA literals [ num_entries ];
+  curlitindex = 0;
+  TRIE *literaltrie = NULL;
+  literaltrie = getNewTrie ( TRIE_INT_TYPE );
+
+  layoutTemplate ( assemblyfile, codefile, datafile );
+
+  checkAndGenerateCode ( ast, symboltable, stbdumpfile, assemblyfile, codefile, functionfile,
+                         literaltrie, literals, datafile );
+
+  if ( startwritten == 0 )
+    fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
+
+  if ( shouldintprint == 1 )
+    writeIntPrintFunction ( assemblyfile );
+
+  writeReturnZero ( codefile );
+
+  if ( fclose ( codefile ) != 0 )
+    fprintf ( stderr, "Failed to close code file\n" );
+
+  if ( fclose ( functionfile ) != 0 )
+    fprintf ( stderr, "Failed to close function file\n" );
+
+  if ( fclose ( assemblyfile ) != 0 )
+    fprintf ( stderr, "Failed to close assembly file\n" );
+
+  joinCodeFiles ( datafile );
+
+  if ( fclose ( datafile ) != 0 )
+    fprintf ( stderr, "Failed to close assembly file\n" );
 
   if ( fclose ( stbdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close Symbol Table dump file\n" );

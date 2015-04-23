@@ -357,10 +357,7 @@ int getLineCount ( FILE *inputfile, int blocksize )
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == NEWLINE )
       lines++;
@@ -396,10 +393,7 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == ' ' )
     {
@@ -464,10 +458,7 @@ void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instruct
     c = buffers [ curbuff ] [ charindx ];
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( isfirst == 1 && c == COMMENT_START )
       incomment = 1;
@@ -1378,10 +1369,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
 
 
     if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
       break;
-    }
 
     if ( c == NEWLINE )
     {
