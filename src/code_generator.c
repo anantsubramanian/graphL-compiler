@@ -140,6 +140,7 @@
 #define NO_SPECIFIC_REG -1
 #define OFFSET_ANY -1
 #define EAX_REG 0
+#define NO_REGISTER -2
 
 // The structure that is pushed on the stack to check whether this node is being
 // poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
@@ -234,7 +235,7 @@ void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
 }
 
 int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_index, int offset1,
-                  int offset2, int offset3, int topick, int istemp )
+                  int offset2, int offset3, int topick, int istemp, int donttouch1, int donttouch2 )
 {
   int i;
   if ( ! istemp )
@@ -264,7 +265,7 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
   if ( topick == NO_SPECIFIC_REG )
   {
     topick = (roundrobinreg + 1) % NUMREG;
-    while ( registers [ topick ] . istemp )
+    while ( registers [ topick ] . istemp || topick == donttouch1 || topick == donttouch2 )
       topick = (roundrobinreg + 1) % NUMREG;
   }
 
@@ -1341,7 +1342,7 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
   int o3 = (assignable -> offsetcount > 2) ? assignable -> offset3 : OFFSET_ANY;
 
   int target = getRegister ( codefile, symboltable, getFirstChild ( assignable ) -> extra_data . symboltable_index,
-                             o1, o2, o3, NO_SPECIFIC_REG, 0 );
+                             o1, o2, o3, NO_SPECIFIC_REG, 0, NO_REGISTER, NO_REGISTER );
 
   if ( assignable -> global_or_local == IS_LOCAL )
   {
@@ -1797,7 +1798,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         currnode -> offsetcount = DATA_IN_REG;
         currnode -> offsetreg = getRegister ( codefile, symboltable,
             getFirstChild ( currnode ) -> extra_data . symboltable_index,
-            OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, 1 );
+            OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, 1, NO_REGISTER, NO_REGISTER );
 
         int gotreg = currnode -> offsetreg;
         registers [ gotreg ] . isglobal = -1;
