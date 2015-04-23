@@ -67,7 +67,8 @@ else
 fi
 
 nasm -f elf ${asmfile}.asm
-ld -m elf_i386 ${asmfile}.o -o ${name}
+gcc -m32 ${asmfile}.o -o ${name} -nostartfiles
+#ld -m elf_i386 ${asmfile}.o -o ${name} -lc
 rm ${asmfile}.o
 
 make clean >/dev/null

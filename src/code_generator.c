@@ -1000,8 +1000,11 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
 void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
 {
+  fprintf ( datafile, "extern printf\n\n" );
   fprintf ( datafile, "section .data\n" );
   fprintf ( datafile, "\t_int_string:\t\tdb\t'0000000000',10,0\n" );
+  fprintf ( datafile, "\t_float_format:\t\tdb\t\"%%f\",10,0\n" );
+  fprintf ( datafile, "\t_float_temp:\t\tdq\t0\n" );
   fprintf ( datafile, "\tintoffset:\t\tequ\t0\n" );
   fprintf ( datafile, "\tfloatoffset:\t\tequ\t1\n" );
   fprintf ( datafile, "\tstringoffset:\t\tequ\t2\n" );
@@ -1147,26 +1150,33 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     if ( entry -> entry_type == ENTRY_LIT_TYPE )
     {
+      TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
       // Check and print the int or float literal
       if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
       {
         shouldintprint = 1;
         fprintf ( codefile, "\tpusha\n" );
-
-        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
         fprintf ( codefile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
-
         fprintf ( codefile, "\tcall printInt\n" );
         fprintf ( codefile, "\tpopa\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
-        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
         fprintf ( codefile, "\tmov\teax, 4\n" );
         fprintf ( codefile, "\tmov\tebx, 1\n" );
         fprintf ( codefile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
         fprintf ( codefile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
         fprintf ( codefile, "\tint\t80h\n\n" );
+      }
+      else if ( entry -> data . lit_data . lit_type == D_FLOAT_TYPE )
+      {
+        fprintf ( codefile, "\tfld\tdword\t[%s]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( codefile, "\tfstp\tqword\t[_float_temp]\n" );
+        fprintf ( codefile, "\tpush\tdword\t[_float_temp+4]\n" );
+        fprintf ( codefile, "\tpush\tdword\t[_float_temp]\n" );
+        fprintf ( codefile, "\tpush\tdword\t_float_format\n" );
+        fprintf ( codefile, "\tcall\tprintf\n" );
+        fprintf ( codefile, "\tadd\tesp, 12\n" );
       }
     }
   }
