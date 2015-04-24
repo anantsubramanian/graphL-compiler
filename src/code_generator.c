@@ -155,6 +155,7 @@ typedef struct stack_entry
 typedef struct register_data
 {
   int flushed;
+  int hasoffset;
   int stbindex;
   int offset1;
   int offset2;
@@ -226,7 +227,7 @@ void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
     {
       int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
       fprintf ( codefile, "\tmov\te%cx, [ebp-%d]\n", midc, resultant );
-      fprintf ( codefile, "\tsub\te%cx, %d\n", midc, registers [ topick ] . offset3 );
+      fprintf ( codefile, "\tadd\te%cx, %d\n", midc, registers [ topick ] . offset3 );
       fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
     }
 
@@ -290,6 +291,7 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
     flushRegister ( topick, codefile, symboltable );
 
   registers [topick] . flushed = 1;
+  registers [topick] . hasoffset = 1;
   return topick;
 }
 
@@ -1245,6 +1247,7 @@ void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
   fprintf ( datafile, "extern printf\n\n" );
   fprintf ( datafile, "section .data\n" );
   fprintf ( datafile, "\t_int_string:\t\t\tdb\t'0000000000',10,0\n" );
+  fprintf ( datafile, "\t_int_format:\t\t\tdb\t\"%%d\",10,0\n" );
   fprintf ( datafile, "\t_float_format:\t\tdb\t\"%%f\",10,0\n" );
   fprintf ( datafile, "\t_float_temp:\t\t\tdq\t0\n" );
   fprintf ( datafile, "\t_string_format:\t\tdb\t\"%%s\",0\n" );
@@ -1362,6 +1365,9 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
   int target = getRegister ( codefile, symboltable, getFirstChild ( assignable ) -> extra_data . symboltable_index,
                              o1, o2, o3, NO_SPECIFIC_REG, 0, NO_REGISTER, NO_REGISTER );
 
+  if ( registers [ target ] . flushed == 0 )
+    return target;
+
   if ( assignable -> global_or_local == IS_LOCAL )
   {
     if ( assignable -> offsetcount == ONE_OFFSET )
@@ -1379,7 +1385,7 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
     if ( assignable -> offsetcount == THREE_OFFSETS )
     {
       fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
-      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
     }
   }
   else
@@ -1409,6 +1415,7 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
   registers [ target ] . stbindex = getFirstChild ( assignable ) -> extra_data . symboltable_index;
   registers [ target ] . offset1 = assignable -> offset1;
   registers [ target ] . offset3 = assignable -> offset3;
+  registers [ target ] . hasoffset = 1;
 
   if ( assignable -> offsetcount > 1 )
     registers [ target ] . offset2 = assignable -> offset2;
@@ -1515,9 +1522,9 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       }
       else if ( litdata -> lit_type == D_FLOAT_TYPE )
         fprintf ( datafile, "dd\t%s\n", litdata -> value );
-    }
 
-    curlitindex ++;
+      curlitindex ++;
+    }
   }
   else if ( currnode -> node_type == AST_LET_NODE )
   {
@@ -1525,10 +1532,16 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     int targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
 
+    if ( ! registers [ targetreg ] . hasoffset )
+    {
+      registers [ targetreg ] . flushed = 1;
+      targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
+    }
+
     int resultreg = getSecondChild ( currnode ) -> offsetreg;
 
     // TODO: Check this again for complex types
-      fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
+    fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
 
     registers [ resultreg ] . flushed = 1;
   }
@@ -1548,10 +1561,10 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
       {
         shouldintprint = 1;
-        fprintf ( outputfile, "\tpusha\n" );
-        fprintf ( outputfile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
-        fprintf ( outputfile, "\tcall printInt\n" );
-        fprintf ( outputfile, "\tpopa\n\n" );
+        fprintf ( outputfile, "\tpush\t[ %s ]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tpush\t_int_format\n" );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
@@ -1583,7 +1596,6 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       if ( assignable -> result_type == D_INT_TYPE )
       {
         shouldintprint = 1;
-        fprintf ( outputfile, "\tpusha\n" );
         if ( assignable -> global_or_local == IS_LOCAL )
         {
           if ( assignable -> offsetcount == ONE_OFFSET )
@@ -1596,7 +1608,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
         }
@@ -1615,8 +1627,10 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
         }
-        fprintf ( outputfile, "\tcall printInt\n" );
-        fprintf ( outputfile, "\tpopa\n\n" );
+        fprintf ( outputfile, "\tpush\teax\n" );
+        fprintf ( outputfile, "\tpush\t_int_format\n" );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
       }
       else if ( assignable -> result_type == D_STRING_TYPE )
       {
@@ -1633,7 +1647,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
 
@@ -1692,7 +1706,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
 
@@ -1914,17 +1928,35 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
       AROPTYPE op = currnode -> extra_data . arop_type;
       int leftdone = 0;
+      int gottemp = 0;
 
-      if ( registers [ leftreg ] . istemp )
+      if ( op == A_MINUS_TYPE )
+      {
+        gottemp = 1;
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+
+        registers [ resultreg ] . isglobal = -1;
+        registers [ resultreg ] . istemp = 1;
+        registers [ resultreg ] . flushed = 0;
+        registers [ resultreg ] . stbindex = -1;
+        registers [ resultreg ] . offset1 = OFFSET_ANY;
+        registers [ resultreg ] . offset2 = OFFSET_ANY;
+        registers [ resultreg ] . offset3 = OFFSET_ANY;
+      }
+
+      if ( registers [ leftreg ] . istemp && ! gottemp )
       {
         resultreg = leftreg;
         leftdone = 1;
       }
-      else if ( registers [ rightreg ] . istemp )
+      else if ( registers [ rightreg ] . istemp && ! gottemp )
       {
         resultreg = rightreg;
       }
-      else
+      else if ( ! gottemp )
       {
         resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
                                   NO_SPECIFIC_REG, 1, leftreg, rightreg );
@@ -1945,10 +1977,11 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       if ( op == A_PLUS_TYPE )
         fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
       else if ( op == A_MINUS_TYPE )
-        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
 
       currnode -> offsetcount = DATA_IN_REG;
       currnode -> offsetreg = resultreg;
+      registers [ resultreg ] . istemp = 1;
 
       if ( leftreg != resultreg && registers [ leftreg ] . istemp )
         registers [ leftreg ] . flushed = 1;
@@ -2027,13 +2060,31 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
       AROPTYPE op = currnode -> extra_data . arop_type;
       int leftdone = 0;
+      int gottemp = 0;
 
-      if ( registers [ leftreg ] . istemp )
+      if ( op == A_MINUS_TYPE )
+      {
+        gottemp = 1;
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+
+        registers [ resultreg ] . isglobal = -1;
+        registers [ resultreg ] . istemp = 1;
+        registers [ resultreg ] . flushed = 0;
+        registers [ resultreg ] . stbindex = -1;
+        registers [ resultreg ] . offset1 = OFFSET_ANY;
+        registers [ resultreg ] . offset2 = OFFSET_ANY;
+        registers [ resultreg ] . offset3 = OFFSET_ANY;
+      }
+
+      if ( registers [ leftreg ] . istemp && ! gottemp )
       {
         resultreg = leftreg;
         leftdone = 1;
       }
-      else if ( registers [ rightreg ] . istemp )
+      else if ( registers [ rightreg ] . istemp && ! gottemp )
       {
         resultreg = rightreg;
       }
@@ -2058,10 +2109,11 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       if ( op == A_PLUS_TYPE )
         fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
       else if ( op == A_MINUS_TYPE )
-        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
 
       currnode -> offsetcount = DATA_IN_REG;
       currnode -> offsetreg = resultreg;
+      registers [ resultreg ] . istemp = 1;
 
       if ( leftreg != resultreg && registers [ leftreg ] . istemp )
         registers [ leftreg ] . flushed = 1;
@@ -2093,7 +2145,11 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
     int gotreg = getOffsetInReg ( currnode, outputfile, symboltable );
 
     // Get the data from the offset
-    fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( gotreg ), getRegisterName ( gotreg ) );
+    if ( registers [ gotreg ] . hasoffset )
+    {
+      fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( gotreg ), getRegisterName ( gotreg ) );
+      registers [ gotreg ] . hasoffset = 0;
+    }
 
     currnode -> offsetcount = DATA_IN_REG;
     currnode -> offsetreg = gotreg;
@@ -2427,8 +2483,8 @@ int main ( )
   if ( startwritten == 0 )
     fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
 
-  if ( shouldintprint == 1 )
-    writeIntPrintFunction ( assemblyfile );
+  //if ( shouldintprint == 1 )
+    //writeIntPrintFunction ( assemblyfile );
 
   writeReturnZero ( codefile );
 
