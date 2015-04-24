@@ -20,7 +20,7 @@
 
 #define DEBUG_AST_CONSTRUCTION 0
 #define DEBUG_STB_AUXOPS 0
-#define DEBUG_REGISTER_ALLOC 1
+#define DEBUG_REGISTER_ALLOC 0
 
 #define NUMREG 6
 #define BUFFERLEN 400
@@ -1386,6 +1386,8 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
   {
     // Is a global variable
     char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+    fprintf ( codefile, "\t; Getting offset for %s\n", varname );
+
     if ( assignable -> offsetcount == ONE_OFFSET )
       fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
     else
@@ -1425,7 +1427,7 @@ int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symb
                            TRIE *literaltrie, LITDATA *literals )
 {
   LITERAL *litdata = & ( getEntryByIndex ( symboltable, literalnode -> extra_data . symboltable_index ) -> data . lit_data );
-  
+
   TNODE *foundlit = findString ( literaltrie, litdata -> value );
 
   int targetreg = getRegister ( codefile, symboltable, literalnode -> extra_data . symboltable_index,
@@ -1433,15 +1435,15 @@ int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symb
                   NO_REGISTER );
 
   fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( targetreg ), literals [ foundlit -> data . int_val ] . name );
-  
+
   registers [ targetreg ] . isglobal = -1;
   registers [ targetreg ] . istemp = IS_LITERAL;
-  registers [ targetreg ] . flushed = 0; 
+  registers [ targetreg ] . flushed = 0;
   registers [ targetreg ] . stbindex = literalnode -> extra_data . symboltable_index;
   registers [ targetreg ] . offset1 = OFFSET_ANY;
   registers [ targetreg ] . offset2 = OFFSET_ANY;
   registers [ targetreg ] . offset3 = OFFSET_ANY;
-  
+
   return targetreg;
 }
 
@@ -1472,17 +1474,17 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       fprintf ( assemblyfile, "\t%s:\t", vardata -> name );
 
       if ( vardata -> data_type == D_INT_TYPE || vardata -> data_type == D_FLOAT_TYPE )
-        fprintf ( assemblyfile, "resw\t1\n" );
+        fprintf ( assemblyfile, "resb\t4\n" );
       else if ( vardata -> data_type == D_VERTEX_TYPE )
-        fprintf ( assemblyfile, "resw\t3\n" );
+        fprintf ( assemblyfile, "resb\t12\n" );
       else if ( vardata -> data_type == D_STRING_TYPE )
-        fprintf ( assemblyfile, "resw\t1\n" );
+        fprintf ( assemblyfile, "resb\t4\n" );
       else if ( vardata -> data_type == D_EDGE_TYPE )
-        fprintf ( assemblyfile, "resw\t6\n" );
+        fprintf ( assemblyfile, "resb\t24\n" );
       else if ( vardata -> data_type == D_TREE_TYPE )
-        fprintf ( assemblyfile, "resw\t3\n" );
+        fprintf ( assemblyfile, "resb\t12\n" );
       else if ( vardata -> data_type == D_GRAPH_TYPE )
-        fprintf ( assemblyfile, "resw\t2\n" );
+        fprintf ( assemblyfile, "resb\t8\n" );
     }
   }
   else if ( currnode -> node_type == AST_LITERAL_NODE )
@@ -1525,7 +1527,8 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     int resultreg = getSecondChild ( currnode ) -> offsetreg;
 
-    fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
+    // TODO: Check this again for complex types
+      fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
 
     registers [ resultreg ] . flushed = 1;
   }
@@ -1748,7 +1751,6 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     if ( getParent ( currnode ) -> node_type == AST_DEFINE_NODE )
     {
-      fprintf ( stderr, "Offset for %s is %d\n", entry -> data . var_data . name, curroffset );
       entry -> offset = curroffset;
       curroffset += getSize ( entry -> data . var_data . data_type ) * 4;
     }
@@ -1855,16 +1857,250 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
                                                              getRegisterName ( currnode -> offsetreg ) );
 
-        fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( currnode -> offsetreg ),
-                                                 literals [ foundlit -> data . int_val ] . name );
+        if ( litdata -> lit_type == D_STRING_TYPE )
+          fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( currnode -> offsetreg ),
+                                                   literals [ foundlit -> data . int_val ] . name );
+        else
+          fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( currnode -> offsetreg ),
+                                                   literals [ foundlit -> data . int_val ] . name );
+
       }
     }
+    else if ( currnode -> num_of_children == 2 )
+    {
+      int leftreg = -1, rightreg = -1;
+      int resultreg = -1;
+
+      ANODE *firstchild = getFirstChild ( currnode );
+      ANODE *secondchild = getSecondChild ( currnode );
+
+      if ( firstchild -> node_type == AST_LITERAL_NODE || secondchild -> node_type == AST_LITERAL_NODE )
+      {
+        ANODE *litchild = (firstchild -> node_type == AST_LITERAL_NODE) ? firstchild : secondchild;
+        int isleft = (firstchild -> node_type == AST_LITERAL_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+        else
+          rightreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( isleft ? leftreg : rightreg ) );
+      }
+
+      if ( firstchild -> node_type == AST_EXP_NODE || secondchild -> node_type == AST_EXP_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_EXP_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( secondchild -> node_type == AST_AROP_NODE )
+        rightreg = secondchild -> offsetreg;
+
+      AROPTYPE op = currnode -> extra_data . arop_type;
+      int leftdone = 0;
+
+      if ( registers [ leftreg ] . istemp )
+      {
+        resultreg = leftreg;
+        leftdone = 1;
+      }
+      else if ( registers [ rightreg ] . istemp )
+      {
+        resultreg = rightreg;
+      }
+      else
+      {
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        registers [ resultreg ] . isglobal = -1;
+        registers [ resultreg ] . istemp = 1;
+        registers [ resultreg ] . flushed = 0;
+        registers [ resultreg ] . stbindex = -1;
+        registers [ resultreg ] . offset1 = OFFSET_ANY;
+        registers [ resultreg ] . offset2 = OFFSET_ANY;
+        registers [ resultreg ] . offset3 = OFFSET_ANY;
+
+        fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        leftdone = 1;
+      }
+
+      // TODO: Check for the different data types
+      if ( op == A_PLUS_TYPE )
+        fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+      else if ( op == A_MINUS_TYPE )
+        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+
+      currnode -> offsetcount = DATA_IN_REG;
+      currnode -> offsetreg = resultreg;
+
+      if ( leftreg != resultreg && registers [ leftreg ] . istemp )
+        registers [ leftreg ] . flushed = 1;
+      if ( rightreg != resultreg && registers [ rightreg ] . istemp )
+        registers [ rightreg ] . flushed = 1;
+    }
+  }
+  else if ( currnode -> node_type == AST_AROP_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+    {
+      ANODE *child = getFirstChild ( currnode );
+      if ( child -> node_type == AST_LITERAL_NODE )
+      {
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getLiteralInRegister ( child, outputfile, symboltable, literaltrie, literals );
+      }
+      else if ( child -> node_type == AST_ASSIGNFUNC_NODE || child -> node_type == AST_EXP_NODE )
+      {
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = child -> offsetreg;
+      }
+    }
+    else if ( currnode -> num_of_children == 2 )
+    {
+      int leftreg = -1, rightreg = -1;
+      int resultreg = -1;
+
+      ANODE *firstchild = getFirstChild ( currnode );
+      ANODE *secondchild = getSecondChild ( currnode );
+
+      if ( firstchild -> node_type == AST_LITERAL_NODE || secondchild -> node_type == AST_LITERAL_NODE )
+      {
+        ANODE *litchild = (firstchild -> node_type == AST_LITERAL_NODE) ? firstchild : secondchild;
+        int isleft = (firstchild -> node_type == AST_LITERAL_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+        else
+          rightreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( isleft ? leftreg : rightreg ) );
+      }
+
+      if ( firstchild -> node_type == AST_EXP_NODE || secondchild -> node_type == AST_EXP_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_EXP_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( secondchild -> node_type == AST_AROP_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_AROP_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      AROPTYPE op = currnode -> extra_data . arop_type;
+      int leftdone = 0;
+
+      if ( registers [ leftreg ] . istemp )
+      {
+        resultreg = leftreg;
+        leftdone = 1;
+      }
+      else if ( registers [ rightreg ] . istemp )
+      {
+        resultreg = rightreg;
+      }
+      else
+      {
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        registers [ resultreg ] . isglobal = -1;
+        registers [ resultreg ] . istemp = 1;
+        registers [ resultreg ] . flushed = 0;
+        registers [ resultreg ] . stbindex = -1;
+        registers [ resultreg ] . offset1 = OFFSET_ANY;
+        registers [ resultreg ] . offset2 = OFFSET_ANY;
+        registers [ resultreg ] . offset3 = OFFSET_ANY;
+
+        fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        leftdone = 1;
+      }
+
+      // TODO: Check for the different data types
+      if ( op == A_PLUS_TYPE )
+        fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+      else if ( op == A_MINUS_TYPE )
+        fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+
+      currnode -> offsetcount = DATA_IN_REG;
+      currnode -> offsetreg = resultreg;
+
+      if ( leftreg != resultreg && registers [ leftreg ] . istemp )
+        registers [ leftreg ] . flushed = 1;
+      if ( rightreg != resultreg && registers [ rightreg ] . istemp )
+        registers [ rightreg ] . flushed = 1;
+    }
+  }
+  else if ( currnode -> node_type == AST_ASSIGNFUNC_NODE )
+  {
+    // TODO: Deal with the function call case
+    if ( currnode -> num_of_children == 1 )
+    {
+      currnode -> offsetcount = getFirstChild ( currnode ) -> offsetcount;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+    }
+    else if ( currnode -> num_of_children == 3 )
+    {
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+
+      currnode -> offsetcount = 1 + getThirdChild ( currnode ) -> offsetcount;
+
+      currnode -> offset2 = getThirdChild ( currnode ) -> offset1;
+      currnode -> offset3 = getThirdChild ( currnode ) -> offset2;
+    }
+
+    // TODO: Deal with function calls separately
+    int gotreg = getOffsetInReg ( currnode, outputfile, symboltable );
+
+    // Get the data from the offset
+    fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( gotreg ), getRegisterName ( gotreg ) );
+
+    currnode -> offsetcount = DATA_IN_REG;
+    currnode -> offsetreg = gotreg;
   }
 }
 
-void topDownCodeGeneration ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile,
-                             FILE *codefile, FILE *functionfile, TRIE *literaltrie,
-                             LITDATA *literals, FILE *datafile, int infunction )
+void topDownCodeGeneration ( ANODE *currnode, FILE *codefile )
 {
   // Function used primarily to reserve stack space
   if ( currnode -> node_type == AST_PROGRAM_NODE )
@@ -1949,8 +2185,7 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
         stack = push ( stack, & temp );
       }
 
-      topDownCodeGeneration ( currnode, symboltable, assemblyfile, codefile, functionfile,
-                              literaltrie, literals, datafile, infunction );
+      topDownCodeGeneration ( currnode, codefile );
     }
     else
     {
