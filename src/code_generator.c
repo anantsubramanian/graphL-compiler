@@ -40,6 +40,7 @@
 #define TWO_OFFSETS 2
 #define THREE_OFFSETS 3
 #define DATA_IN_REG 4
+#define OFFSET_IN_REG 5
 #define IS_GLOBAL 0
 #define IS_LOCAL 1
 
@@ -141,6 +142,7 @@
 #define OFFSET_ANY -1
 #define EAX_REG 0
 #define NO_REGISTER -2
+#define IS_LITERAL 2
 
 // The structure that is pushed on the stack to check whether this node is being
 // poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
@@ -256,6 +258,21 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
     if ( DEBUG_REGISTER_ALLOC )
       fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
   }
+  else if ( istemp == IS_LITERAL )
+  {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . stbindex == symboltable_index
+           && registers [i] . flushed == 0
+           && registers [i] . istemp == IS_LITERAL )
+      {
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
+        return i;
+      }
+
+    if ( DEBUG_REGISTER_ALLOC )
+      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
+  }
 
   for ( i = 0; i < NUMREG; i++ )
     if ( registers [i] . flushed )
@@ -269,7 +286,8 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
       topick = (roundrobinreg + 1) % NUMREG;
   }
 
-  flushRegister ( topick, codefile, symboltable );
+  if ( registers [ topick ] . istemp != IS_LITERAL )
+    flushRegister ( topick, codefile, symboltable );
 
   registers [topick] . flushed = 1;
   return topick;
@@ -1401,6 +1419,30 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
     registers [ target ] . offset3 = OFFSET_ANY;
 
   return target;
+}
+
+int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symboltable,
+                           TRIE *literaltrie, LITDATA *literals )
+{
+  LITERAL *litdata = & ( getEntryByIndex ( symboltable, literalnode -> extra_data . symboltable_index ) -> data . lit_data );
+  
+  TNODE *foundlit = findString ( literaltrie, litdata -> value );
+
+  int targetreg = getRegister ( codefile, symboltable, literalnode -> extra_data . symboltable_index,
+                  OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, IS_LITERAL, NO_REGISTER,
+                  NO_REGISTER );
+
+  fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( targetreg ), literals [ foundlit -> data . int_val ] . name );
+  
+  registers [ targetreg ] . isglobal = -1;
+  registers [ targetreg ] . istemp = IS_LITERAL;
+  registers [ targetreg ] . flushed = 0; 
+  registers [ targetreg ] . stbindex = literalnode -> extra_data . symboltable_index;
+  registers [ targetreg ] . offset1 = OFFSET_ANY;
+  registers [ targetreg ] . offset2 = OFFSET_ANY;
+  registers [ targetreg ] . offset3 = OFFSET_ANY;
+  
+  return targetreg;
 }
 
 void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
