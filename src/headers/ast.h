@@ -101,6 +101,8 @@ typedef struct ast_node
     COMPOPTYPE compop_type;
     BOOLOPTYPE boolop_type;
     BDFTTYPE bdft_type;
+    int iflabel;
+    int forlabel;
   } extra_data;
 } ANODE;
 

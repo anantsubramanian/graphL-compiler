@@ -198,6 +198,7 @@ ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
   node -> offset2 = 0;
   node -> offset3 = 0;
   node -> extra_data . data_type = 0;
+  node -> extra_data . iflabel = 0;
 
   return node;
 }

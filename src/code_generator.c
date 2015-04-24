@@ -141,6 +141,7 @@
 #define NO_SPECIFIC_REG -1
 #define OFFSET_ANY -1
 #define EAX_REG 0
+#define ECX_REG 2
 #define NO_REGISTER -2
 #define IS_LITERAL 2
 
@@ -184,6 +185,8 @@ char* getRegisterName ( int regid )
 
 void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
 {
+  if ( registers [ topick ] . hasoffset )
+    return;
   if ( registers [ topick ] . isglobal == IS_GLOBAL )
   {
     if ( topick == EAX_REG )
@@ -275,19 +278,19 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
       fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
   }
 
-  for ( i = 0; i < NUMREG; i++ )
-    if ( registers [i] . flushed )
-      return i;
-
   // All registers need to be flushed, so pick one and flush
   if ( topick == NO_SPECIFIC_REG )
   {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . flushed )
+        return i;
+
     topick = (roundrobinreg + 1) % NUMREG;
     while ( registers [ topick ] . istemp || topick == donttouch1 || topick == donttouch2 )
       topick = (roundrobinreg + 1) % NUMREG;
   }
 
-  if ( registers [ topick ] . istemp != IS_LITERAL )
+  if ( registers [ topick ] . istemp != IS_LITERAL && ! registers [ topick ] . flushed )
     flushRegister ( topick, codefile, symboltable );
 
   registers [topick] . flushed = 1;
@@ -295,6 +298,8 @@ int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_inde
   return topick;
 }
 
+int forlabel = 0;
+int iflabel = 0;
 int curroffset = 0;
 int erroroccured = 0;
 int shouldintprint = 0;
@@ -1556,6 +1561,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     if ( entry -> entry_type == ENTRY_LIT_TYPE )
     {
+      fprintf ( outputfile, "\tpusha\n" );
       TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
       // Check and print the int or float literal
       if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
@@ -1564,7 +1570,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         fprintf ( outputfile, "\tpush\t[ %s ]\n", literals [ foundlit -> data . int_val ] . name );
         fprintf ( outputfile, "\tpush\t_int_format\n" );
         fprintf ( outputfile, "\tcall printf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
@@ -1572,7 +1578,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         fprintf ( outputfile, "\tmov\tebx, 1\n" );
         fprintf ( outputfile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
         fprintf ( outputfile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
-        fprintf ( outputfile, "\tint\t80h\n\n" );
+        fprintf ( outputfile, "\tint\t80h\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_FLOAT_TYPE )
       {
@@ -1582,8 +1588,9 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
         fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
         fprintf ( outputfile, "\tcall\tprintf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 12\n\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n" );
       }
+      fprintf ( outputfile, "\tpopa\n\n" );
     }
     else
     {
@@ -1627,13 +1634,16 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
         }
+        fprintf ( outputfile, "\tpusha\t\t; Printf modifies registers so pushall\n" );
         fprintf ( outputfile, "\tpush\teax\n" );
         fprintf ( outputfile, "\tpush\t_int_format\n" );
         fprintf ( outputfile, "\tcall printf\n" );
-        fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
       else if ( assignable -> result_type == D_STRING_TYPE )
       {
+        fprintf ( outputfile, "\tpusha\n" );
         if ( assignable -> global_or_local == IS_LOCAL )
         {
           if ( assignable -> offsetcount == ONE_OFFSET )
@@ -1656,7 +1666,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           fprintf ( outputfile, "\tpush\tdword\t_string_format\n" );
           fprintf ( outputfile, "\tcall printf\n" );
-          fprintf ( outputfile, "\tadd\tesp, 4\n\n" );
+          fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
 
           if ( assignable -> offsetcount > ONE_OFFSET )
             fprintf ( outputfile, "\tpop\teax\n\n" );
@@ -1685,14 +1695,16 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           fprintf ( outputfile, "\tpush\tdword\t_string_format\n" );
           fprintf ( outputfile, "\tcall printf\n" );
-          fprintf ( outputfile, "\tadd\tesp, 4\n\n" );
+          fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
 
           if ( assignable -> offsetcount > ONE_OFFSET )
             fprintf ( outputfile, "\tpop\teax\n\n" );
         }
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
       else if ( assignable -> result_type == D_FLOAT_TYPE )
       {
+        fprintf ( outputfile, "\tpusha\n" );
         if ( assignable -> global_or_local == IS_LOCAL )
         {
           if ( assignable -> offsetcount == ONE_OFFSET )
@@ -1756,6 +1768,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           if ( assignable -> offsetcount > ONE_OFFSET )
             fprintf ( outputfile, "\tpop\teax\n\n" );
         }
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
     }
   }
@@ -1878,6 +1891,12 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( currnode -> offsetreg ),
                                                    literals [ foundlit -> data . int_val ] . name );
 
+      }
+      else
+      {
+        // is assign or func node
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getFirstChild ( currnode ) -> offsetreg;
       }
     }
     else if ( currnode -> num_of_children == 2 )
@@ -2154,9 +2173,52 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
     currnode -> offsetcount = DATA_IN_REG;
     currnode -> offsetreg = gotreg;
   }
+  else if ( currnode -> node_type == AST_IF_NODE )
+  {
+    // Write a label to go to if if has only one child
+
+    if ( currnode -> num_of_children == 2 )
+      fprintf ( outputfile, "\niflabel%d_1:\n", currnode -> extra_data . iflabel );
+    else if ( currnode -> num_of_children > 2 )
+      fprintf ( outputfile, "\niflabel%d_2:\n", currnode -> extra_data . iflabel );
+  }
+  else if ( currnode -> node_type == AST_COMPARE_NODE )
+  {
+    // TODO: Handle boolean expressions
+    int reg1 = getFirstChild ( currnode ) -> offsetreg;
+    int reg2 = getSecondChild ( currnode ) -> offsetreg;
+    int label = getParent ( getParent ( currnode ) ) -> extra_data . iflabel;
+
+    fprintf ( codefile, "\tcmp\t%s, %s\n", getRegisterName ( reg1 ), getRegisterName ( reg2 ) );
+    if ( currnode -> extra_data . compop_type == C_EQ_TYPE )
+      fprintf ( codefile, "\tjne\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_GT_TYPE )
+      fprintf ( codefile, "\tjle\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_GTE_TYPE )
+      fprintf ( codefile, "\tjl\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_LTE_TYPE )
+      fprintf ( codefile, "\tjg\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_LT_TYPE )
+      fprintf ( codefile, "\tjge\tiflabel%d_1\n\n", label );
+
+    registers [ reg1 ] . flushed = 1;
+    registers [ reg2 ] . flushed = 1;
+  }
+  else if ( currnode -> node_type == AST_FOR_NODE )
+  {
+    fprintf ( outputfile, "\tdec\tecx\n" );
+    fprintf ( outputfile, "\tcmp\tecx, 0\n" );
+    fprintf ( outputfile, "\tjle\tlooplabel%d_2\n\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "\tjmp\tlooplabel%d_1\n\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "looplabel%d_2:\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "\tpop\tecx\n" );
+    registers [ ECX_REG ] . flushed = 0;
+    registers [ ECX_REG ] . istemp = 1;
+  }
 }
 
-void topDownCodeGeneration ( ANODE *currnode, FILE *codefile )
+void topDownCodeGeneration ( ANODE *currnode, FILE *codefile, SYMBOLTABLE *symboltable,
+                             TRIE *literaltrie, LITDATA *literals )
 {
   // Function used primarily to reserve stack space
   if ( currnode -> node_type == AST_PROGRAM_NODE )
@@ -2165,6 +2227,64 @@ void topDownCodeGeneration ( ANODE *currnode, FILE *codefile )
     fprintf ( codefile, "\tpush\tebp\n" );
     fprintf ( codefile, "\tmov\tebp, esp\n" );
     fprintf ( codefile, "\n\tsub\tesp, %d\t\t;Reserve %d stack space\n\n", toReserve, toReserve );
+  }
+  else if ( currnode -> node_type == AST_IF_NODE )
+  {
+    if ( currnode -> extra_data . compop_type > 1 )
+      fprintf ( codefile, "\niflabel%d_2:\n", getParent ( currnode ) -> extra_data . iflabel );
+    // TODO: Deal with cascaded if case
+    currnode -> extra_data . iflabel = iflabel++;
+    getSecondChild ( currnode ) -> extra_data . compop_type = 1;
+    if ( currnode -> num_of_children == 3 )
+      getThirdChild ( currnode ) -> extra_data . compop_type = 2;
+  }
+  else if ( currnode -> node_type == AST_BLOCK_NODE )
+  {
+    if ( currnode -> extra_data . compop_type > 1 )
+    {
+      int label = getParent ( currnode ) -> extra_data . iflabel;
+      fprintf ( codefile, "\tjmp\tiflabel%d_2\n\n", label );
+      fprintf ( codefile, "\niflabel%d_1:\n", label );
+    }
+    else if ( getParent ( currnode ) -> node_type == AST_FOR_NODE )
+    {
+      int i;
+      for ( i = 0; i < NUMREG; i++ )
+      {
+        registers [i] . flushed = 1;
+        registers [i] . istemp = 0;
+      }
+
+      registers [ ECX_REG ] . flushed = 1;
+      ANODE *idennode = getFirstChild ( getParent ( currnode ) );
+      STBENTRY *entry = getEntryByIndex ( symboltable, idennode -> extra_data . symboltable_index );
+      int reg = getRegister ( codefile, symboltable, entry -> index, idennode -> offset1, OFFSET_ANY, OFFSET_ANY,
+                              ECX_REG, 1, 0, 0 );
+
+      registers [ reg ] . istemp = 1;
+      registers [ reg ] . hasoffset = 0;
+      registers [ reg ] . flushed = 0;
+      registers [ reg ] . offset1 = OFFSET_ANY;
+      registers [ reg ] . offset2 = OFFSET_ANY;
+      registers [ reg ] . offset3 = OFFSET_ANY;
+
+      fprintf ( codefile, "\tpush\tecx\n" );
+      if ( entry -> entry_type == ENTRY_LIT_TYPE )
+      {
+        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
+        fprintf ( codefile, "\tmov\tecx, [%s]\n", literals [ foundlit -> data . int_val ] . name );
+      }
+      else if ( idennode -> global_or_local == IS_GLOBAL )
+        fprintf ( codefile, "\tmov\tecx, [%s]\n", entry -> data . var_data . name );
+      else
+        fprintf ( codefile, "\tmov\tecx, [ebp-%d]\n", idennode -> offset1 );
+
+      fprintf ( codefile, "\nlooplabel%d_1:\n", getParent ( currnode ) -> extra_data . forlabel );
+    }
+  }
+  else if ( currnode -> node_type == AST_FOR_NODE )
+  {
+    currnode -> extra_data . forlabel = forlabel++;
   }
 }
 
@@ -2241,7 +2361,7 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
         stack = push ( stack, & temp );
       }
 
-      topDownCodeGeneration ( currnode, codefile );
+      topDownCodeGeneration ( currnode, codefile, symboltable, literaltrie, literals );
     }
     else
     {
