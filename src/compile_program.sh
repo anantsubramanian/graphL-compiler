@@ -70,22 +70,31 @@ if [ "$ext" == "G" ]; then
   if [ "$2" == "-asm" ]; then
     mv ASMFILE.asm ${name}.asm
     make clean >/dev/null
-    rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ASMFILE.asm CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
+    rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
     exit
   fi
 elif [ "$ext" == "asm" ]; then
   asmfile=$name
 else
   echo "Unrecognized file extension"
+  exit
 fi
 
 nasm -f elf ${asmfile}.asm
+if [ "$?" != "0" ]; then
+  exit
+fi
+
 gcc -m32 ${asmfile}.o -o ${name} -nostartfiles
+if [ "$?" != "0" ]; then
+  exit
+fi
+
 #ld -m elf_i386 ${asmfile}.o -o ${name} -lc
-rm ${asmfile}.o
+rm ${asmfile}.o 2>/dev/null
 
 make clean >/dev/null
-rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ASMFILE.asm CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
+rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ${asmfile}.asm CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
 
 echo "Compiled to $name"
 
