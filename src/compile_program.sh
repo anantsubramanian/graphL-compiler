@@ -16,6 +16,8 @@ if [ "$1" == "" ]; then
   exit
 fi
 
+printf "\n"
+
 make >/dev/null
 
 name=$(echo $1 | cut -d '.' -f 1)
@@ -26,6 +28,7 @@ if [ "$ext" == "G" ]; then
   ./lexer $1 2>/dev/null
   e=$(cat ERRORS)
   if [ "$e" != "" ]; then
+    printf "Errors found while compiling:\n\n"
     cat ERRORS
     exit
   fi
@@ -38,6 +41,7 @@ if [ "$ext" == "G" ]; then
   ./parser 2>/dev/null $1
   e=$(cat PARSEERRORS)
   if [ "$e" != "" ]; then
+    printf "Errors found while compiling:\n\n"
     cat PARSEERRORS
     exit
   fi
