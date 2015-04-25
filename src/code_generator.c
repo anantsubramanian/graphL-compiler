@@ -141,7 +141,9 @@
 #define NO_SPECIFIC_REG -1
 #define OFFSET_ANY -1
 #define EAX_REG 0
+#define EBX_REG 1
 #define ECX_REG 2
+#define EDX_REG 3
 #define NO_REGISTER -2
 #define IS_LITERAL 2
 
@@ -221,7 +223,7 @@ void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
       fprintf ( codefile, "\tpush\te%cx\n", midc );
       int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
       fprintf ( codefile, "\tmov\te%cx, [ebp-%d]\n", midc, resultant );
-      fprintf ( codefile, "\tadd\te%cx, %d\n", midc, registers [ topick ] . offset3 );
+      fprintf ( codefile, "\tsub\te%cx, %d\n", midc, registers [ topick ] . offset3 );
       fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
       fprintf ( codefile, "\tpop\te%cx\n", midc );
     }
@@ -1443,7 +1445,7 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
     if ( assignable -> offsetcount == THREE_OFFSETS )
     {
       fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
-      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
     }
   }
   else
@@ -1682,7 +1684,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
         }
@@ -1726,7 +1728,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
 
@@ -1788,7 +1790,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           if ( assignable -> offsetcount == THREE_OFFSETS )
           {
-            fprintf ( outputfile, "\tadd\teax, %d\n", assignable -> offset3 );
+            fprintf ( outputfile, "\tsub\teax, %d\n", assignable -> offset3 );
             fprintf ( outputfile, "\tmov\teax, [eax]\n" );
           }
 
@@ -2099,6 +2101,41 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         else
           fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
       }
+      else if ( op == A_MUL_TYPE )
+      {
+        if ( ! islit1 )
+        {
+          int regtomul = (leftdone ? rightreg : leftreg);
+
+          // If the regs do not belong to these, then push and restore data later
+          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+            fprintf ( outputfile, "\tpush\teax\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+            fprintf ( outputfile, "\tpush\tebx\n" );
+          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+            fprintf ( outputfile, "\tpush\tedx\n" );
+
+          fprintf ( outputfile, "\n\t; Begin multiply\n" );
+
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+          fprintf ( outputfile, "\timul\tebx\n" );
+
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+
+          fprintf ( outputfile, "\t; End multiply\n\n" );
+
+          // Restore the registers if they belonged to some other code
+          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+            fprintf ( outputfile, "\tpop\tedx\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+            fprintf ( outputfile, "\tpop\teax\n" );
+        }
+      }
 
       currnode -> offsetcount = DATA_IN_REG;
       currnode -> offsetreg = resultreg;
@@ -2262,6 +2299,41 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         else
           fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
       }
+      else if ( op == A_MUL_TYPE )
+      {
+        if ( ! islit1 )
+        {
+          int regtomul = (leftdone ? rightreg : leftreg);
+
+          // If the regs do not belong to these, then push and restore data later
+          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+            fprintf ( outputfile, "\tpush\teax\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+            fprintf ( outputfile, "\tpush\tebx\n" );
+          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+            fprintf ( outputfile, "\tpush\tedx\n" );
+
+          fprintf ( outputfile, "\n\t; Begin Multiply\n" );
+
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+          fprintf ( outputfile, "\timul\tebx\n" );
+
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+
+          fprintf ( outputfile, "\t; End Multiply\n\n" );
+
+          // Restore the registers if they belonged to some other code
+          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+            fprintf ( outputfile, "\tpop\tedx\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+            fprintf ( outputfile, "\tpop\teax\n" );
+        }
+      }
 
       currnode -> offsetcount = DATA_IN_REG;
       currnode -> offsetreg = resultreg;
@@ -2296,8 +2368,8 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
     // TODO: Deal with function calls separately
     int gotreg = getOffsetInReg ( currnode, outputfile, symboltable );
 
-    // Get the data from the offset
-    if ( registers [ gotreg ] . hasoffset )
+    // Get the data from the offset if the result is an INT or FLOAT only
+    if ( registers [ gotreg ] . hasoffset && ( currnode -> result_type == D_INT_TYPE || currnode -> result_type == D_FLOAT_TYPE ) )
     {
       fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( gotreg ), getRegisterName ( gotreg ) );
       registers [ gotreg ] . hasoffset = 0;
