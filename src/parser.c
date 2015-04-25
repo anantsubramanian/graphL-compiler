@@ -423,7 +423,7 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
   stack = setStackName ( stack, PARSER_STACK_NAME );
 
   stack = push ( stack, START_SYMBOL );
-  fprintf ( parseout, "%s \n", START_SYMBOL );
+  fprintf ( parseout, "%s 1\n", START_SYMBOL );
 
   char c;
 
@@ -641,13 +641,13 @@ void parseInputProgram ( FILE *inputfile, int blocksize, int **parseTable,
                 fprintf ( parseout, "%s ", iterator.data.string_val );
             }
 
-            fprintf ( parseout, "\n" );
+            fprintf ( parseout, "%d\n", linenum );
 
             stack = insertFromLinkedList ( stack, ruleLists [ parseTable [ nontermindex ] [ column ] ] );
           }
           else if ( parseTable [ nontermindex ] [ epscolumn ] != NO_TRANSITION )
           {
-            fprintf ( parseout, "e \n" );
+            fprintf ( parseout, "e %d\n", linenum );
             continue;
           }
           else

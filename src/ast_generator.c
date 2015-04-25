@@ -286,6 +286,20 @@ char* getDataTypeName ( DATATYPE type )
   return dataTypes [0];
 }
 
+int extractLineNum ( char *input )
+{
+  int n = strlen ( input );
+  char *p = input + n - 1;
+
+  while ( *p != ' ' ) p--;
+  p++;
+
+  int lno = atoi ( p );
+  *p = '\0';
+
+  return lno;
+}
+
 void extractTokenData ( char *inputtoken, char **token, char **name, int *linenumber )
 {
   if ( inputtoken == NULL )
@@ -1344,6 +1358,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int curbuff = -1;
   int charsread = 0;
   int tokencounter = 0;
+  int curline = 1;
 
   int function_scope_started = 0;     // Flag used to detect that the scope for a function has already started
   int should_start_function = 0;      // Flag used to indicate that a function scope must be started
@@ -1390,6 +1405,11 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
     if ( c == NEWLINE )
     {
       token [ tokencounter ] = '\0';
+
+      // Set the previous curline value to the current node, whatever it may be
+      // and get the new curline value to be set in the next iteration
+      currnode -> line_no = curline;
+      curline = extractLineNum ( token );
 
       // A whole line of expansion has been read. Need to process
       // it so push the words onto the stack, from which they will

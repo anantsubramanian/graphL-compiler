@@ -91,6 +91,7 @@ typedef struct ast_node
   int offset1;
   int offset2;
   int offset3;
+  int line_no;
   DATATYPE result_type;
   LINKEDLIST *children;
   union

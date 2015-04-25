@@ -14,6 +14,7 @@
 
 #define MAX_NAME_LEN 100
 #define BUFFERLENGTH 50
+#define DEBUG_OVERWRITE 0
 
 /**
  * Function that allocates memory for and returns the pointer
@@ -227,8 +228,11 @@ STATE* addTransition ( char input, STATE *state1, STATE *state2 )
 
   if ( state1->next_state[ (int) input ] != NULL )
   {
-    fprintf ( stderr, "A transition for state %d and ASCII %d already exists\n", state1->state_number, (int) input );
-    fprintf ( stderr, "Overwriting transition..\n" );
+    if ( DEBUG_OVERWRITE )
+    {
+      fprintf ( stderr, "A transition for state %d and ASCII %d already exists\n", state1->state_number, (int) input );
+      fprintf ( stderr, "Overwriting transition..\n" );
+    }
   }
 
   state1->next_state[ (int) input ] = state2;

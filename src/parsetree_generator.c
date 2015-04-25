@@ -76,6 +76,20 @@ void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
   }
 }
 
+int extractLineNum ( char *input )
+{
+  int n = strlen ( input );
+  char *p = input + n - 1;
+
+  while ( *p != ' ' ) p--;
+  p++;
+
+  int lno = atoi ( p );
+  *p = '\0';
+
+  return lno;
+}
+
 PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
                              TRIE *terminals )
 {
@@ -113,6 +127,8 @@ PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
     if ( c == NEWLINE )
     {
       token [ tokencounter ] = '\0';
+
+      extractLineNum ( token );
 
       currnode = getLeftMostDesc ( currnode );
 

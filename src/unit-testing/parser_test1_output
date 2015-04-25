@@ -1,205 +1,205 @@
-<program> 
-<globaldefines> <fndefines> <statements> 
-e 
-TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 
-<TK_IDEN,shortestPath,2> 
-<params> 
-<param> <moreparams> 
-<datatype> <identifier> 
-<complextype> 
-TK_GRAPH 
-<TK_IDEN,G,2> 
-TK_COMMA <params> 
-<param> <moreparams> 
-<datatype> <identifier> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,v,2> 
-TK_COMMA <params> 
-<param> <moreparams> 
-<datatype> <identifier> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,u,2> 
-e 
-<datatype> 
-<primitivetype> 
-TK_INT 
-TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,w,4> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<primitivetype> 
-TK_INT 
-<TK_IDEN,shortestDepth,5> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<iteration> 
-TK_FOR <loop> TK_COLON <block> 
-<identifier> <loop1> 
-<TK_IDEN,w,6> 
-TK_IN <iterable> 
-<iterop> <operatorparams> 
-TK_BFT 
-TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 
-<TK_IDEN,G,6> 
-<TK_IDEN,v,6> 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,w,8> 
-<assignable1> 
-TK_MEMBEROP <endassignable> 
-<primitivetype> 
-TK_STRING 
-e 
-e 
-e 
-TK_EQ 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,u,8> 
-<assignable1> 
-TK_MEMBEROP <endassignable> 
-<primitivetype> 
-TK_STRING 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,shortestDepth,10> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-TK_DEPTH 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<breakstmt> 
-TK_BREAK 
-e 
-e 
-e 
-e 
-TK_RETURN <returnable> 
-<equatable> 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,shortestDepth,14> 
-e 
-e 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<primitivetype> 
-TK_INT 
-<TK_IDEN,x,17> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_GRAPH 
-<TK_IDEN,G,18> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,v,19> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,u,19> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,x,21> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,shortestPath,21> 
-<funcstmt1> 
-TK_OPENPAREN <passedparams> TK_CLOSEPAREN 
-<assignable> <morepassed> 
-<identifier> <assignable1> 
-<TK_IDEN,G,21> 
-e 
-TK_COMMA <assignable> <morepassed> 
-<identifier> <assignable1> 
-<TK_IDEN,v,21> 
-e 
-TK_COMMA <assignable> <morepassed> 
-<identifier> <assignable1> 
-<TK_IDEN,u,21> 
-e 
-e 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<output> 
-TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
-<assignable> 
-<identifier> <assignable1> 
-<TK_IDEN,x,23> 
-e 
+<program> 1
+<globaldefines> <fndefines> <statements> 2
+e 2
+TK_FUNCTION <identifier> TK_OPENPAREN <paramlist> TK_CLOSEPAREN TK_RETURNSYM <returntype> TK_COLON TK_NEWLINE <fnbody> TK_NEWLINE <fndefines> 2
+<TK_IDEN,shortestPath,2> 2
+<params> 2
+<param> <moreparams> 2
+<datatype> <identifier> 2
+<complextype> 2
+TK_GRAPH 2
+<TK_IDEN,G,2> 2
+TK_COMMA <params> 2
+<param> <moreparams> 2
+<datatype> <identifier> 2
+<complextype> 2
+TK_VERTEX 2
+<TK_IDEN,v,2> 2
+TK_COMMA <params> 2
+<param> <moreparams> 2
+<datatype> <identifier> 2
+<complextype> 2
+TK_VERTEX 2
+<TK_IDEN,u,2> 2
+e 2
+<datatype> 2
+<primitivetype> 2
+TK_INT 2
+TK_BEGIN TK_NEWLINE <statements> <returnstmt> TK_NEWLINE TK_END 3
+<possiblestmts> <statements> 4
+<validstatement> TK_NEWLINE 4
+<definestmt> 4
+TK_DEFINE <defineargs> 4
+<datatype> <identifier> <moreidens> 4
+<complextype> 4
+TK_VERTEX 4
+<TK_IDEN,w,4> 4
+e 5
+<possiblestmts> <statements> 5
+<validstatement> TK_NEWLINE 5
+<definestmt> 5
+TK_DEFINE <defineargs> 5
+<datatype> <identifier> <moreidens> 5
+<primitivetype> 5
+TK_INT 5
+<TK_IDEN,shortestDepth,5> 5
+e 6
+<possiblestmts> <statements> 6
+<validstatement> TK_NEWLINE 6
+<iteration> 6
+TK_FOR <loop> TK_COLON <block> 6
+<identifier> <loop1> 6
+<TK_IDEN,w,6> 6
+TK_IN <iterable> 6
+<iterop> <operatorparams> 6
+TK_BFT 6
+TK_OPENPAREN <identifier> TK_COMMA <identifier> TK_CLOSEPAREN 6
+<TK_IDEN,G,6> 6
+<TK_IDEN,v,6> 6
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 7
+<possiblestmts> <statements> 8
+<validconditional> 8
+<ifblock> TK_NEWLINE <elseifblock> 8
+<ifstmt> TK_COLON <block> 8
+TK_IF <boolexp> 8
+<expor> <boolexp1> 8
+<expand> <expor1> 8
+<expnot> 8
+<boolresult> 8
+<exp> <relop> <exp> 8
+<mulexp> <exp1> 8
+<modexp> <mulexp1> 8
+<baseexp> <modexp1> 8
+<assignorfunc> 8
+<identifier> <assignorfunc1> 8
+<TK_IDEN,w,8> 8
+<assignable1> 8
+TK_MEMBEROP <endassignable> 8
+<primitivetype> 8
+TK_STRING 8
+e 8
+e 8
+e 8
+TK_EQ 8
+<mulexp> <exp1> 8
+<modexp> <mulexp1> 8
+<baseexp> <modexp1> 8
+<assignorfunc> 8
+<identifier> <assignorfunc1> 8
+<TK_IDEN,u,8> 8
+<assignable1> 8
+TK_MEMBEROP <endassignable> 8
+<primitivetype> 8
+TK_STRING 8
+e 8
+e 8
+e 8
+e 8
+e 8
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 9
+<possiblestmts> <statements> 10
+<validstatement> TK_NEWLINE 10
+<letstmt> 10
+TK_LET <assignable> TK_BE <equatable> 10
+<identifier> <assignable1> 10
+<TK_IDEN,shortestDepth,10> 10
+e 10
+<exp> 10
+<mulexp> <exp1> 10
+<modexp> <mulexp1> 10
+<baseexp> <modexp1> 10
+TK_DEPTH 10
+e 11
+e 11
+e 11
+<possiblestmts> <statements> 11
+<validstatement> TK_NEWLINE 11
+<breakstmt> 11
+TK_BREAK 11
+e 12
+e 13
+e 13
+e 14
+TK_RETURN <returnable> 14
+<equatable> 14
+<exp> 14
+<mulexp> <exp1> 14
+<modexp> <mulexp1> 14
+<baseexp> <modexp1> 14
+<assignorfunc> 14
+<identifier> <assignorfunc1> 14
+<TK_IDEN,shortestDepth,14> 14
+e 15
+e 15
+e 15
+e 15
+e 17
+<possiblestmts> <statements> 17
+<validstatement> TK_NEWLINE 17
+<definestmt> 17
+TK_DEFINE <defineargs> 17
+<datatype> <identifier> <moreidens> 17
+<primitivetype> 17
+TK_INT 17
+<TK_IDEN,x,17> 17
+e 18
+<possiblestmts> <statements> 18
+<validstatement> TK_NEWLINE 18
+<definestmt> 18
+TK_DEFINE <defineargs> 18
+<datatype> <identifier> <moreidens> 18
+<complextype> 18
+TK_GRAPH 18
+<TK_IDEN,G,18> 18
+e 19
+<possiblestmts> <statements> 19
+<validstatement> TK_NEWLINE 19
+<definestmt> 19
+TK_DEFINE <defineargs> 19
+<datatype> <identifier> <moreidens> 19
+<complextype> 19
+TK_VERTEX 19
+<TK_IDEN,v,19> 19
+TK_COMMA <identifier> <moreidens> 19
+<TK_IDEN,u,19> 19
+e 20
+<possiblestmts> <statements> 21
+<validstatement> TK_NEWLINE 21
+<letstmt> 21
+TK_LET <assignable> TK_BE <equatable> 21
+<identifier> <assignable1> 21
+<TK_IDEN,x,21> 21
+e 21
+<exp> 21
+<mulexp> <exp1> 21
+<modexp> <mulexp1> 21
+<baseexp> <modexp1> 21
+<assignorfunc> 21
+<identifier> <assignorfunc1> 21
+<TK_IDEN,shortestPath,21> 21
+<funcstmt1> 21
+TK_OPENPAREN <passedparams> TK_CLOSEPAREN 21
+<assignable> <morepassed> 21
+<identifier> <assignable1> 21
+<TK_IDEN,G,21> 21
+e 21
+TK_COMMA <assignable> <morepassed> 21
+<identifier> <assignable1> 21
+<TK_IDEN,v,21> 21
+e 21
+TK_COMMA <assignable> <morepassed> 21
+<identifier> <assignable1> 21
+<TK_IDEN,u,21> 21
+e 21
+e 21
+e 22
+e 22
+e 22
+<possiblestmts> <statements> 23
+<validstatement> TK_NEWLINE 23
+<output> 23
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 23
+<assignable> 23
+<identifier> <assignable1> 23
+<TK_IDEN,x,23> 23
+e 23

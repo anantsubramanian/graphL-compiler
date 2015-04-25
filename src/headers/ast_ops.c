@@ -197,8 +197,8 @@ ANODE* initializeAstNode ( ANODE *node, ANODE *parent )
   node -> offset1 = 0;
   node -> offset2 = 0;
   node -> offset3 = 0;
+  node -> line_no = -1;
   node -> extra_data . data_type = 0;
-  node -> extra_data . iflabel = 0;
 
   return node;
 }
@@ -372,7 +372,7 @@ ANODE* dumpNode  ( ANODE *node, FILE *dumpfile )
   fprintf ( dumpfile, "%d %d\n", node -> node_type, ( node -> name != NULL ) );
   if ( node -> name != NULL )
     fprintf ( dumpfile, "%s\n", node -> name );
-  fprintf ( dumpfile, "%d ", node -> num_of_children );
+  fprintf ( dumpfile, "%d %d ", node -> num_of_children, node -> line_no );
 
   // ************************ Important note: ****************************
   // All members of the union are integers, so it doesn't really matter
@@ -423,6 +423,7 @@ ANODE* readDumpNode  ( ANODE *parent, FILE *dumpfile )
     createdNode = setAstNodeName ( createdNode, buffer );
 
   fscanf ( dumpfile, "%d", & ( createdNode -> num_of_children ) );
+  fscanf ( dumpfile, "%d", & ( createdNode -> line_no ) );
 
   // ************************ Important note: ****************************
   // All members of the union are integers, so it doesn't really matter
