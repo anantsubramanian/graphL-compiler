@@ -65,6 +65,8 @@ if [ "$ext" == "G" ]; then
   # Stop at assembly code
   if [ "$2" == "-asm" ]; then
     mv ASMFILE.asm ${name}.asm
+    make clean >/dev/null
+    rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ASMFILE.asm CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
     exit
   fi
 elif [ "$ext" == "asm" ]; then
