@@ -185,6 +185,19 @@ char* getRegisterName ( int regid )
   return registerNames [ regid ];
 }
 
+void setRegisterProperties ( int regid, int flushed, int isglobal, int istemp, int hasoffset,
+                             int stbindex, int offset1, int offset2, int offset3 )
+{
+  registers [ regid ] . flushed = flushed;
+  registers [ regid ] . isglobal = isglobal;
+  registers [ regid ] . istemp = istemp;
+  registers [ regid ] . hasoffset = hasoffset;
+  registers [ regid ] . stbindex = stbindex;
+  registers [ regid ] . offset1 = offset1;
+  registers [ regid ] . offset2 = offset2;
+  registers [ regid ] . offset3 = offset3;
+}
+
 void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
 {
   // Registers with offsets don't have write data, so they don't need to be flushed
@@ -362,14 +375,14 @@ char nodeTypes[][30] = {
 char dataTypes[][10] = {
 
   "",
-  "INT",
-  "FLOAT",
-  "STRING",
-  "VERTEX",
-  "EDGE",
-  "TREE",
-  "GRAPH",
-  "NOTHING",
+  "Int",
+  "Float",
+  "String",
+  "Vertex",
+  "Edge",
+  "Tree",
+  "Graph",
+  "Nothing",
   ""
 };
 
@@ -1474,13 +1487,9 @@ int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable
     }
   }
 
-  registers [ target ] . isglobal = assignable -> global_or_local;
-  registers [ target ] . istemp = 0;
-  registers [ target ] . flushed = 0;
-  registers [ target ] . stbindex = getFirstChild ( assignable ) -> extra_data . symboltable_index;
-  registers [ target ] . offset1 = assignable -> offset1;
-  registers [ target ] . offset3 = assignable -> offset3;
-  registers [ target ] . hasoffset = 1;
+  setRegisterProperties ( target, 0, assignable -> global_or_local, 0, 1,
+    getFirstChild ( assignable ) -> extra_data . symboltable_index, assignable -> offset1, 0,
+    assignable -> offset3 );
 
   if ( assignable -> offsetcount > 1 )
     registers [ target ] . offset2 = assignable -> offset2;
@@ -1514,13 +1523,8 @@ int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symb
 
   fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( targetreg ), literals [ foundlit -> data . int_val ] . name );
 
-  registers [ targetreg ] . isglobal = -1;
-  registers [ targetreg ] . istemp = IS_LITERAL;
-  registers [ targetreg ] . flushed = 0;
-  registers [ targetreg ] . stbindex = literalnode -> extra_data . symboltable_index;
-  registers [ targetreg ] . offset1 = OFFSET_ANY;
-  registers [ targetreg ] . offset2 = OFFSET_ANY;
-  registers [ targetreg ] . offset3 = OFFSET_ANY;
+  setRegisterProperties ( targetreg, 0, -1, IS_LITERAL, 0, literalnode -> extra_data . symboltable_index,
+                          OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
 
   return targetreg;
 }
@@ -1830,13 +1834,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         }
 
         int gotreg = currnode -> offsetreg;
-        registers [ gotreg ] . isglobal = -1;
-        registers [ gotreg ] . istemp = 1;
-        registers [ gotreg ] . flushed = 0;
-        registers [ gotreg ] . stbindex = -1;
-        registers [ gotreg ] . offset1 = OFFSET_ANY;
-        registers [ gotreg ] . offset2 = OFFSET_ANY;
-        registers [ gotreg ] . offset3 = OFFSET_ANY;
+        setRegisterProperties ( gotreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
 
         if ( DEBUG_REGISTER_ALLOC )
           fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
@@ -1934,13 +1932,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         else
           fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
 
-        registers [ resultreg ] . isglobal = -1;
-        registers [ resultreg ] . istemp = 1;
-        registers [ resultreg ] . flushed = 0;
-        registers [ resultreg ] . stbindex = -1;
-        registers [ resultreg ] . offset1 = OFFSET_ANY;
-        registers [ resultreg ] . offset2 = OFFSET_ANY;
-        registers [ resultreg ] . offset3 = OFFSET_ANY;
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
       }
 
 
@@ -1964,13 +1956,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           exit ( -1 );
         }
 
-        registers [ resultreg ] . isglobal = -1;
-        registers [ resultreg ] . istemp = 1;
-        registers [ resultreg ] . flushed = 0;
-        registers [ resultreg ] . stbindex = -1;
-        registers [ resultreg ] . offset1 = OFFSET_ANY;
-        registers [ resultreg ] . offset2 = OFFSET_ANY;
-        registers [ resultreg ] . offset3 = OFFSET_ANY;
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
 
         if ( islit1 )
         {
@@ -2145,13 +2131,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         else
           fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
 
-        registers [ resultreg ] . isglobal = -1;
-        registers [ resultreg ] . istemp = 1;
-        registers [ resultreg ] . flushed = 0;
-        registers [ resultreg ] . stbindex = -1;
-        registers [ resultreg ] . offset1 = OFFSET_ANY;
-        registers [ resultreg ] . offset2 = OFFSET_ANY;
-        registers [ resultreg ] . offset3 = OFFSET_ANY;
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
       }
 
       if ( registers [ leftreg ] . istemp && ! gottemp  && ! islit1 )
@@ -2174,13 +2154,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           exit ( -1 );
         }
 
-        registers [ resultreg ] . isglobal = -1;
-        registers [ resultreg ] . istemp = 1;
-        registers [ resultreg ] . flushed = 0;
-        registers [ resultreg ] . stbindex = -1;
-        registers [ resultreg ] . offset1 = OFFSET_ANY;
-        registers [ resultreg ] . offset2 = OFFSET_ANY;
-        registers [ resultreg ] . offset3 = OFFSET_ANY;
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
 
         if ( islit1 )
         {
@@ -2376,12 +2350,7 @@ void topDownCodeGeneration ( ANODE *currnode, FILE *codefile, SYMBOLTABLE *symbo
       int reg = getRegister ( codefile, symboltable, entry -> index, idennode -> offset1, OFFSET_ANY, OFFSET_ANY,
                               ECX_REG, 1, 0, 0 );
 
-      registers [ reg ] . istemp = 1;
-      registers [ reg ] . hasoffset = 0;
-      registers [ reg ] . flushed = 0;
-      registers [ reg ] . offset1 = OFFSET_ANY;
-      registers [ reg ] . offset2 = OFFSET_ANY;
-      registers [ reg ] . offset3 = OFFSET_ANY;
+      setRegisterProperties ( reg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
 
       fprintf ( codefile, "\tpush\tecx\n" );
       if ( entry -> entry_type == ENTRY_LIT_TYPE )
