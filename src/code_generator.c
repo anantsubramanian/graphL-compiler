@@ -413,67 +413,6 @@ char* getDataTypeName ( DATATYPE type )
   return dataTypes [0];
 }
 
-ANODE* getFirstChild ( ANODE *node )
-{
-  if ( node -> num_of_children == 0 )
-  {
-    fprintf ( stderr, "Cannot get first child of node with no children\n" );
-    fprintf ( stderr, "At node %s\n", getNodeTypeName ( node -> node_type ) );
-    erroroccured = 1;
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> data . generic_val );
-}
-
-ANODE* getSecondChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 2 )
-  {
-    fprintf ( stderr, "Cannot get non existent second child of node\n" );
-    erroroccured = 1;
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> data . generic_val );
-}
-
-ANODE* getThirdChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 3 )
-  {
-    fprintf ( stderr, "Cannot get non existent 3rd child\n" );
-    erroroccured = 1;
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> data . generic_val );
-}
-
-ANODE* getFourthChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 4 )
-  {
-    fprintf ( stderr, "Cannot get non existent 4th child\n" );
-    erroroccured = 1;
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> data . generic_val );
-}
-
-ANODE* getFifthChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 5 )
-  {
-    fprintf ( stderr, "Cannot get non existent 5th child\n" );
-    erroroccured = 1;
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> next -> data . generic_val );
-}
-
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {
   char buffers [2] [ blocksize ];

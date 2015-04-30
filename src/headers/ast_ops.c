@@ -481,3 +481,162 @@ int createProperty ( char *instruction )
   return property;
 }
 
+/**
+ * Function that returns the first child of the provided node (if any)
+ * or NULL
+ *
+ * @param  node ANODE* The target node
+ *
+ * @return ANODE* The first child of the given node
+ **/
+
+ANODE* getFirstChild ( ANODE *node )
+{
+  if ( node -> num_of_children == 0 )
+  {
+    fprintf ( stderr, "Cannot get first child of node with no children\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> data . generic_val );
+}
+
+/**
+ * Function that returns the second child of the provided node (if any)
+ * or NULL
+ *
+ * @param  node ANODE* The target node
+ *
+ * @return ANODE* The second child of the given node
+ **/
+
+ANODE* getSecondChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 2 )
+  {
+    fprintf ( stderr, "Cannot get non existent second child of node\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> data . generic_val );
+}
+
+/**
+ * Function that returns the third child of the provided node (if any)
+ * or NULL
+ *
+ * @param  node ANODE* The target node
+ *
+ * @return ANODE* The third child of the given node
+ **/
+
+ANODE* getThirdChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 3 )
+  {
+    fprintf ( stderr, "Cannot get non existent 3rd child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> data . generic_val );
+}
+
+/**
+ * Function that returns the fourth child of the provided node (if any)
+ * or NULL
+ *
+ * @param  node ANODE* The target node
+ *
+ * @return ANODE* The fourth child of the given node
+ **/
+
+ANODE* getFourthChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 4 )
+  {
+    fprintf ( stderr, "Cannot get non existent 4th child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> data . generic_val );
+}
+
+/**
+ * Function that returns the fifth child of the provided node (if any)
+ * or NULL
+ *
+ * @param  node ANODE* The target node
+ *
+ * @return ANODE* The fifth child of the given node
+ **/
+
+ANODE* getFifthChild ( ANODE *node )
+{
+  if ( node -> num_of_children < 5 )
+  {
+    fprintf ( stderr, "Cannot get non existent 5th child\n" );
+    return NULL;
+  }
+
+  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> next -> data . generic_val );
+}
+
+/**
+ * Function that rotates a given node left and returns the pointer
+ * to the rotated node.
+ *
+ * @param  node ANODE* The node to rotate
+ *
+ * @return ANODE* The left rotated node
+ *
+ **/
+
+ANODE* rotateLeft ( ANODE *node )
+{
+  if ( node == NULL )
+  {
+    fprintf ( stderr, "Cannot left-rotate a non-existent node\n" );
+    return NULL;
+  }
+
+  if ( node -> num_of_children != 2 || getSecondChild ( node ) -> num_of_children != 2 )
+  {
+    fprintf ( stderr, "Node that is to be rotated left and its right child must have exactly 2 children\n" );
+    return NULL;
+  }
+
+  /*
+   * Transform    a      to       c
+   *             / \             / \
+   *            b   c           a   e
+   *               / \         / \
+   *              d   e       b   d
+   *
+   */
+
+  ANODE *a = node;
+  ANODE *c = getSecondChild ( a );
+  ANODE *d = getFirstChild ( c );
+
+  // Need to modify nodes a and c
+  // So we need to modify values in their linked lists of children
+
+  LINKEDLIST *achildren = a -> children;
+  LINKEDLIST *cchildren = c -> children;
+
+  // Set a's right child as d
+  // And d's parent as a
+  memcpy ( achildren -> head -> next -> data . generic_val, &d, sizeof ( d ) );
+  d -> parent = a;
+
+  // Set c's parent as a's parent
+  // Then set a's parent as c
+  c -> parent = a -> parent;
+  a -> parent = c;
+
+  // Set c's left child as a
+  memcpy ( cchildren -> head -> data . generic_val, &a, sizeof ( a ) );
+
+  return c;
+}
+

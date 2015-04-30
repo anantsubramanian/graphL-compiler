@@ -139,3 +139,15 @@ extern ANODE* readDumpNode ( ANODE * , FILE * );
 
 extern int createProperty ( char * );
 
+extern ANODE* getFirstChild ( ANODE * );
+
+extern ANODE* getSecondChild ( ANODE * );
+
+extern ANODE* getThirdChild ( ANODE * );
+
+extern ANODE* getFourthChild ( ANODE * );
+
+extern ANODE* getFifthChild ( ANODE * );
+
+extern ANODE* rotateLeft ( ANODE * );
+
