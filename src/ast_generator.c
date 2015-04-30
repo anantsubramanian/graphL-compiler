@@ -1574,6 +1574,88 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   return ast;
 }
 
+int needsRotation ( ANODE *node )
+{
+  if ( node -> node_type != AST_EXP_NODE && node -> node_type != AST_AROP_NODE )
+  {
+    fprintf ( stderr, "Rotation checks should only be performed on EXP or AROP nodes\n" );
+    return 0;
+  }
+
+  if ( node -> num_of_children != 2 || getSecondChild ( node ) -> num_of_children != 2 )
+    return 0;
+
+  ANODE *rightchild = getSecondChild ( node );
+
+  if ( node -> node_type == AST_EXP_NODE && rightchild -> node_type == AST_EXP_NODE )
+    return 0;
+
+  // If the current node has higher precedence then the child, then rotation needs to be performed
+  if ( ( node -> extra_data . arop_type == A_MUL_TYPE || node -> extra_data . arop_type == A_DIV_TYPE || node -> extra_data . arop_type == A_MODULO_TYPE )
+       && ( rightchild -> extra_data . arop_type == A_PLUS_TYPE || rightchild -> extra_data . arop_type == A_MINUS_TYPE ) )
+    return 1;
+
+  return 0;
+}
+
+void insertAropBetween ( ANODE *node )
+{
+  LNODE *toedit = node -> children -> head -> next;
+  ANODE *temp = * ( ANODE ** ) ( toedit -> data . generic_val );
+
+  ANODE *toinsert = malloc ( sizeof ( ANODE ) );
+  if ( toinsert == NULL )
+  {
+    fprintf ( stderr, "Failed to insert arop node in between while setting precedence\n" );
+    return;
+  }
+
+  toinsert = initializeAstNode ( toinsert, node );
+  toinsert = setNodeType ( toinsert, AST_AROP_NODE );
+
+  toinsert -> line_no = node -> line_no;
+
+  // Make the first child of the created node as temp, and the second child of node
+  // as toinsert
+  toinsert -> num_of_children ++;
+  toinsert -> children = insertAtBack ( toinsert -> children, & temp );
+
+  memcpy ( toedit -> data . generic_val, & toinsert, sizeof ( toinsert ) );
+
+}
+
+void setExpressionPrecedence ( ANODE *node )
+{
+  LNODE *curnode = node -> children -> head;
+  LNODE iterator;
+  getIterator ( node -> children, &iterator );
+
+  while ( hasNext ( &iterator ) )
+  {
+    getNext ( node -> children, &iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    setExpressionPrecedence ( child );
+
+    if ( child -> node_type == AST_EXP_NODE || child -> node_type == AST_AROP_NODE )
+      if ( needsRotation ( child ) )
+      {
+        ANODE *newnode = rotateLeft ( child );
+        memcpy ( curnode -> data . generic_val, &newnode, sizeof ( newnode ) );
+
+        if ( newnode -> node_type == AST_AROP_NODE && getFirstChild ( newnode ) -> node_type == AST_EXP_NODE )
+          newnode -> node_type = AST_EXP_NODE;
+
+        ANODE *tocheck = getSecondChild ( getFirstChild ( newnode ) );
+
+        if ( tocheck -> node_type == AST_LITERAL_NODE || tocheck -> node_type == AST_ASSIGNFUNC_NODE )
+          insertAropBetween ( getFirstChild ( newnode ) );
+      }
+
+    curnode = curnode -> next;
+  }
+}
+
 void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
 {
   dumpNode ( node, astdumpfile );
@@ -1748,6 +1830,8 @@ int main ( )
   }
 
   ANODE *firstnode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
+
+  setExpressionPrecedence ( firstnode );
 
   preOrderDumpAst ( firstnode, astdumpfile );
 

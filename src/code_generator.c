@@ -386,6 +386,32 @@ char dataTypes[][10] = {
   ""
 };
 
+char aropTypes[][10] = {
+  "",
+  "Plus",
+  "Minus",
+  "Multiply",
+  "Divide",
+  "Modulo",
+  ""
+};
+
+char* getAropName ( AROPTYPE type )
+{
+  if ( type == A_PLUS_TYPE )
+    return aropTypes [1];
+  if ( type == A_MINUS_TYPE )
+    return aropTypes [2];
+  if ( type == A_MUL_TYPE )
+    return aropTypes [3];
+  if ( type == A_DIV_TYPE )
+    return aropTypes [4];
+  if ( type == A_MODULO_TYPE )
+    return aropTypes [5];
+
+  return aropTypes [0];
+}
+
 char* getNodeTypeName ( int type )
 {
   return nodeTypes [type];
@@ -2362,9 +2388,6 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
       temp . node = currnode;
       temp . upordown = UP;
 
-      if ( DEBUG_AST_CONSTRUCTION )
-        fprintf ( stderr, "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
-
       stack = push ( stack, & temp );
 
       handleTypeSpecificActions ( currnode, symboltable, stbdumpfile );
@@ -2386,6 +2409,13 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
       }
 
       topDownCodeGeneration ( currnode, codefile, symboltable, literaltrie, literals );
+
+      if ( DEBUG_AST_CONSTRUCTION )
+      {
+        fprintf ( stderr, "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
+        if ( currnode -> node_type == AST_EXP_NODE || currnode -> node_type == AST_AROP_NODE )
+          fprintf ( stderr, "With operation %s\n", getAropName ( currnode -> extra_data . arop_type ) );
+      }
     }
     else
     {
