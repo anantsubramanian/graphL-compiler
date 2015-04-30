@@ -1622,6 +1622,9 @@ void insertAropBetween ( ANODE *node )
 
   memcpy ( toedit -> data . generic_val, & toinsert, sizeof ( toinsert ) );
 
+  // Set the original node's parent as the newly created AROP node
+  temp -> parent = toinsert;
+
 }
 
 void setExpressionPrecedence ( ANODE *node )
