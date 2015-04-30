@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
 #include "headers/symboltable.h"
@@ -1850,16 +1851,6 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
                                                              getRegisterName ( islitleft ? leftreg : rightreg ) );
       }
 
-      if ( firstchild -> node_type == AST_EXP_NODE || secondchild -> node_type == AST_EXP_NODE )
-      {
-        int isleft = (firstchild -> node_type == AST_EXP_NODE) ? 1 : 0;
-
-        if ( isleft )
-          leftreg = firstchild -> offsetreg;
-        else
-          rightreg = secondchild -> offsetreg;
-      }
-
       if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
       {
         int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
@@ -1870,7 +1861,18 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           rightreg = secondchild -> offsetreg;
       }
 
-      if ( secondchild -> node_type == AST_AROP_NODE )
+      if ( firstchild -> node_type == AST_EXP_NODE || firstchild -> node_type == AST_AROP_NODE )
+      {
+        leftreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        // Get the left data from the stack
+        fprintf ( outputfile, "\tpop\t%s\n", getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( leftreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+      }
+
+      if ( secondchild -> node_type == AST_AROP_NODE || secondchild -> node_type == AST_EXP_NODE )
         rightreg = secondchild -> offsetreg;
 
       int leftdone = 0;
@@ -1900,6 +1902,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
         setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
       }
+
 
 
       if ( registers [ leftreg ] . istemp && ! gottemp && ! islit1 )
@@ -1935,6 +1938,11 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
         leftdone = 1;
       }
+
+      if ( ! islit1 && islitleft != 1 )
+        assert ( leftreg != -1 );
+      else if ( ! islit1 )
+        assert ( rightreg != -1 );
 
       // TODO: Check for the different data types
       if ( op == A_PLUS_TYPE )
@@ -1995,6 +2003,15 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         registers [ leftreg ] . flushed = 1;
       if ( rightreg != resultreg && registers [ rightreg ] . istemp )
         registers [ rightreg ] . flushed = 1;
+
+      // Ugly hack to determine if currnode is the first child
+      if ( getFirstChild ( getParent ( currnode ) ) == currnode
+           && ( getParent ( currnode ) -> node_type == AST_EXP_NODE || getParent ( currnode ) -> node_type == AST_AROP_NODE )
+           && getParent ( currnode ) -> num_of_children > 1 )
+      {
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        registers [ resultreg ] . flushed = 1;
+      }
     }
   }
   else if ( currnode -> node_type == AST_AROP_NODE )
@@ -2042,16 +2059,6 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
                                                              getRegisterName ( islitleft ? leftreg : rightreg ) );
       }
 
-      if ( firstchild -> node_type == AST_EXP_NODE || secondchild -> node_type == AST_EXP_NODE )
-      {
-        int isleft = (firstchild -> node_type == AST_EXP_NODE) ? 1 : 0;
-
-        if ( isleft )
-          leftreg = firstchild -> offsetreg;
-        else
-          rightreg = secondchild -> offsetreg;
-      }
-
       if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
       {
         int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
@@ -2062,18 +2069,27 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           rightreg = secondchild -> offsetreg;
       }
 
-      if ( secondchild -> node_type == AST_AROP_NODE )
+      if ( firstchild -> node_type == AST_EXP_NODE || firstchild -> node_type == AST_AROP_NODE )
       {
-        int isleft = (firstchild -> node_type == AST_AROP_NODE) ? 1 : 0;
+        leftreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                NO_SPECIFIC_REG, 1, leftreg, rightreg );
 
-        if ( isleft )
-          leftreg = firstchild -> offsetreg;
-        else
-          rightreg = secondchild -> offsetreg;
+        // Get the left data from the stack
+        fprintf ( outputfile, "\tpop\t%s\n", getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( leftreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
       }
+
+      if ( secondchild -> node_type == AST_AROP_NODE || secondchild -> node_type == AST_EXP_NODE )
+        rightreg = secondchild -> offsetreg;
 
       int leftdone = 0;
       int gottemp = 0;
+
+      if ( ! islit1 && ! islitleft )
+        assert ( leftreg != -1 );
+      else if ( ! islit1 )
+        assert ( rightreg != -1 );
 
       if ( op == A_MINUS_TYPE )
       {
@@ -2193,6 +2209,14 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         registers [ leftreg ] . flushed = 1;
       if ( rightreg != resultreg && registers [ rightreg ] . istemp )
         registers [ rightreg ] . flushed = 1;
+
+      if ( getFirstChild ( getParent ( currnode ) ) == currnode
+           && ( getParent ( currnode ) -> node_type == AST_EXP_NODE || getParent ( currnode ) -> node_type == AST_AROP_NODE )
+           && getParent ( currnode ) -> num_of_children > 1 )
+      {
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        registers [ resultreg ] . flushed = 1;
+      }
     }
   }
   else if ( currnode -> node_type == AST_ASSIGNFUNC_NODE )
@@ -2416,6 +2440,9 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
         fprintf ( stderr, "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
         if ( currnode -> node_type == AST_EXP_NODE || currnode -> node_type == AST_AROP_NODE )
           fprintf ( stderr, "With operation %s\n", getAropName ( currnode -> extra_data . arop_type ) );
+        if ( currnode -> node_type == AST_LITERAL_NODE )
+          fprintf ( stderr, "With value %s\n", getEntryByIndex ( symboltable, currnode -> extra_data . symboltable_index )
+                                               -> data . lit_data . value );
       }
     }
     else
