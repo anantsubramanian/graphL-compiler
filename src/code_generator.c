@@ -1977,7 +1977,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           fprintf ( outputfile, "\n\t; Begin multiply\n" );
 
           // Move to appropriate registers only if necessary
-          if ( regtomul != EBX_REG || resultreg != EAX_REG )
+          if ( ( regtomul != EBX_REG || resultreg != EAX_REG ) && ( regtomul != EAX_REG || resultreg != EBX_REG ) )
           {
             fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
             fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
@@ -2227,7 +2227,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
           fprintf ( outputfile, "\n\t; Begin Multiply\n" );
 
-          if ( regtomul != EBX_REG || resultreg != EAX_REG )
+          if ( ( regtomul != EBX_REG || resultreg != EAX_REG ) && ( regtomul != EAX_REG || resultreg != EBX_REG ) )
           {
             fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
             fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
