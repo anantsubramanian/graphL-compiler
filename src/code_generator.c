@@ -1966,31 +1966,37 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           int regtomul = (leftdone ? rightreg : leftreg);
 
           // If the regs do not belong to these, then push and restore data later
-          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+          // Push only if necessary
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\teax\n" );
-          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\tebx\n" );
-          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\tedx\n" );
 
           fprintf ( outputfile, "\n\t; Begin multiply\n" );
 
-          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
-          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
-          fprintf ( outputfile, "\tpop\teax\n" );
-          fprintf ( outputfile, "\tpop\tebx\n" );
+          // Move to appropriate registers only if necessary
+          if ( regtomul != EBX_REG || resultreg != EAX_REG )
+          {
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+            fprintf ( outputfile, "\tpop\teax\n" );
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          }
           fprintf ( outputfile, "\timul\tebx\n" );
 
-          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+          if ( resultreg != EAX_REG )
+            fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
 
           fprintf ( outputfile, "\t; End multiply\n\n" );
 
           // Restore the registers if they belonged to some other code
-          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\tedx\n" );
-          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\tebx\n" );
-          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\teax\n" );
         }
       }
@@ -1999,35 +2005,39 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         int regtodiv = (leftdone ? rightreg : leftreg);
 
         // If the regs do not belong to these, then push and restore data later
-        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\teax\n" );
-        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\tebx\n" );
-        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\tedx\n" );
 
         fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
 
-        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
-        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
-        fprintf ( outputfile, "\tpop\teax\n" );
-        fprintf ( outputfile, "\tpop\tebx\n" );
+        // Move to appropriate registers only if necessary
+        if ( regtodiv != EBX_REG || resultreg != EAX_REG )
+        {
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        }
         fprintf ( outputfile, "\tmov\tedx, 0\n" );
         fprintf ( outputfile, "\tidiv\tebx\n" );
 
-        if ( op == A_DIV_TYPE )
+        if ( op == A_DIV_TYPE && resultreg != EAX_REG )
           fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
-        else
+        else if ( resultreg != EDX_REG )
           fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
 
         fprintf ( outputfile, "\t; End division/modulo\n\n" );
 
         // Restore the registers if they belonged to some other code
-        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\tedx\n" );
-        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\tebx\n" );
-        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\teax\n" );
       }
 
@@ -2208,31 +2218,35 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           int regtomul = (leftdone ? rightreg : leftreg);
 
           // If the regs do not belong to these, then push and restore data later
-          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\teax\n" );
-          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\tebx\n" );
-          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
             fprintf ( outputfile, "\tpush\tedx\n" );
 
           fprintf ( outputfile, "\n\t; Begin Multiply\n" );
 
-          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
-          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
-          fprintf ( outputfile, "\tpop\teax\n" );
-          fprintf ( outputfile, "\tpop\tebx\n" );
+          if ( regtomul != EBX_REG || resultreg != EAX_REG )
+          {
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+            fprintf ( outputfile, "\tpop\teax\n" );
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          }
           fprintf ( outputfile, "\timul\tebx\n" );
 
-          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+          if ( resultreg != EAX_REG )
+            fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
 
           fprintf ( outputfile, "\t; End Multiply\n\n" );
 
           // Restore the registers if they belonged to some other code
-          if ( resultreg != EDX_REG && regtomul != EDX_REG )
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\tedx\n" );
-          if ( resultreg != EBX_REG && regtomul != EBX_REG )
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\tebx\n" );
-          if ( resultreg != EAX_REG && regtomul != EAX_REG )
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
             fprintf ( outputfile, "\tpop\teax\n" );
         }
       }
@@ -2241,35 +2255,38 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
         int regtodiv = (leftdone ? rightreg : leftreg);
 
         // If the regs do not belong to these, then push and restore data later
-        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\teax\n" );
-        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\tebx\n" );
-        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
           fprintf ( outputfile, "\tpush\tedx\n" );
 
         fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
 
-        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
-        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
-        fprintf ( outputfile, "\tpop\teax\n" );
-        fprintf ( outputfile, "\tpop\tebx\n" );
+        if ( regtodiv != EBX_REG || resultreg != EAX_REG )
+        {
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        }
         fprintf ( outputfile, "\tmov\tedx, 0\n" );
         fprintf ( outputfile, "\tidiv\tebx\n" );
 
-        if ( op == A_DIV_TYPE )
+        if ( op == A_DIV_TYPE && resultreg != EAX_REG )
           fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
-        else
+        else if ( resultreg != EDX_REG )
           fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
 
         fprintf ( outputfile, "\t; End division/modulo\n\n" );
 
         // Restore the registers if they belonged to some other code
-        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\tedx\n" );
-        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\tebx\n" );
-        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
           fprintf ( outputfile, "\tpop\teax\n" );
       }
 
