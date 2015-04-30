@@ -1994,6 +1994,42 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
             fprintf ( outputfile, "\tpop\teax\n" );
         }
       }
+      else if ( op == A_DIV_TYPE || op == A_MODULO_TYPE )
+      {
+        int regtodiv = (leftdone ? rightreg : leftreg);
+
+        // If the regs do not belong to these, then push and restore data later
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+          fprintf ( outputfile, "\tpush\teax\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+          fprintf ( outputfile, "\tpush\tebx\n" );
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+          fprintf ( outputfile, "\tpush\tedx\n" );
+
+        fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
+
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        fprintf ( outputfile, "\tpop\teax\n" );
+        fprintf ( outputfile, "\tpop\tebx\n" );
+        fprintf ( outputfile, "\tmov\tedx, 0\n" );
+        fprintf ( outputfile, "\tidiv\tebx\n" );
+
+        if ( op == A_DIV_TYPE )
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
+
+        fprintf ( outputfile, "\t; End division/modulo\n\n" );
+
+        // Restore the registers if they belonged to some other code
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+          fprintf ( outputfile, "\tpop\tedx\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+          fprintf ( outputfile, "\tpop\teax\n" );
+      }
 
       currnode -> offsetcount = DATA_IN_REG;
       currnode -> offsetreg = resultreg;
@@ -2199,6 +2235,42 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
           if ( resultreg != EAX_REG && regtomul != EAX_REG )
             fprintf ( outputfile, "\tpop\teax\n" );
         }
+      }
+      else if ( op == A_DIV_TYPE || op == A_MODULO_TYPE )
+      {
+        int regtodiv = (leftdone ? rightreg : leftreg);
+
+        // If the regs do not belong to these, then push and restore data later
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+          fprintf ( outputfile, "\tpush\teax\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+          fprintf ( outputfile, "\tpush\tebx\n" );
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+          fprintf ( outputfile, "\tpush\tedx\n" );
+
+        fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
+
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        fprintf ( outputfile, "\tpop\teax\n" );
+        fprintf ( outputfile, "\tpop\tebx\n" );
+        fprintf ( outputfile, "\tmov\tedx, 0\n" );
+        fprintf ( outputfile, "\tidiv\tebx\n" );
+
+        if ( op == A_DIV_TYPE )
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
+
+        fprintf ( outputfile, "\t; End division/modulo\n\n" );
+
+        // Restore the registers if they belonged to some other code
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG )
+          fprintf ( outputfile, "\tpop\tedx\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG )
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG )
+          fprintf ( outputfile, "\tpop\teax\n" );
       }
 
       currnode -> offsetcount = DATA_IN_REG;
