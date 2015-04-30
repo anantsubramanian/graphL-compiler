@@ -1572,7 +1572,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     int targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
 
-    if ( ! registers [ targetreg ] . hasoffset )
+    while ( ! registers [ targetreg ] . hasoffset )
     {
       registers [ targetreg ] . flushed = 1;
       targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
@@ -1648,7 +1648,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       ANODE *assignable = getFirstChild ( currnode );
       int datareg = getOffsetInReg ( assignable, outputfile, symboltable );
 
-      if ( ! registers [ datareg ] . hasoffset )
+      while ( ! registers [ datareg ] . hasoffset )
       {
         registers [ datareg ] . flushed = 1;
         datareg = getOffsetInReg ( assignable, outputfile, symboltable );
@@ -1656,6 +1656,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
       // Dereference offset and get the data to print
       fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( datareg ), getRegisterName ( datareg ) );
+      registers [ datareg ] . hasoffset = 0;
 
       if ( assignable -> result_type == D_INT_TYPE )
       {
