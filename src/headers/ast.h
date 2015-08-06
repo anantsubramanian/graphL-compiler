@@ -85,6 +85,13 @@ typedef struct ast_node
   int node_type;
   int num_of_children;
   struct ast_node *parent;
+  int global_or_local;
+  int offsetcount;
+  int offsetreg;
+  int offset1;
+  int offset2;
+  int offset3;
+  int line_no;
   DATATYPE result_type;
   LINKEDLIST *children;
   union
@@ -95,6 +102,8 @@ typedef struct ast_node
     COMPOPTYPE compop_type;
     BOOLOPTYPE boolop_type;
     BDFTTYPE bdft_type;
+    int iflabel;
+    int forlabel;
   } extra_data;
 } ANODE;
 
@@ -129,4 +138,16 @@ extern ANODE* dumpNode ( ANODE * , FILE * );
 extern ANODE* readDumpNode ( ANODE * , FILE * );
 
 extern int createProperty ( char * );
+
+extern ANODE* getFirstChild ( ANODE * );
+
+extern ANODE* getSecondChild ( ANODE * );
+
+extern ANODE* getThirdChild ( ANODE * );
+
+extern ANODE* getFourthChild ( ANODE * );
+
+extern ANODE* getFifthChild ( ANODE * );
+
+extern ANODE* rotateLeft ( ANODE * );
 

@@ -125,6 +125,8 @@
 
 // End AST node types #defines
 
+int erroroccured;
+
 char nodeTypes[][30] = {
 
   "AST_PROGRAM_NODE",
@@ -211,12 +213,14 @@ int makeTrieProperty ( char *instr )
   if ( instr == NULL )
   {
     fprintf ( stderr, "Cannot make property from non-existent instruction\n" );
+    erroroccured = 1;
     return -1;
   }
 
   if ( strlen ( instr ) < 2 )
   {
     fprintf ( stderr, "Instruction should be 2 characters in length\n" );
+    erroroccured = 1;
     return -1;
   }
 
@@ -239,12 +243,14 @@ DATATYPE getDataType ( ANODE *currnode )
   if ( currnode == NULL )
   {
     fprintf ( stderr, "Cannot get data type of child of non-existent node\n" );
+    erroroccured = 1;
     return -1;
   }
 
   if ( currnode -> num_of_children <= 0 )
   {
     fprintf ( stderr, "Trying to get data type of child of node with no children\n" );
+    erroroccured = 1;
     return -1;
   }
 
@@ -280,11 +286,26 @@ char* getDataTypeName ( DATATYPE type )
   return dataTypes [0];
 }
 
+int extractLineNum ( char *input )
+{
+  int n = strlen ( input );
+  char *p = input + n - 1;
+
+  while ( *p != ' ' ) p--;
+  p++;
+
+  int lno = atoi ( p );
+  *p = '\0';
+
+  return lno;
+}
+
 void extractTokenData ( char *inputtoken, char **token, char **name, int *linenumber )
 {
   if ( inputtoken == NULL )
   {
     fprintf ( stderr, "Cannot extract non-existent token data\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -301,6 +322,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
   if ( i == len )
   {
     fprintf ( stderr, "No auxiliary data seems to be present?\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -317,6 +339,7 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
   if ( i == len )
   {
     fprintf ( stderr, "Insufficient amount of auxiliary data\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -951,6 +974,7 @@ void handleAuxiliaryTerminalOperations (
             fprintf ( stderr, "Redeclaration of variable %s at line %d\n", tokenname, linenumber );
             fprintf ( stderr, "Note: Previous declaration of %s as a function on line %d.\n",
                       tokenname, previousentry -> data . func_data . decl_line );
+            erroroccured = 1;
 
             // Do not count this variable declaration
             // Return from the function to avoid further processing
@@ -963,6 +987,7 @@ void handleAuxiliaryTerminalOperations (
             fprintf ( stderr, "Note: Previous declaration of %s as type %s on line %d.\n",
                       tokenname, getDataTypeName ( previousentry -> data . var_data . data_type ),
                       previousentry -> data . var_data . decl_line );
+            erroroccured = 1;
 
             // Do not count the redeclaration, process the rest of the input as
             // though this declaration didn't occur
@@ -976,6 +1001,7 @@ void handleAuxiliaryTerminalOperations (
           fprintf ( stderr, "Redeclaration of function %s at line number %d\n", tokenname, linenumber );
           fprintf ( stderr, "Note: Previous declaration of %s at line number %d.\n", tokenname,
                     previousentry -> data . func_data . decl_line );
+          erroroccured = 1;
 
           // Update the function to the latest declaration, and let the
           // parameters be updated automatically.
@@ -1032,6 +1058,7 @@ void handleAuxiliaryTerminalOperations (
           else
           {
             fprintf ( stderr, "At node %s did not recognize variable type\n", getNodeTypeName ( currnode -> node_type ) );
+            erroroccured = 1;
           }
 
           // Set the data type using the data type of the first child
@@ -1057,6 +1084,8 @@ void handleAuxiliaryTerminalOperations (
       {
         fprintf ( stderr, "Variable %s used but has not been declared in this scope\n", tokenname );
         fprintf ( stderr, "Note: Error at line %d.\n", linenumber );
+
+        erroroccured = 1;
 
         // Let all the rest of the errors associated with the undeclared variable
         // show up as well, for ease of debugging
@@ -1302,6 +1331,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   if ( stbdumpfile == NULL )
   {
     fprintf ( stderr, "Failed to open STB dump file\n" );
+    erroroccured = 1;
     return NULL;
   }
 
@@ -1328,6 +1358,7 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   int curbuff = -1;
   int charsread = 0;
   int tokencounter = 0;
+  int curline = 1;
 
   int function_scope_started = 0;     // Flag used to detect that the scope for a function has already started
   int should_start_function = 0;      // Flag used to indicate that a function scope must be started
@@ -1374,6 +1405,11 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
     if ( c == NEWLINE )
     {
       token [ tokencounter ] = '\0';
+
+      // Set the previous curline value to the current node, whatever it may be
+      // and get the new curline value to be set in the next iteration
+      currnode -> line_no = curline;
+      curline = extractLineNum ( token );
 
       // A whole line of expansion has been read. Need to process
       // it so push the words onto the stack, from which they will
@@ -1538,6 +1574,91 @@ AST* createAST ( FILE * parseroutput, int blocksize, AST *ast, TRIE *instruction
   return ast;
 }
 
+int needsRotation ( ANODE *node )
+{
+  if ( node -> node_type != AST_EXP_NODE && node -> node_type != AST_AROP_NODE )
+  {
+    fprintf ( stderr, "Rotation checks should only be performed on EXP or AROP nodes\n" );
+    return 0;
+  }
+
+  if ( node -> num_of_children != 2 || getSecondChild ( node ) -> num_of_children != 2 )
+    return 0;
+
+  ANODE *rightchild = getSecondChild ( node );
+
+  if ( node -> node_type == AST_EXP_NODE && rightchild -> node_type == AST_EXP_NODE )
+    return 0;
+
+  // If the current node has higher precedence then the child, then rotation needs to be performed
+  if ( ( node -> extra_data . arop_type == A_MUL_TYPE || node -> extra_data . arop_type == A_DIV_TYPE || node -> extra_data . arop_type == A_MODULO_TYPE )
+       && ( rightchild -> extra_data . arop_type == A_PLUS_TYPE || rightchild -> extra_data . arop_type == A_MINUS_TYPE ) )
+    return 1;
+
+  return 0;
+}
+
+void insertAropBetween ( ANODE *node )
+{
+  LNODE *toedit = node -> children -> head -> next;
+  ANODE *temp = * ( ANODE ** ) ( toedit -> data . generic_val );
+
+  ANODE *toinsert = malloc ( sizeof ( ANODE ) );
+  if ( toinsert == NULL )
+  {
+    fprintf ( stderr, "Failed to insert arop node in between while setting precedence\n" );
+    return;
+  }
+
+  toinsert = initializeAstNode ( toinsert, node );
+  toinsert = setNodeType ( toinsert, AST_AROP_NODE );
+
+  toinsert -> line_no = node -> line_no;
+
+  // Make the first child of the created node as temp, and the second child of node
+  // as toinsert
+  toinsert -> num_of_children ++;
+  toinsert -> children = insertAtBack ( toinsert -> children, & temp );
+
+  memcpy ( toedit -> data . generic_val, & toinsert, sizeof ( toinsert ) );
+
+  // Set the original node's parent as the newly created AROP node
+  temp -> parent = toinsert;
+
+}
+
+void setExpressionPrecedence ( ANODE *node )
+{
+  LNODE *curnode = node -> children -> head;
+  LNODE iterator;
+  getIterator ( node -> children, &iterator );
+
+  while ( hasNext ( &iterator ) )
+  {
+    getNext ( node -> children, &iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    setExpressionPrecedence ( child );
+
+    if ( child -> node_type == AST_EXP_NODE || child -> node_type == AST_AROP_NODE )
+      if ( needsRotation ( child ) )
+      {
+        ANODE *newnode = rotateLeft ( child );
+        memcpy ( curnode -> data . generic_val, &newnode, sizeof ( newnode ) );
+
+        if ( newnode -> node_type == AST_AROP_NODE && getFirstChild ( newnode ) -> node_type == AST_EXP_NODE )
+          newnode -> node_type = AST_EXP_NODE;
+
+        ANODE *tocheck = getSecondChild ( getFirstChild ( newnode ) );
+
+        if ( tocheck -> node_type == AST_LITERAL_NODE || tocheck -> node_type == AST_ASSIGNFUNC_NODE )
+          insertAropBetween ( getFirstChild ( newnode ) );
+      }
+
+    curnode = curnode -> next;
+  }
+}
+
 void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
 {
   dumpNode ( node, astdumpfile );
@@ -1560,7 +1681,7 @@ int main ( )
   stat ( "/", &fi );
   int blocksize = fi.st_blksize;
 
-
+  erroroccured = 0;
 
   /*********************************************************
     *                                                      *
@@ -1713,12 +1834,17 @@ int main ( )
 
   ANODE *firstnode = * ( ANODE ** ) ( ast -> root -> children -> head -> data . generic_val );
 
+  setExpressionPrecedence ( firstnode );
+
   preOrderDumpAst ( firstnode, astdumpfile );
 
   if ( fclose ( astdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close AST dump file\n" );
 
   if ( DEBUG_ALL ) printf ( "AST successfully built\n" );
+
+  if ( erroroccured == 1 )
+    return -1;
 
   return 0;
 }

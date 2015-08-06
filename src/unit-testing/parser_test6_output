@@ -1,112 +1,112 @@
-<program> 
-<globaldefines> <fndefines> <statements> 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,V,2> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_GRAPH 
-<TK_IDEN,G,3> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<primitivetype> 
-TK_INT 
-<TK_IDEN,x,11> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,x,14> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,10,14> 
-e 
-e 
-TK_PLUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,25,14> 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,x,16> 
-e 
-e 
-e 
-e 
-TK_GT 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,0,16> 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,x,19> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,0,19> 
-e 
-e 
-TK_MINUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,1,19> 
-e 
-e 
-e 
-e 
+<program> 1
+<globaldefines> <fndefines> <statements> 2
+e 2
+e 2
+<possiblestmts> <statements> 2
+<validstatement> TK_NEWLINE 2
+<definestmt> 2
+TK_DEFINE <defineargs> 2
+<datatype> <identifier> <moreidens> 2
+<complextype> 2
+TK_VERTEX 2
+<TK_IDEN,V,2> 2
+e 3
+<possiblestmts> <statements> 3
+<validstatement> TK_NEWLINE 3
+<definestmt> 3
+TK_DEFINE <defineargs> 3
+<datatype> <identifier> <moreidens> 3
+<complextype> 3
+TK_GRAPH 3
+<TK_IDEN,G,3> 3
+e 4
+<possiblestmts> <statements> 11
+<validstatement> TK_NEWLINE 11
+<definestmt> 11
+TK_DEFINE <defineargs> 11
+<datatype> <identifier> <moreidens> 11
+<primitivetype> 11
+TK_INT 11
+<TK_IDEN,x,11> 11
+e 12
+<possiblestmts> <statements> 14
+<validstatement> TK_NEWLINE 14
+<letstmt> 14
+TK_LET <assignable> TK_BE <equatable> 14
+<identifier> <assignable1> 14
+<TK_IDEN,x,14> 14
+e 14
+<exp> 14
+<mulexp> <exp1> 14
+<modexp> <mulexp1> 14
+<baseexp> <modexp1> 14
+<literal> 14
+<TK_INTLIT,10,14> 14
+e 14
+e 14
+TK_PLUS <exp> 14
+<mulexp> <exp1> 14
+<modexp> <mulexp1> 14
+<baseexp> <modexp1> 14
+<literal> 14
+<TK_INTLIT,25,14> 14
+e 15
+e 15
+e 15
+<possiblestmts> <statements> 16
+<validconditional> 16
+<ifblock> TK_NEWLINE <elseifblock> 16
+<ifstmt> TK_COLON <block> 16
+TK_IF <boolexp> 16
+<expor> <boolexp1> 16
+<expand> <expor1> 16
+<expnot> 16
+<boolresult> 16
+<exp> <relop> <exp> 16
+<mulexp> <exp1> 16
+<modexp> <mulexp1> 16
+<baseexp> <modexp1> 16
+<assignorfunc> 16
+<identifier> <assignorfunc1> 16
+<TK_IDEN,x,16> 16
+e 16
+e 16
+e 16
+e 16
+TK_GT 16
+<mulexp> <exp1> 16
+<modexp> <mulexp1> 16
+<baseexp> <modexp1> 16
+<literal> 16
+<TK_INTLIT,0,16> 16
+e 16
+e 16
+e 16
+e 16
+e 16
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 17
+<possiblestmts> <statements> 19
+<validstatement> TK_NEWLINE 19
+<letstmt> 19
+TK_LET <assignable> TK_BE <equatable> 19
+<identifier> <assignable1> 19
+<TK_IDEN,x,19> 19
+e 19
+<exp> 19
+<mulexp> <exp1> 19
+<modexp> <mulexp1> 19
+<baseexp> <modexp1> 19
+<literal> 19
+<TK_INTLIT,0,19> 19
+e 19
+e 19
+TK_MINUS <exp> 19
+<mulexp> <exp1> 19
+<modexp> <mulexp1> 19
+<baseexp> <modexp1> 19
+<literal> 19
+<TK_INTLIT,1,19> 19
+e 20
+e 20
+e 20
+e 20

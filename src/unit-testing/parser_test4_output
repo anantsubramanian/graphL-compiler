@@ -1,203 +1,203 @@
-<program> 
-<globaldefines> <fndefines> <statements> 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<primitivetype> 
-TK_INT 
-<TK_IDEN,a,1> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,b,1> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,c,1> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,a,3> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,2,3> 
-e 
-TK_MUL <mulexp> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,3,3> 
-e 
-e 
-TK_PLUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,5,3> 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,b,4> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,2,4> 
-e 
-TK_MUL <mulexp> 
-<modexp> <mulexp1> 
-TK_OPENPAREN <exp> TK_CLOSEPAREN 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,3,4> 
-e 
-e 
-TK_PLUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,5,4> 
-e 
-e 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<input> 
-TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN 
-<identifier> <assignable1> 
-<TK_IDEN,c,6> 
-e 
-<possiblestmts> <statements> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,c,8> 
-e 
-e 
-e 
-e 
-TK_LT 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,0,8> 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<output> 
-TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
-<literal> 
-<TK_STRINGLIT," End Program ",10> 
-e 
-TK_ELSE <elseifblock1> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,c,12> 
-e 
-e 
-e 
-e 
-TK_GTE 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,0,12> 
-e 
-e 
-e 
-TK_AND <expor> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,a,12> 
-e 
-e 
-e 
-e 
-TK_LT 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,b,12> 
-e 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<output> 
-TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
-<literal> 
-<TK_STRINGLIT," Precedence Works",14> 
-e 
-TK_ELSE <elseifblock1> 
-TK_COLON <block> TK_NEWLINE 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<output> 
-TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
-<literal> 
-<TK_STRINGLIT," Precedence Fails",18> 
-e 
+<program> 1
+<globaldefines> <fndefines> <statements> 1
+e 1
+e 1
+<possiblestmts> <statements> 1
+<validstatement> TK_NEWLINE 1
+<definestmt> 1
+TK_DEFINE <defineargs> 1
+<datatype> <identifier> <moreidens> 1
+<primitivetype> 1
+TK_INT 1
+<TK_IDEN,a,1> 1
+TK_COMMA <identifier> <moreidens> 1
+<TK_IDEN,b,1> 1
+TK_COMMA <identifier> <moreidens> 1
+<TK_IDEN,c,1> 1
+e 2
+<possiblestmts> <statements> 3
+<validstatement> TK_NEWLINE 3
+<letstmt> 3
+TK_LET <assignable> TK_BE <equatable> 3
+<identifier> <assignable1> 3
+<TK_IDEN,a,3> 3
+e 3
+<exp> 3
+<mulexp> <exp1> 3
+<modexp> <mulexp1> 3
+<baseexp> <modexp1> 3
+<literal> 3
+<TK_INTLIT,2,3> 3
+e 3
+TK_MUL <mulexp> 3
+<modexp> <mulexp1> 3
+<baseexp> <modexp1> 3
+<literal> 3
+<TK_INTLIT,3,3> 3
+e 3
+e 3
+TK_PLUS <exp> 3
+<mulexp> <exp1> 3
+<modexp> <mulexp1> 3
+<baseexp> <modexp1> 3
+<literal> 3
+<TK_INTLIT,5,3> 3
+e 4
+e 4
+e 4
+<possiblestmts> <statements> 4
+<validstatement> TK_NEWLINE 4
+<letstmt> 4
+TK_LET <assignable> TK_BE <equatable> 4
+<identifier> <assignable1> 4
+<TK_IDEN,b,4> 4
+e 4
+<exp> 4
+<mulexp> <exp1> 4
+<modexp> <mulexp1> 4
+<baseexp> <modexp1> 4
+<literal> 4
+<TK_INTLIT,2,4> 4
+e 4
+TK_MUL <mulexp> 4
+<modexp> <mulexp1> 4
+TK_OPENPAREN <exp> TK_CLOSEPAREN 4
+<mulexp> <exp1> 4
+<modexp> <mulexp1> 4
+<baseexp> <modexp1> 4
+<literal> 4
+<TK_INTLIT,3,4> 4
+e 4
+e 4
+TK_PLUS <exp> 4
+<mulexp> <exp1> 4
+<modexp> <mulexp1> 4
+<baseexp> <modexp1> 4
+<literal> 4
+<TK_INTLIT,5,4> 4
+e 4
+e 4
+e 4
+e 5
+e 5
+<possiblestmts> <statements> 6
+<validstatement> TK_NEWLINE 6
+<input> 6
+TK_READ TK_OPENPAREN <assignable> TK_CLOSEPAREN 6
+<identifier> <assignable1> 6
+<TK_IDEN,c,6> 6
+e 6
+<possiblestmts> <statements> 8
+<validconditional> 8
+<ifblock> TK_NEWLINE <elseifblock> 8
+<ifstmt> TK_COLON <block> 8
+TK_IF <boolexp> 8
+<expor> <boolexp1> 8
+<expand> <expor1> 8
+<expnot> 8
+<boolresult> 8
+<exp> <relop> <exp> 8
+<mulexp> <exp1> 8
+<modexp> <mulexp1> 8
+<baseexp> <modexp1> 8
+<assignorfunc> 8
+<identifier> <assignorfunc1> 8
+<TK_IDEN,c,8> 8
+e 8
+e 8
+e 8
+e 8
+TK_LT 8
+<mulexp> <exp1> 8
+<modexp> <mulexp1> 8
+<baseexp> <modexp1> 8
+<literal> 8
+<TK_INTLIT,0,8> 8
+e 8
+e 8
+e 8
+e 8
+e 8
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 9
+<possiblestmts> <statements> 10
+<validstatement> TK_NEWLINE 10
+<output> 10
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 10
+<literal> 10
+<TK_STRINGLIT," End Program ",10> 10
+e 11
+TK_ELSE <elseifblock1> 12
+<validconditional> 12
+<ifblock> TK_NEWLINE <elseifblock> 12
+<ifstmt> TK_COLON <block> 12
+TK_IF <boolexp> 12
+<expor> <boolexp1> 12
+<expand> <expor1> 12
+<expnot> 12
+<boolresult> 12
+<exp> <relop> <exp> 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<assignorfunc> 12
+<identifier> <assignorfunc1> 12
+<TK_IDEN,c,12> 12
+e 12
+e 12
+e 12
+e 12
+TK_GTE 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<literal> 12
+<TK_INTLIT,0,12> 12
+e 12
+e 12
+e 12
+TK_AND <expor> 12
+<expand> <expor1> 12
+<expnot> 12
+<boolresult> 12
+<exp> <relop> <exp> 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<assignorfunc> 12
+<identifier> <assignorfunc1> 12
+<TK_IDEN,a,12> 12
+e 12
+e 12
+e 12
+e 12
+TK_LT 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<assignorfunc> 12
+<identifier> <assignorfunc1> 12
+<TK_IDEN,b,12> 12
+e 12
+e 12
+e 12
+e 12
+e 12
+e 12
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 13
+<possiblestmts> <statements> 14
+<validstatement> TK_NEWLINE 14
+<output> 14
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 14
+<literal> 14
+<TK_STRINGLIT," Precedence Works",14> 14
+e 15
+TK_ELSE <elseifblock1> 16
+TK_COLON <block> TK_NEWLINE 16
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 17
+<possiblestmts> <statements> 18
+<validstatement> TK_NEWLINE 18
+<output> 18
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 18
+<literal> 18
+<TK_STRINGLIT," Precedence Fails",18> 18
+e 19

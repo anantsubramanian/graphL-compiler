@@ -98,6 +98,7 @@ typedef struct symboltable_entry
 {
   STB_ENTRYTYPE entry_type;
   int index;
+  int offset;
   union
   {
     VARIABLE var_data;

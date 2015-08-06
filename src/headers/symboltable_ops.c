@@ -554,6 +554,7 @@ int addEntry ( SYMBOLTABLE *symboltable, char *toinsert, STB_ENTRYTYPE value_typ
 
   // Set the type of the new node
   newentry -> entry_type = value_type;
+  newentry -> offset = 0;
 
   if ( value_type == ENTRY_VAR_TYPE )
   {

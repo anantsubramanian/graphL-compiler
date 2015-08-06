@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
 #include "headers/symboltable.h"
@@ -19,8 +20,10 @@
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
-#define DEBUG_STB_AUXOPS 1
+#define DEBUG_STB_AUXOPS 0
+#define DEBUG_REGISTER_ALLOC 0
 
+#define NUMREG 6
 #define BUFFERLEN 400
 #define NEWLINE '\n'
 #define STB_DUMP_FILE "STBDUMP"
@@ -117,6 +120,34 @@
 #define DOWN 0
 #define UP 1
 
+// Begin offsets
+#define INTOFFSET 0
+#define FLOATOFFSET 4
+#define STRINGOFFSET 8
+#define SOURCEOFFSET 12
+#define DESTOFFSET 16
+#define WEIGHTOFFSET 20
+#define VLISTOFFSET 0
+#define ELISTOFFSET 4
+#define ROOTOFFSET 8
+// End offsets
+
+#define ONE_OFFSET 1
+#define TWO_OFFSETS 2
+#define THREE_OFFSETS 3
+#define DATA_IN_REG 4
+#define OFFSET_IN_REG 5
+#define IS_GLOBAL 0
+#define IS_LOCAL 1
+#define IS_LITERAL 2
+#define NO_SPECIFIC_REG -1
+#define OFFSET_ANY -1
+#define NO_REGISTER -2
+#define EAX_REG 0
+#define EBX_REG 1
+#define ECX_REG 2
+#define EDX_REG 3
+
 // The structure that is pushed on the stack to check whether this node is being
 // poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
 typedef struct stack_entry
@@ -125,19 +156,177 @@ typedef struct stack_entry
   int upordown;
 } STACKENTRY;
 
-int shouldintprint = 0;
+typedef struct register_data
+{
+  int flushed;
+  int hasoffset;
+  int stbindex;
+  int offset1;
+  int offset2;
+  int offset3;
+  int istemp;
+  int isglobal;
+} REGISTER;
+
+REGISTER registers [ NUMREG ];
+int roundrobinreg = 0;
+
+char registerNames[][4] = {
+
+  "eax",
+  "ebx",
+  "ecx",
+  "edx",
+  "esi",
+  "edi"
+};
+
+char* getRegisterName ( int regid )
+{
+  return registerNames [ regid ];
+}
+
+void setRegisterProperties ( int regid, int flushed, int isglobal, int istemp, int hasoffset,
+                             int stbindex, int offset1, int offset2, int offset3 )
+{
+  registers [ regid ] . flushed = flushed;
+  registers [ regid ] . isglobal = isglobal;
+  registers [ regid ] . istemp = istemp;
+  registers [ regid ] . hasoffset = hasoffset;
+  registers [ regid ] . stbindex = stbindex;
+  registers [ regid ] . offset1 = offset1;
+  registers [ regid ] . offset2 = offset2;
+  registers [ regid ] . offset3 = offset3;
+}
+
+void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
+{
+  // Registers with offsets don't have write data, so they don't need to be flushed
+  if ( registers [ topick ] . hasoffset )
+    return;
+
+  if ( registers [ topick ] . isglobal == IS_GLOBAL )
+  {
+    char *varname = getEntryByIndex ( symboltable, registers [ topick ] . stbindex ) -> data . var_data . name;
+    char midc = ((topick == EAX_REG) ? 'b' : 'a');
+
+    if ( registers [ topick ] . offset2 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[%s], %s\n", varname, getRegisterName ( topick ) );
+    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[%s+%d], %s\n", varname, registers [ topick ] . offset2, getRegisterName ( topick ) );
+    else
+    {
+      fprintf ( codefile, "\tpush\te%cx\n", midc );
+      fprintf ( codefile, "\tmov\te%cx, [%s+%d]\n", midc, varname, registers [ topick ] . offset2 );
+      fprintf ( codefile, "\tadd\te%cx, %d\n", midc, registers [ topick] . offset3 );
+      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
+      fprintf ( codefile, "\tpop\te%cx\n", midc );
+    }
+  }
+  else
+  {
+    char midc = ((topick == EAX_REG) ? 'b' : 'a');
+
+    if ( registers [ topick ] . offset2 == OFFSET_ANY )
+      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", registers [ topick ] . offset1, getRegisterName ( topick ) );
+    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
+    {
+      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
+      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", resultant, getRegisterName ( topick ) );
+    }
+    else
+    {
+      fprintf ( codefile, "\tpush\te%cx\n", midc );
+      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
+      fprintf ( codefile, "\tmov\te%cx, [ebp-%d]\n", midc, resultant );
+      fprintf ( codefile, "\tsub\te%cx, %d\n", midc, registers [ topick ] . offset3 );
+      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
+      fprintf ( codefile, "\tpop\te%cx\n", midc );
+    }
+  }
+
+  registers [ topick ] . flushed = 1;
+}
+
+int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_index, int offset1,
+                  int offset2, int offset3, int topick, int istemp, int donttouch1, int donttouch2 )
+{
+  int i;
+  if ( ! istemp )
+  {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . stbindex == symboltable_index
+           && ( registers [i] . offset1 == offset1 || offset1 == OFFSET_ANY )
+           && ( registers [i] . offset2 == offset2 || offset2 == OFFSET_ANY )
+           && ( registers [i] . offset3 == offset3 || offset3 == OFFSET_ANY )
+           && registers [i] . flushed == 0
+           && registers [i] . istemp != 1 )
+      {
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
+        return i;
+      }
+
+    if ( DEBUG_REGISTER_ALLOC )
+      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
+  }
+  else if ( istemp == IS_LITERAL )
+  {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . stbindex == symboltable_index
+           && registers [i] . flushed == 0
+           && registers [i] . istemp == IS_LITERAL )
+      {
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
+        return i;
+      }
+
+    if ( DEBUG_REGISTER_ALLOC )
+      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
+  }
+
+  // All registers need to be flushed, so pick one and flush
+  if ( topick == NO_SPECIFIC_REG )
+  {
+    for ( i = 0; i < NUMREG; i++ )
+      if ( registers [i] . flushed )
+        return i;
+
+    int roundrobinstart = roundrobinreg;    // To detect infinite loops
+    topick = (roundrobinreg + 1) % NUMREG;
+    while ( registers [ topick ] . istemp || topick == donttouch1 || topick == donttouch2 )
+    {
+      topick = (topick + 1) % NUMREG;
+      if ( topick == roundrobinstart )
+        return -1;
+    }
+    roundrobinreg = topick;
+  }
+
+  if ( registers [ topick ] . istemp != IS_LITERAL && ! registers [ topick ] . flushed )
+    flushRegister ( topick, codefile, symboltable );
+
+  registers [topick] . flushed = 1;
+  registers [topick] . hasoffset = 1;
+
+  return topick;
+}
+
+int forlabel = 0;
+int iflabel = 0;
+int curroffset = 0;
+int erroroccured = 0;
 int hasglobalvars = 0;
 int hasfunctions = 0;
 int startwritten = 0;
-char *intoffset = "intoffset";
-char *floatoffset = "floatoffset";
-char *stringoffset = "stringoffset";
-char *sourceoffset = "sourceoffset";
-char *destoffset = "destoffset";
-char *weightoffset = "weightoffset";
-char *rootoffset = "rootoffset";
-char *vlistoffset = "vlistoffset";
-char *elistoffset = "elistoffset";
+int curlitindex = 0;
+
+typedef struct literal_data
+{
+  char *name;
+} LITDATA;
+
 
 char nodeTypes[][30] = {
 
@@ -187,23 +376,42 @@ char nodeTypes[][30] = {
 char dataTypes[][10] = {
 
   "",
-  "INT",
-  "FLOAT",
-  "STRING",
-  "VERTEX",
-  "EDGE",
-  "TREE",
-  "GRAPH",
-  "NOTHING",
+  "Int",
+  "Float",
+  "String",
+  "Vertex",
+  "Edge",
+  "Tree",
+  "Graph",
+  "Nothing",
   ""
 };
 
-int curlitindex;
+char aropTypes[][10] = {
+  "",
+  "Plus",
+  "Minus",
+  "Multiply",
+  "Divide",
+  "Modulo",
+  ""
+};
 
-typedef struct literal_data
+char* getAropName ( AROPTYPE type )
 {
-  char *name;
-} LITDATA;
+  if ( type == A_PLUS_TYPE )
+    return aropTypes [1];
+  if ( type == A_MINUS_TYPE )
+    return aropTypes [2];
+  if ( type == A_MUL_TYPE )
+    return aropTypes [3];
+  if ( type == A_DIV_TYPE )
+    return aropTypes [4];
+  if ( type == A_MODULO_TYPE )
+    return aropTypes [5];
+
+  return aropTypes [0];
+}
 
 char* getNodeTypeName ( int type )
 {
@@ -230,62 +438,6 @@ char* getDataTypeName ( DATATYPE type )
     return dataTypes [8];
 
   return dataTypes [0];
-}
-
-ANODE* getFirstChild ( ANODE *node )
-{
-  if ( node -> num_of_children == 0 )
-  {
-    fprintf ( stderr, "Cannot get first child of node with no children\n" );
-    fprintf ( stderr, "At node %s\n", getNodeTypeName ( node -> node_type ) );
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> data . generic_val );
-}
-
-ANODE* getSecondChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 2 )
-  {
-    fprintf ( stderr, "Cannot get non existent second child of node\n" );
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> data . generic_val );
-}
-
-ANODE* getThirdChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 3 )
-  {
-    fprintf ( stderr, "Cannot get non existent 3rd child\n" );
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> data . generic_val );
-}
-
-ANODE* getFourthChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 4 )
-  {
-    fprintf ( stderr, "Cannot get non existent 4th child\n" );
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> data . generic_val );
-}
-
-ANODE* getFifthChild ( ANODE *node )
-{
-  if ( node -> num_of_children < 5 )
-  {
-    fprintf ( stderr, "Cannot get non existent 5th child\n" );
-    return NULL;
-  }
-
-  return * ( ANODE ** ) ( node -> children -> head -> next -> next -> next -> next -> data . generic_val );
 }
 
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
@@ -446,6 +598,7 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
     if ( funcentry == NULL )
     {
       fprintf ( stderr, "Function entry not found in symbol table for some reason...\n" );
+      erroroccured = 1;
       return;
     }
 
@@ -485,6 +638,7 @@ void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE
     if ( retentry == NULL )
     {
       fprintf ( stderr, "Return type entry not found in the symbol table" );
+      erroroccured = 1;
       return;
     }
 
@@ -504,19 +658,22 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 {
   if ( currnode -> node_type == AST_BREAK_NODE && *loopcount <= 0 )
   {
-    fprintf ( stderr, "Error: Break statements can only occur inside loops.\n" );
+    fprintf ( stderr, "Error at line %d:\n\tBreak statements can only occur inside loops.\n\n", currnode -> line_no );
 
+    erroroccured = 1;
     // Continue processing after ignoring the node
     return;
   }
   else if ( currnode -> node_type == AST_RETURNSTMT_NODE && *infunction == 0 )
   {
-    fprintf ( stderr, "Error: Return statements can only occur inside function definitions.\n" );
+    fprintf ( stderr, "Error at line %d:\n\tReturn statements can only occur inside function definitions.\n\n", currnode -> line_no );
+    erroroccured = 1;
     return;
   }
   else if ( currnode -> node_type == AST_DEPTH_NODE && *loopcount <= 0 && *bdftcount <= 0 )
   {
-    fprintf ( stderr, "Error: Depth can only be used inside a BFT / DFT based loop.\n" );
+    fprintf ( stderr, "Error at line %d:\n\tDepth can only be used inside a BFT / DFT based loop.\n\n", currnode -> line_no );
+    erroroccured = 1;
     return;
   }
   else if ( currnode -> node_type == AST_LET_NODE )
@@ -524,11 +681,24 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     // The left and right children of Let node should have the same type
     if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
     {
+      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+      char *name = entry -> data . var_data . name;
       if ( getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE
            && getSecondChild ( currnode ) -> result_type == D_INT_TYPE )
-        fprintf ( stderr, "Warning: Implicit conversion from Int to Float in Let statement\n" );
+      {
+        fprintf ( stderr, "Warning at line %d:\n\tImplicit conversion from Int to Float in Let statement\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s has type Float\n\n", name );
+      }
       else
-        fprintf ( stderr, "Error: Assigning incompatible types in let statement\n" );
+      {
+        fprintf ( stderr, "Error at line %d:\n\tAssigning incompatible types in let statement\n", currnode -> line_no );
+        if ( getFirstChild ( currnode ) -> num_of_children == 1 )
+          fprintf ( stderr, "\tNote: %s has type %s, but RHS has type %s\n\n", name, getDataTypeName ( getFirstChild ( currnode ) -> result_type ), getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+        else
+          fprintf ( stderr, "\tNote: LHS has type %s, but RHS has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ), getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+
+        erroroccured = 1;
+      }
       return;
     }
 
@@ -537,7 +707,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     if ( entry -> entry_type == ENTRY_FUNC_TYPE )
     {
-      fprintf ( stderr, "Error: Attempting to assign to a function identifier\n" );
+      fprintf ( stderr, "Error at line %d:\n\tAttempting to assign to a function identifier\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: %s declared as function on line %d\n\n", entry -> data . func_data . name,
+                                                                          entry -> data . func_data . decl_line );
+      erroroccured = 1;
       return;
     }
   }
@@ -551,24 +724,32 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     else if ( currnode -> num_of_children == 2 )
     {
       fprintf ( stderr, "Invalid tree produced! Assignable can't have exactly 2 children\n" );
+      erroroccured = 1;
       return;
     }
     else if ( currnode -> num_of_children == 3 )
     {
       // If Assignable has three children, then its first child should be a complex type
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
 
       if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
            || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
-        fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        fprintf ( stderr, "Error at line %d:\n\tCannot get members of primitive type\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s was declared as a/an %s on line %d\n\n", entry -> data . var_data . name,
+                  getDataTypeName ( getFirstChild ( currnode ) -> result_type ), entry -> data . var_data . decl_line );
+        erroroccured = 1;
         return;
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
-        fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        fprintf ( stderr, "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s was declared as a VERTEX on line %d\n\n", entry -> data . var_data . name,
+                                                                                entry -> data . var_data . decl_line );
+        erroroccured = 1;
         return;
       }
 
@@ -577,14 +758,20 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( getThirdChild ( currnode ) -> num_of_children > 0
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
-          fprintf ( stderr, "Error: Edge object has no root member\n" );
+          fprintf ( stderr, "Error at line %d:\n\tEdge object has no root member\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: %s was declared as an EDGE on line %d\n\n", entry -> data . var_data . name,
+                                                                                 entry -> data . var_data . decl_line );
+          erroroccured = 1;
           return;
         }
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
-        fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        fprintf ( stderr, "Error at line %d:\n\tGraph object has no members that can be referenced\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s was declared as an GRAPH on line %d\n\n", entry -> data . var_data . name,
+                                                                                entry -> data . var_data . decl_line );
+        erroroccured = 1;
         return;
       }
 
@@ -592,13 +779,17 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getThirdChild ( currnode ) -> num_of_children > 0
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
-        fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        fprintf ( stderr, "Error at line %d:\n\tOnly root member of a Tree object may be referenced\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s was declared as an TREE on line %d\n\n", entry -> data . var_data . name,
+                                                                               entry -> data . var_data . decl_line );
+        erroroccured = 1;
         return;
       }
     }
     else
     {
       fprintf ( stderr, "Invalid tree produced! Assignable can't have more than 3 children\n" );
+      erroroccured = 1;
       return;
     }
   }
@@ -624,7 +815,8 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE )
     {
-      fprintf ( stderr, "Error: Cannot read non-primitive value using the read statement\n" );
+      fprintf ( stderr, "Error at line %d:\n\tCannot read non-primitive value using the read statement\n\n", currnode -> line_no );
+      erroroccured = 1;
       return;
     }
   }
@@ -638,7 +830,8 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE
          && child -> result_type != D_STRING_TYPE )
     {
-      fprintf ( stderr, "Error: Cannot print a value that is not a string, an int or a float\n" );
+      fprintf ( stderr, "Error at line %d:\n\tCannot print a value that is not a string, an int or a float\n", currnode -> line_no );
+      erroroccured = 1;
       return;
     }
   }
@@ -649,7 +842,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
     {
-      fprintf ( stderr, "Error: Values on the two sides of the compare expression are not the same\n" );
+      fprintf ( stderr, "Error at line %d:\n\tValues on the two sides of the compare expression are not the same\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: LHS has type %s and RHS has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                                                                           getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+      erroroccured = 1;
       return;
     }
   }
@@ -668,14 +864,16 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       {
         if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
         {
-          fprintf ( stderr, "Error: Floats and Ints can only be added to other Floats and Ints respectively\n" );
+          fprintf ( stderr, "Error at line %d:\n\tFloats and Ints can only be added to other Floats and Ints respectively\n\n", currnode -> line_no );
+          erroroccured = 1;
           return;
         }
 
         if ( firsttype == D_FLOAT_TYPE && currnode -> extra_data . arop_type == A_MODULO_TYPE )
         {
           // The right child gives us the operation type
-          fprintf ( stderr, "Error: Modulo operator cannot be applied to Floats\n" );
+          fprintf ( stderr, "Error at line %d:\n\tModulo operator cannot be applied to Floats\n\n", currnode -> line_no );
+          erroroccured = 1;
           return;
         }
 
@@ -683,7 +881,8 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       }
       else if ( firsttype == D_STRING_TYPE || secondtype == D_STRING_TYPE )
       {
-        fprintf ( stderr, "Error: Operations on String are not allowed\n" );
+        fprintf ( stderr, "Error at line %d:\n\tOperations on String are not allowed\n\n", currnode -> line_no );
+        erroroccured = 1;
         return;
       }
       else if ( firsttype == D_GRAPH_TYPE || firsttype == D_TREE_TYPE )
@@ -691,11 +890,12 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
              && currnode -> extra_data . arop_type != A_MINUS_TYPE )
         {
-          fprintf ( stderr, "Operator type: %d\n", getSecondChild ( currnode ) -> extra_data . arop_type );
-          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+          fprintf ( stderr, "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n", currnode -> line_no );
+          erroroccured = 1;
         }
         else if ( secondtype != D_VERTEX_TYPE && secondtype != D_EDGE_TYPE )
-          fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+          fprintf ( stderr, "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n", currnode -> line_no );
+        erroroccured = 1;
 
         result = firsttype;
       }
@@ -703,19 +903,31 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       {
         if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
              && currnode -> extra_data . arop_type != A_MINUS_TYPE )
-          fprintf ( stderr, "Error: Only addition or removal operations allowed on Graphs and Trees\n" );
+        {
+          fprintf ( stderr, "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n", currnode -> line_no );
+          erroroccured = 1;
+        }
         else if ( firsttype != D_VERTEX_TYPE && firsttype != D_EDGE_TYPE )
-          fprintf ( stderr, "Error: Only Vertices and Edges may be added and removed from Graphs/Trees\n" );
+        {
+          fprintf ( stderr, "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n", currnode -> line_no );
+          erroroccured = 1;
+        }
 
         result = secondtype;
       }
       else
-        fprintf ( stderr, "Error: Invalid operands provided in expression\n" );
+      {
+        fprintf ( stderr, "Error at line %d:\n\tInvalid operands provided in expression\n\n", currnode -> line_no );
+        erroroccured = 1;
+      }
 
       currnode -> result_type = result;
     }
     else
+    {
       fprintf ( stderr, "Invalid tree produced! EXP node should not have more than 2 children\n" );
+      erroroccured = 1;
+    }
   }
   else if ( currnode -> node_type == AST_PASSEDPARAMS_NODE )
   {
@@ -730,7 +942,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     // Firstly, the number of parameters must match with the number of children of currnode
     if ( funcentry -> num_params != currnode -> num_of_children )
     {
-      fprintf ( stderr, "Error: Number of passed parameters don't match with the function definition\n" );
+      fprintf ( stderr, "Error at line %d:\n\tNumber of passed parameters don't match with the function definition\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: %s accepts %d parameters, but %d parameters are being passed\n\n", funcentry -> name, funcentry -> num_params,
+                                                                                                    currnode -> num_of_children );
+      erroroccured = 1;
       return;
     }
 
@@ -739,9 +954,11 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     getIterator ( funcentry -> paramtypes, & funciterator );
     getIterator ( currnode -> children, & paramiterator );
+    int paramnumber = 0;
 
     while ( hasNext ( & funciterator ) )
     {
+      paramnumber ++;
       getNext ( funcentry -> parameters, & funciterator );
       getNext ( currnode -> children, & paramiterator );
 
@@ -750,7 +967,11 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
       if ( paramtype != passedtype )
       {
-        fprintf ( stderr, "Error: The type of the passed parameter to the function doesn't match the definition\n" );
+        fprintf ( stderr, "Error at line %d:\n\tThe type of the passed parameter to the function doesn't match the definition\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Parameter %d of %s should be of type %s, given type is %s\n\n", paramnumber, funcentry -> name,
+                                                                                                   getDataTypeName ( paramtype ),
+                                                                                                   getDataTypeName ( passedtype ) );
+        erroroccured = 1;
         return;
       }
     }
@@ -771,7 +992,12 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       // The return type is nothing
 
       if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
-        fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+      {
+        fprintf ( stderr, "Error at line %d:\n\tType of value being returned does not match the return type in the function definition\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Expected return type of %s is %s, but code returns Nothing\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+                  getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ) );
+        erroroccured = 1;
+      }
 
       return;
     }
@@ -779,7 +1005,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( getFirstChild ( currnode ) -> result_type
          != getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type )
     {
-      fprintf ( stderr, "Error: Type of value being returned does not match the return type in fn definition\n" );
+      fprintf ( stderr, "Error at line %d:\n\tType of value being returned does not match the return type in the function definition\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: Expected return type of %s is %s, but code returns a/an %s\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+                getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ), getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+      erroroccured = 1;
       return;
     }
   }
@@ -789,7 +1018,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
     if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
     {
-      fprintf ( stderr, "Warning: Return value of function is not being used\n" );
+      fprintf ( stderr, "Warning at line %d:\n\tReturn value of function is not being used\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: %s returns a/an %s\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+                getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ) );
+
       return;
     }
   }
@@ -802,22 +1034,36 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       ANODE *child = getFirstChild ( currnode );
 
       if ( child -> node_type == AST_LITERAL_NODE && child -> result_type != D_INT_TYPE )
-        fprintf ( stderr, "Error: The number of iterations of a for loop must be an Integer\n" );
+      {
+        fprintf ( stderr, "Error at line %d:\n\tThe number of iterations of a for loop must be an Integer\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Provided type is a %s\n\n", getDataTypeName ( child -> result_type ) );
+        erroroccured = 1;
+      }
       else if ( child -> node_type == AST_IDENTIFIER_NODE )
       {
         unsigned int index = child -> extra_data . symboltable_index;
 
         STBENTRY *entry = getEntryByIndex ( symboltable, index );
+        char *name = NULL;
+        if ( entry -> entry_type == ENTRY_FUNC_TYPE )
+          name = entry -> data . func_data . name;
+        else
+          name = entry -> data . var_data . name;
 
         if ( entry -> entry_type == ENTRY_FUNC_TYPE || entry -> data . var_data .data_type != D_INT_TYPE )
         {
-          fprintf ( stderr, "Error: The identifier in a for loop must be an integer variable\n" );
+          fprintf ( stderr, "Error at line %d:\n\tThe identifier in a for loop must be an integer variable\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: %s is not an integer\n\n", name );
+          erroroccured = 1;
           return;
         }
       }
     }
     else if ( currnode -> num_of_children == 3 )
+    {
       fprintf ( stderr, "Invalid tree produced! For node cannot have 3 children\n" );
+      erroroccured = 1;
+    }
     else if ( currnode -> num_of_children == 4 )
     {
       // The first child must be a Vertex or an Edge and the third child must be a Graph or Tree
@@ -825,19 +1071,26 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
-        fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        fprintf ( stderr, "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Provided variable has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+        erroroccured = 1;
         return;
       }
 
       if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
            && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
       {
-        fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+        fprintf ( stderr, "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
+        erroroccured = 1;
         return;
       }
     }
     else if ( currnode -> num_of_children == 5 )
+    {
       fprintf ( stderr, "Invalid tree produced! For node cannot have 5 children\n" );
+      erroroccured = 1;
+    }
     else if ( currnode -> num_of_children == 6 )
     {
       // We can have two cases here. Either the construct can be:
@@ -849,7 +1102,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
       if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
-        fprintf ( stderr, "Error: The iteration variable must be a vertex or an edge\n" );
+        fprintf ( stderr, "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: Provided variable has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+        erroroccured = 1;
         return;
       }
 
@@ -858,13 +1113,16 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( getFourthChild ( currnode ) -> result_type != D_GRAPH_TYPE
              && getFourthChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
-          fprintf ( stderr, "Error: The first parameter to BFT or DFT must be a Graph or Tree\n" );
+          fprintf ( stderr, "Error at line %d:\n\tThe first parameter to BFT or DFT must be a Graph or Tree\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getFourthChild ( currnode ) -> result_type ) );
+          erroroccured = 1;
           return;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
-          fprintf ( stderr, "Error: The second parameter to BFT/DFT must be a Vertex\n" );
+          fprintf ( stderr, "Error at line %d:\n\tThe second parameter to BFT/DFT must be a Vertex\n\n", currnode -> line_no );
+          erroroccured = 1;
           return;
         }
       }
@@ -875,13 +1133,17 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
              && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
-          fprintf ( stderr, "Error: The object to iterate over must be a Graph or Tree\n" );
+          fprintf ( stderr, "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: Type provided is %s\n\n", getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
+          erroroccured = 1;
           return;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
-          fprintf ( stderr, "Error: The adjacent to parameter must be a Vertex\n" );
+          fprintf ( stderr, "Error at line %d:\n\tThe adjacent to parameter must be a Vertex\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getFifthChild ( currnode ) -> result_type ) );
+          erroroccured = 1;
           return;
         }
       }
@@ -892,7 +1154,10 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
          || getSecondChild ( currnode ) -> result_type != D_VERTEX_TYPE )
     {
-      fprintf ( stderr, "Error: The components of an edge must be vertices\n" );
+      fprintf ( stderr, "Error at line %d:\n\tThe components of an edge must be vertices\n", currnode -> line_no );
+      fprintf ( stderr, "\tNote: Provided types are %s and %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                                                                    getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+      erroroccured = 1;
       return;
     }
 
@@ -922,28 +1187,37 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
     else if ( currnode -> num_of_children == 2 )
     {
       currnode -> result_type = getFirstChild ( currnode ) -> result_type;
-      if ( getEntryByIndex ( symboltable,
-            getFirstChild ( currnode ) -> extra_data . symboltable_index ) -> entry_type != ENTRY_FUNC_TYPE )
+      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
+      if ( entry -> entry_type != ENTRY_FUNC_TYPE )
       {
-        fprintf ( stderr, "Error: Attempting to call a variable like a function\n" );
+        fprintf ( stderr, "Error at line %d:\n\tAttempting to call a variable like a function\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s declared as a/an %s at line number %d\n\n", entry -> data . var_data . name,
+                  getDataTypeName ( entry -> data . var_data . data_type ), entry -> data . var_data . decl_line );
+        erroroccured = 1;
         return;
       }
     }
     else if ( currnode -> num_of_children == 3 )
     {
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
+      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
+      VARIABLE *vardata = & ( entry -> data . var_data );
 
       if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
            || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
-        fprintf ( stderr, "Error: Cannot get members of primitive type\n" );
+        fprintf ( stderr, "Error at line %d:\n\tCannot get members of primitive type\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s has type %s\n\n", vardata -> name, getDataTypeName ( vardata -> data_type ) );
+        erroroccured = 1;
         return;
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
-        fprintf ( stderr, "Error: Cannot get non-primitive type member of a Vertex object\n" );
+        fprintf ( stderr, "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s declared as a VERTEX on line %d\n\n", vardata -> name, vardata -> decl_line );
+        erroroccured = 1;
         return;
       }
 
@@ -952,14 +1226,18 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
         if ( getThirdChild ( currnode ) -> num_of_children > 0
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
-          fprintf ( stderr, "Error: Edge object has no root member\n" );
+          fprintf ( stderr, "Error at line %d:\n\tEdge object has no root member\n", currnode -> line_no );
+          fprintf ( stderr, "\tNote: %s declared as an EDGE on line %d\n\n", vardata -> name, vardata -> decl_line );
+          erroroccured = 1;
           return;
         }
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
-        fprintf ( stderr, "Error: Graph object has no members that can be referenced\n" );
+        fprintf ( stderr, "Error at line %d:\n\tGraph object has no members that can be referenced\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s declared as a GRAPH on line %d\n\n", vardata -> name, vardata -> decl_line );
+        erroroccured = 1;
         return;
       }
 
@@ -967,7 +1245,9 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
            && getThirdChild ( currnode ) -> num_of_children > 0
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
-        fprintf ( stderr, "Error: Only root member of a Tree object may be referenced\n" );
+        fprintf ( stderr, "Error at line %d:\n\tOnly the root member of a Tree object may be referenced\n", currnode -> line_no );
+        fprintf ( stderr, "\tNote: %s declared as a TREE on line %d\n\n", vardata -> name, vardata -> decl_line );
+        erroroccured = 1;
         return;
       }
     }
@@ -988,7 +1268,8 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
       if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
       {
-        fprintf ( stderr, "Error: Primitive type objects have no members\n" );
+        fprintf ( stderr, "Error at line %d:\n\tPrimitive type objects have no members\n\n", currnode -> line_no );
+        erroroccured = 1;
         return;
       }
     }
@@ -1000,17 +1281,14 @@ void performSemanticChecks ( ANODE *currnode, SYMBOLTABLE *symboltable, int *inf
 
 void layoutTemplate ( FILE *assemblyfile, FILE *codefile, FILE *datafile )
 {
+  fprintf ( datafile, "extern printf\n\n" );
   fprintf ( datafile, "section .data\n" );
-  fprintf ( datafile, "\t_int_string:\t\tdb\t'0000000000',10,0\n" );
-  fprintf ( datafile, "\tintoffset:\t\tequ\t0\n" );
-  fprintf ( datafile, "\tfloatoffset:\t\tequ\t1\n" );
-  fprintf ( datafile, "\tstringoffset:\t\tequ\t2\n" );
-  fprintf ( datafile, "\tsourceoffset:\t\tequ\t3\n" );
-  fprintf ( datafile, "\tdestoffset:\t\tequ\t4\n" );
-  fprintf ( datafile, "\tweightoffset:\t\tequ\t5\n" );
-  fprintf ( datafile, "\trootoffset:\t\tequ\t2\n" );
-  fprintf ( datafile, "\tvlistoffset:\t\tequ\t0\n" );
-  fprintf ( datafile, "\telistoffset:\t\tequ\t1\n" );
+  //fprintf ( datafile, "\t_int_string:\t\t\tdb\t'0000000000',10,0\n" );
+  fprintf ( datafile, "\t_int_format:\t\t\tdb\t\"%%d\",10,0\n" );
+  fprintf ( datafile, "\t_float_format:\t\tdb\t\"%%f\",10,0\n" );
+  fprintf ( datafile, "\t_float_temp:\t\t\tdq\t0\n" );
+  fprintf ( datafile, "\t_string_format:\t\tdb\t\"%%s\",0\n" );
+  fprintf ( datafile, "\t_int_to_float:\t\tdw\t0,0\n" );
 
   fprintf ( assemblyfile, "\nsection .bss\n" );
 
@@ -1053,9 +1331,179 @@ void writeIntPrintFunction ( FILE *assemblyfile )
   fprintf ( assemblyfile, "\tret\n" );
 }
 
-void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
-                    FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile )
+int getSize ( DATATYPE type )
 {
+  switch ( type )
+  {
+    case D_INT_TYPE    :
+    case D_FLOAT_TYPE  :
+    case D_STRING_TYPE : return 1;
+    case D_VERTEX_TYPE :
+    case D_TREE_TYPE   : return 3;
+    case D_GRAPH_TYPE  : return 2;
+    case D_EDGE_TYPE   : return 6;
+    default            : fprintf ( stderr, "Querying for size of unrecognized type\n" );
+                         return 0;
+  }
+}
+
+int getSubtreeActivationSize ( ANODE *root )
+{
+  if ( root -> node_type == AST_DATATYPE_NODE )
+    return ( getParent ( root ) -> num_of_children - 1 ) * getSize ( root -> extra_data . data_type );
+
+  int value = 0;
+  LNODE iterator;
+  getIterator ( root -> children, & iterator );
+
+  while ( hasNext ( & iterator ) )
+  {
+    getNext ( root -> children, & iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    value += getSubtreeActivationSize ( child );
+  }
+
+  return value;
+}
+
+int getProgramSize ( ANODE *programNode )
+{
+  if ( programNode -> node_type != AST_PROGRAM_NODE )
+  {
+    fprintf ( stderr, "Call getProgramSize on a program node next time\n" );
+    return -1;
+  }
+
+  int value = 0;
+  LNODE iterator;
+  getIterator ( programNode -> children, & iterator );
+
+  while ( hasNext ( & iterator ) )
+  {
+    getNext ( programNode -> children, & iterator );
+    ANODE *child = * ( ANODE ** ) ( iterator . data . generic_val );
+
+    if ( child -> node_type == AST_GLOBALDEFINE_NODE
+         || child -> node_type == AST_FUNCTION_NODE )
+      continue;
+
+    value += getSubtreeActivationSize ( child );
+  }
+
+  return value;
+}
+
+int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable )
+{
+  int o1 = assignable -> offset1;
+  int o2 = (assignable -> offsetcount > 1) ? assignable -> offset2 : OFFSET_ANY;
+  int o3 = (assignable -> offsetcount > 2) ? assignable -> offset3 : OFFSET_ANY;
+
+  int target = getRegister ( codefile, symboltable, getFirstChild ( assignable ) -> extra_data . symboltable_index,
+                             o1, o2, o3, NO_SPECIFIC_REG, 0, NO_REGISTER, NO_REGISTER );
+
+  if ( target == -1 )
+  {
+    fprintf ( stderr, "Error: Out of registers, cannot get offset in temp register\n" );
+    exit ( -1 );
+  }
+
+  if ( registers [ target ] . flushed == 0 )
+    return target;
+
+  if ( assignable -> global_or_local == IS_LOCAL )
+  {
+    if ( assignable -> offsetcount == ONE_OFFSET )
+    {
+      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset1 );
+    }
+    else
+    {
+      int resultant = assignable -> offset2 + assignable -> offset1;
+      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), resultant );
+    }
+
+    if ( assignable -> offsetcount == THREE_OFFSETS )
+    {
+      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
+      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+    }
+  }
+  else
+  {
+    // Is a global variable
+    char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
+    fprintf ( codefile, "\t; Getting offset for %s\n", varname );
+
+    if ( assignable -> offsetcount == ONE_OFFSET )
+      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
+    else
+    {
+      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
+      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset2 );
+    }
+
+    if ( assignable -> offsetcount == THREE_OFFSETS )
+    {
+      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
+      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
+    }
+  }
+
+  setRegisterProperties ( target, 0, assignable -> global_or_local, 0, 1,
+    getFirstChild ( assignable ) -> extra_data . symboltable_index, assignable -> offset1, 0,
+    assignable -> offset3 );
+
+  if ( assignable -> offsetcount > 1 )
+    registers [ target ] . offset2 = assignable -> offset2;
+  else
+    registers [ target ] . offset2 = OFFSET_ANY;
+
+  if ( assignable -> offsetcount > 2 )
+    registers [ target ] . offset3 = assignable -> offset3;
+  else
+    registers [ target ] . offset3 = OFFSET_ANY;
+
+  return target;
+}
+
+int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symboltable,
+                           TRIE *literaltrie, LITDATA *literals )
+{
+  LITERAL *litdata = & ( getEntryByIndex ( symboltable, literalnode -> extra_data . symboltable_index ) -> data . lit_data );
+
+  TNODE *foundlit = findString ( literaltrie, litdata -> value );
+
+  int targetreg = getRegister ( codefile, symboltable, literalnode -> extra_data . symboltable_index,
+                  OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, IS_LITERAL, NO_REGISTER,
+                  NO_REGISTER );
+
+  if ( targetreg == -1 )
+  {
+    fprintf ( stderr, "Error: Out of temporary registers to get literal\n" );
+    exit ( -1 );
+  }
+
+  fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( targetreg ), literals [ foundlit -> data . int_val ] . name );
+
+  setRegisterProperties ( targetreg, 0, -1, IS_LITERAL, 0, literalnode -> extra_data . symboltable_index,
+                          OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+
+  return targetreg;
+}
+
+void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,
+                    FILE *functionfile, TRIE* literaltrie, LITDATA *literals, FILE *datafile,
+                    int infunction )
+{
+  FILE *outputfile = codefile;
+
+  if ( infunction == 1 )
+    outputfile = functionfile;
+
   if ( currnode -> node_type == AST_GLOBALDEFINE_NODE )
   {
     LNODE iterator;
@@ -1074,17 +1522,17 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       fprintf ( assemblyfile, "\t%s:\t", vardata -> name );
 
       if ( vardata -> data_type == D_INT_TYPE || vardata -> data_type == D_FLOAT_TYPE )
-        fprintf ( assemblyfile, "resw\t1\n" );
+        fprintf ( assemblyfile, "resb\t4\n" );
       else if ( vardata -> data_type == D_VERTEX_TYPE )
-        fprintf ( assemblyfile, "resw\t3\n" );
+        fprintf ( assemblyfile, "resb\t12\n" );
       else if ( vardata -> data_type == D_STRING_TYPE )
-        fprintf ( assemblyfile, "resw\t1\n" );
+        fprintf ( assemblyfile, "resb\t4\n" );
       else if ( vardata -> data_type == D_EDGE_TYPE )
-        fprintf ( assemblyfile, "resw\t6\n" );
+        fprintf ( assemblyfile, "resb\t24\n" );
       else if ( vardata -> data_type == D_TREE_TYPE )
-        fprintf ( assemblyfile, "resw\t3\n" );
+        fprintf ( assemblyfile, "resb\t12\n" );
       else if ( vardata -> data_type == D_GRAPH_TYPE )
-        fprintf ( assemblyfile, "resw\t2\n" );
+        fprintf ( assemblyfile, "resb\t8\n" );
     }
   }
   else if ( currnode -> node_type == AST_LITERAL_NODE )
@@ -1106,7 +1554,7 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       fprintf ( datafile, "\t%s:\t", literals [ curlitindex ] . name );
 
       if ( litdata -> lit_type == D_STRING_TYPE )
-        fprintf ( datafile, "db\t%s,10\n", litdata -> value );
+        fprintf ( datafile, "db\t%s,10,0\n", litdata -> value );
       else if ( litdata -> lit_type == D_INT_TYPE )
       {
         int value = atoi ( litdata -> value );
@@ -1115,26 +1563,38 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
       }
       else if ( litdata -> lit_type == D_FLOAT_TYPE )
         fprintf ( datafile, "dd\t%s\n", litdata -> value );
-    }
 
-    curlitindex ++;
-  }
-  else if ( currnode -> node_type == AST_GLOBALDEFINES_NODE )
-  {
-    hasglobalvars = 1;
-    startwritten = 1;
-    fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
+      curlitindex ++;
+    }
   }
   else if ( currnode -> node_type == AST_LET_NODE )
   {
-    STBENTRY *entry = getEntryByIndex ( symboltable,
-        getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+    ANODE *assignable = getFirstChild ( currnode );
 
-    if ( entry -> data . var_data . var_type == V_GLOBAL_TYPE )
+    int targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
+
+    while ( ! registers [ targetreg ] . hasoffset )
     {
-      // Entry is a global type, so we can copy to it using its name
-
+      registers [ targetreg ] . flushed = 1;
+      targetreg = getOffsetInReg ( assignable, outputfile, symboltable );
     }
+
+    int resultreg = getSecondChild ( currnode ) -> offsetreg;
+
+    if ( getSecondChild ( currnode ) -> result_type == D_INT_TYPE && assignable -> result_type == D_FLOAT_TYPE )
+    {
+      // Perform type conversion
+      fprintf ( codefile, "\n\t; Performing type conversion\n" );
+      fprintf ( codefile, "\tmov\t[_int_to_float], %s\n", getRegisterName ( resultreg ) );
+      fprintf ( codefile, "\tfild\tdword [_int_to_float]\n" );
+      fprintf ( codefile, "\tfstp\tdword [_int_to_float]\n" );
+      fprintf ( codefile, "\t; Move converted value back\n" );
+      fprintf ( codefile, "\tmov\t%s, [_int_to_float]\n\n", getRegisterName ( resultreg ) );
+    }
+
+    fprintf ( codefile, "\tmov\t[%s], %s\n\n", getRegisterName ( targetreg ), getRegisterName ( resultreg ) );
+
+    registers [ resultreg ] . flushed = 1;
   }
   else if ( currnode -> node_type == AST_PRINT_NODE )
   {
@@ -1147,32 +1607,848 @@ void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfil
 
     if ( entry -> entry_type == ENTRY_LIT_TYPE )
     {
+      fprintf ( outputfile, "\n\tpusha\n" );
+      TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
       // Check and print the int or float literal
       if ( entry -> data . lit_data . lit_type == D_INT_TYPE )
       {
-        shouldintprint = 1;
-        fprintf ( codefile, "\tpusha\n" );
-
-        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
-        fprintf ( codefile, "\tmov\teax, [ %s ]\n", literals [ foundlit -> data . int_val ] . name );
-
-        fprintf ( codefile, "\tcall printInt\n" );
-        fprintf ( codefile, "\tpopa\n" );
+        fprintf ( outputfile, "\t; Printing integer literal\n" );
+        fprintf ( outputfile, "\tpush\t[ %s ]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tpush\t_int_format\n" );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n" );
       }
       else if ( entry -> data . lit_data . lit_type == D_STRING_TYPE )
       {
-        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
-        fprintf ( codefile, "\tmov\teax, 4\n" );
-        fprintf ( codefile, "\tmov\tebx, 1\n" );
-        fprintf ( codefile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
-        fprintf ( codefile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
-        fprintf ( codefile, "\tint\t80h\n\n" );
+        fprintf ( outputfile, "\t; Printing string literal\n" );
+        fprintf ( outputfile, "\tmov\teax, 4\n" );
+        fprintf ( outputfile, "\tmov\tebx, 1\n" );
+        fprintf ( outputfile, "\tmov\tecx, %s\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tmov\tedx, %d\n", ( int ) strlen ( entry -> data . lit_data . value ) - 1 );
+        fprintf ( outputfile, "\tint\t80h\n" );
+      }
+      else if ( entry -> data . lit_data . lit_type == D_FLOAT_TYPE )
+      {
+        fprintf ( outputfile, "\t; Printing float literal\n" );
+        fprintf ( outputfile, "\tfld\tdword\t[%s]\n", literals [ foundlit -> data . int_val ] . name );
+        fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+        fprintf ( outputfile, "\tcall\tprintf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n" );
+      }
+      fprintf ( outputfile, "\tpopa\n\n" );
+    }
+    else
+    {
+      // The entry MUST be a variable type
+      // Get its offset, which is inherited and stored in the assignable node child
+      // Use result_type to decide the type and print accordingly
+
+      ANODE *assignable = getFirstChild ( currnode );
+      int datareg = getOffsetInReg ( assignable, outputfile, symboltable );
+
+      while ( ! registers [ datareg ] . hasoffset )
+      {
+        registers [ datareg ] . flushed = 1;
+        datareg = getOffsetInReg ( assignable, outputfile, symboltable );
+      }
+
+      // Dereference offset and get the data to print
+      fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( datareg ), getRegisterName ( datareg ) );
+      registers [ datareg ] . hasoffset = 0;
+
+      if ( assignable -> result_type == D_INT_TYPE )
+      {
+        fprintf ( outputfile, "\n\tpusha\t\t; Printf modifies registers so pushall\n" );
+        fprintf ( outputfile, "\t; Printing integer variable\n" );
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( datareg ) );
+        fprintf ( outputfile, "\tpush\t_int_format\n" );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
+      }
+      else if ( assignable -> result_type == D_STRING_TYPE )
+      {
+        fprintf ( outputfile, "\n\tpusha\n" );
+        fprintf ( outputfile, "\t; Printing string variable\n" );
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( datareg ) );
+        fprintf ( outputfile, "\tpush\tdword\t_string_format\n" );
+        fprintf ( outputfile, "\tcall printf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 8\n\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
+      }
+      else if ( assignable -> result_type == D_FLOAT_TYPE )
+      {
+        fprintf ( outputfile, "\n\tpusha\n" );
+        fprintf ( outputfile, "\t; Printing float variable\n" );
+        fprintf ( outputfile, "\tmov\t[_float_temp], %s\n", getRegisterName ( datareg ) );
+        fprintf ( outputfile, "\tfld\tdword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tfstp\tqword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp+4]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t[_float_temp]\n" );
+        fprintf ( outputfile, "\tpush\tdword\t_float_format\n" );
+        fprintf ( outputfile, "\tcall\tprintf\n" );
+        fprintf ( outputfile, "\tadd\tesp, 12\n\n" );
+        fprintf ( outputfile, "\tpopa\n\n" );
       }
     }
   }
+  else if ( currnode -> node_type == AST_IDENTIFIER_NODE )
+  {
+    STBENTRY *entry = getEntryByIndex ( symboltable, currnode -> extra_data . symboltable_index );
 
-  if ( functionfile == NULL )
-    fprintf ( stderr, "Function file should not be NULL\n" );
+    if ( getParent ( currnode ) -> node_type == AST_DEFINE_NODE )
+    {
+      entry -> offset = curroffset;
+      curroffset += getSize ( entry -> data . var_data . data_type ) * 4;
+    }
+    else if ( entry -> entry_type == ENTRY_VAR_TYPE )
+    {
+      if ( entry -> data . var_data . var_type == V_GLOBAL_TYPE )
+      {
+        currnode -> global_or_local = IS_GLOBAL;
+        currnode -> offsetcount = ONE_OFFSET;
+        currnode -> offset1 = entry -> index;
+      }
+      else
+      {
+        currnode -> global_or_local = IS_LOCAL;
+        currnode -> offsetcount = ONE_OFFSET;
+        currnode -> offset1 = entry -> offset;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_ASSIGNABLE_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+    {
+      currnode -> offsetcount = getFirstChild ( currnode ) -> offsetcount;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+    }
+    else if ( currnode -> num_of_children == 3 )
+    {
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+
+      currnode -> offsetcount = 1 + getThirdChild ( currnode ) -> offsetcount;
+
+      currnode -> offset2 = getThirdChild ( currnode ) -> offset1;
+      currnode -> offset3 = getThirdChild ( currnode ) -> offset2;
+    }
+  }
+  else if ( currnode -> node_type == AST_ENDASSIGN_NODE )
+  {
+    if ( currnode -> num_of_children == 0 )
+    {
+      currnode -> offsetcount = ONE_OFFSET;
+      if ( currnode -> extra_data . data_type == D_INT_TYPE )
+        currnode -> offset1 = INTOFFSET;
+      else if ( currnode -> extra_data . data_type == D_FLOAT_TYPE )
+        currnode -> offset1 = FLOATOFFSET;
+      else if ( currnode -> extra_data . data_type == D_STRING_TYPE )
+        currnode -> offset1 = STRINGOFFSET;
+    }
+    else if ( currnode -> num_of_children == 1 || currnode -> num_of_children == 2 )
+    {
+      if ( currnode -> num_of_children == 1 )
+        currnode -> offsetcount = ONE_OFFSET;
+      else
+        currnode -> offsetcount = TWO_OFFSETS;
+
+      if ( getFirstChild ( currnode ) -> node_type == AST_ROOT_NODE )
+        currnode -> offset1 = ROOTOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_SOURCE_NODE )
+        currnode -> offset1 = SOURCEOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_DEST_NODE )
+        currnode -> offset1 = DESTOFFSET;
+      if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
+        currnode -> offset1 = WEIGHTOFFSET;
+
+      if ( currnode -> num_of_children == 2 )
+      {
+        if ( currnode -> extra_data . data_type == D_INT_TYPE )
+          currnode -> offset2 = INTOFFSET;
+        else if ( currnode -> extra_data . data_type == D_FLOAT_TYPE )
+          currnode -> offset2 = FLOATOFFSET;
+        else if ( currnode -> extra_data . data_type == D_STRING_TYPE )
+          currnode -> offset2 = STRINGOFFSET;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_EXP_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+    {
+      if ( getFirstChild ( currnode ) -> node_type == AST_LITERAL_NODE )
+      {
+        LITERAL *litdata = & ( getEntryByIndex ( symboltable,
+          getFirstChild ( currnode ) -> extra_data . symboltable_index ) -> data . lit_data );
+
+        TNODE *foundlit = findString ( literaltrie, litdata -> value );
+
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getRegister ( codefile, symboltable,
+            getFirstChild ( currnode ) -> extra_data . symboltable_index,
+            OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, 1, NO_REGISTER, NO_REGISTER );
+
+        if ( currnode -> offsetreg == -1 )
+        {
+          fprintf ( stderr, "Error: Out of temporary registers at EXP node\n" );
+          exit ( -1 );
+        }
+
+        int gotreg = currnode -> offsetreg;
+        setRegisterProperties ( gotreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( currnode -> offsetreg ) );
+
+        if ( litdata -> lit_type == D_STRING_TYPE )
+          fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( currnode -> offsetreg ),
+                                                   literals [ foundlit -> data . int_val ] . name );
+        else
+          fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( currnode -> offsetreg ),
+                                                   literals [ foundlit -> data . int_val ] . name );
+
+      }
+      else
+      {
+        // is assign or func node
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getFirstChild ( currnode ) -> offsetreg;
+      }
+    }
+    else if ( currnode -> num_of_children == 2 )
+    {
+      int leftreg = -1, rightreg = -1;
+      int resultreg = -1;
+      int islit1 = 0;
+      int islitleft = 0;
+
+      ANODE *firstchild = getFirstChild ( currnode );
+      ANODE *secondchild = getSecondChild ( currnode );
+      AROPTYPE op = currnode -> extra_data . arop_type;
+
+      if ( firstchild -> node_type == AST_LITERAL_NODE || secondchild -> node_type == AST_LITERAL_NODE )
+      {
+        ANODE *litchild = (firstchild -> node_type == AST_LITERAL_NODE) ? firstchild : secondchild;
+        islitleft = (firstchild -> node_type == AST_LITERAL_NODE) ? 1 : 0;
+        char *litvalue = getEntryByIndex ( symboltable, litchild -> extra_data . symboltable_index ) -> data . lit_data . value;
+
+        if ( strcmp ( litvalue, "1" ) == 0 && ( op == A_PLUS_TYPE || ( op == A_MINUS_TYPE && ! islitleft ) ) )
+          islit1 = 1;
+        else if ( islitleft )
+          leftreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+        else
+          rightreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( islitleft ? leftreg : rightreg ) );
+      }
+
+      if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( firstchild -> node_type == AST_EXP_NODE || firstchild -> node_type == AST_AROP_NODE )
+      {
+        leftreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        // Get the left data from the stack
+        fprintf ( outputfile, "\tpop\t%s\n", getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( leftreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+      }
+
+      if ( secondchild -> node_type == AST_AROP_NODE || secondchild -> node_type == AST_EXP_NODE )
+        rightreg = secondchild -> offsetreg;
+
+      int leftdone = 0;
+      int gottemp = 0;
+
+      if ( op == A_MINUS_TYPE )
+      {
+        gottemp = 1;
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        if ( resultreg == -1 )
+        {
+          fprintf ( stderr, "Error: Out of temporary registers while executing MINUS op\n" );
+          exit ( -1 );
+        }
+
+        if ( islit1 )
+        {
+          if ( islitleft )
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+          else
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        }
+        else
+          fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+      }
+
+
+
+      if ( registers [ leftreg ] . istemp && ! gottemp && ! islit1 )
+      {
+        resultreg = leftreg;
+        leftdone = 1;
+      }
+      else if ( registers [ rightreg ] . istemp && ! gottemp && ! islit1 )
+      {
+        resultreg = rightreg;
+      }
+      else if ( ! gottemp )
+      {
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        if ( resultreg == -1 )
+        {
+          fprintf ( stderr, "Error: Out of registers while getting temp register\n" );
+          exit ( -1 );
+        }
+
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+
+        if ( islit1 )
+        {
+          if ( islitleft )
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+          else
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        }
+        else
+          fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        leftdone = 1;
+      }
+
+      if ( ! islit1 && islitleft != 1 )
+        assert ( leftreg != -1 );
+      else if ( ! islit1 )
+        assert ( rightreg != -1 );
+
+      // TODO: Check for the different data types
+      if ( op == A_PLUS_TYPE )
+      {
+        if ( islit1 )
+          fprintf ( outputfile, "\tinc\t%s\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+      }
+      else if ( op == A_MINUS_TYPE )
+      {
+        if ( islit1 )
+          fprintf ( outputfile, "\tdec\t%s\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+      }
+      else if ( op == A_MUL_TYPE )
+      {
+        if ( ! islit1 )
+        {
+          int regtomul = (leftdone ? rightreg : leftreg);
+
+          // If the regs do not belong to these, then push and restore data later
+          // Push only if necessary
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\teax\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\tebx\n" );
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\tedx\n" );
+
+          fprintf ( outputfile, "\n\t; Begin multiply\n" );
+
+          // Move to appropriate registers only if necessary
+          if ( ( regtomul != EBX_REG || resultreg != EAX_REG ) && ( regtomul != EAX_REG || resultreg != EBX_REG ) )
+          {
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+            fprintf ( outputfile, "\tpop\teax\n" );
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          }
+          fprintf ( outputfile, "\timul\tebx\n" );
+
+          if ( resultreg != EAX_REG )
+            fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+
+          fprintf ( outputfile, "\t; End multiply\n\n" );
+
+          // Restore the registers if they belonged to some other code
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\tedx\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\teax\n" );
+        }
+      }
+      else if ( op == A_DIV_TYPE || op == A_MODULO_TYPE )
+      {
+        int regtodiv = (leftdone ? rightreg : leftreg);
+
+        // If the regs do not belong to these, then push and restore data later
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\teax\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\tebx\n" );
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\tedx\n" );
+
+        fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
+
+        // Move to appropriate registers only if necessary
+        if ( regtodiv != EBX_REG || resultreg != EAX_REG )
+        {
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        }
+        fprintf ( outputfile, "\tmov\tedx, 0\n" );
+        fprintf ( outputfile, "\tidiv\tebx\n" );
+
+        if ( op == A_DIV_TYPE && resultreg != EAX_REG )
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+        else if ( resultreg != EDX_REG )
+          fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
+
+        fprintf ( outputfile, "\t; End division/modulo\n\n" );
+
+        // Restore the registers if they belonged to some other code
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\tedx\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\teax\n" );
+      }
+
+      currnode -> offsetcount = DATA_IN_REG;
+      currnode -> offsetreg = resultreg;
+      registers [ resultreg ] . istemp = 1;
+
+      if ( leftreg != resultreg && registers [ leftreg ] . istemp )
+        registers [ leftreg ] . flushed = 1;
+      if ( rightreg != resultreg && registers [ rightreg ] . istemp )
+        registers [ rightreg ] . flushed = 1;
+
+      // Ugly hack to determine if currnode is the first child
+      if ( getFirstChild ( getParent ( currnode ) ) == currnode
+           && ( getParent ( currnode ) -> node_type == AST_EXP_NODE || getParent ( currnode ) -> node_type == AST_AROP_NODE )
+           && getParent ( currnode ) -> num_of_children > 1 )
+      {
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        registers [ resultreg ] . flushed = 1;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_AROP_NODE )
+  {
+    if ( currnode -> num_of_children == 1 )
+    {
+      ANODE *child = getFirstChild ( currnode );
+      if ( child -> node_type == AST_LITERAL_NODE )
+      {
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = getLiteralInRegister ( child, outputfile, symboltable, literaltrie, literals );
+      }
+      else if ( child -> node_type == AST_ASSIGNFUNC_NODE || child -> node_type == AST_EXP_NODE )
+      {
+        currnode -> offsetcount = DATA_IN_REG;
+        currnode -> offsetreg = child -> offsetreg;
+      }
+    }
+    else if ( currnode -> num_of_children == 2 )
+    {
+      int leftreg = -1, rightreg = -1;
+      int resultreg = -1;
+      int islitleft = 0;
+      int islit1 = 0;
+
+      ANODE *firstchild = getFirstChild ( currnode );
+      ANODE *secondchild = getSecondChild ( currnode );
+      AROPTYPE op = currnode -> extra_data . arop_type;
+
+      if ( firstchild -> node_type == AST_LITERAL_NODE || secondchild -> node_type == AST_LITERAL_NODE )
+      {
+        ANODE *litchild = (firstchild -> node_type == AST_LITERAL_NODE) ? firstchild : secondchild;
+        islitleft = (firstchild -> node_type == AST_LITERAL_NODE) ? 1 : 0;
+        char *litvalue = getEntryByIndex ( symboltable, litchild -> extra_data . symboltable_index ) -> data . lit_data . value;
+
+        if ( strcmp ( litvalue, "1" ) == 0 && ( op == A_PLUS_TYPE || ( op == A_MINUS_TYPE && ! islitleft ) ) )
+          islit1 = 1;
+        if ( islitleft )
+          leftreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+        else
+          rightreg = getLiteralInRegister ( litchild, codefile, symboltable, literaltrie, literals );
+
+        if ( DEBUG_REGISTER_ALLOC )
+          fprintf ( stderr, "%s's result got %s register\n", getNodeTypeName ( currnode -> node_type ),
+                                                             getRegisterName ( islitleft ? leftreg : rightreg ) );
+      }
+
+      if ( firstchild -> node_type == AST_ASSIGNFUNC_NODE || secondchild -> node_type == AST_ASSIGNFUNC_NODE )
+      {
+        int isleft = (firstchild -> node_type == AST_ASSIGNFUNC_NODE) ? 1 : 0;
+
+        if ( isleft )
+          leftreg = firstchild -> offsetreg;
+        else
+          rightreg = secondchild -> offsetreg;
+      }
+
+      if ( firstchild -> node_type == AST_EXP_NODE || firstchild -> node_type == AST_AROP_NODE )
+      {
+        leftreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        // Get the left data from the stack
+        fprintf ( outputfile, "\tpop\t%s\n", getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( leftreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+      }
+
+      if ( secondchild -> node_type == AST_AROP_NODE || secondchild -> node_type == AST_EXP_NODE )
+        rightreg = secondchild -> offsetreg;
+
+      int leftdone = 0;
+      int gottemp = 0;
+
+      if ( ! islit1 && ! islitleft )
+        assert ( leftreg != -1 );
+      else if ( ! islit1 )
+        assert ( rightreg != -1 );
+
+      if ( op == A_MINUS_TYPE )
+      {
+        gottemp = 1;
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        if ( resultreg == -1 )
+        {
+          fprintf ( stderr, "Error: Out of temporary registers while executing MINUS op\n" );
+          exit ( -1 );
+        }
+
+        if ( islit1 )
+        {
+          if ( islitleft )
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+          else
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        }
+        else
+          fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+      }
+
+      if ( registers [ leftreg ] . istemp && ! gottemp  && ! islit1 )
+      {
+        resultreg = leftreg;
+        leftdone = 1;
+      }
+      else if ( registers [ rightreg ] . istemp && ! gottemp && ! islit1 )
+      {
+        resultreg = rightreg;
+      }
+      else
+      {
+        resultreg = getRegister ( outputfile, symboltable, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY,
+                                  NO_SPECIFIC_REG, 1, leftreg, rightreg );
+
+        if ( resultreg == -1 )
+        {
+          fprintf ( stderr, "Error: Out of registers while getting temporary register\n" );
+          exit ( -1 );
+        }
+
+        setRegisterProperties ( resultreg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+
+        if ( islit1 )
+        {
+          if ( islitleft )
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+          else
+            fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        }
+        else
+          fprintf ( outputfile, "\tmov\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftreg ) );
+        leftdone = 1;
+      }
+
+      // TODO: Check for the different data types
+      if ( op == A_PLUS_TYPE )
+      {
+        if ( islit1 )
+          fprintf ( outputfile, "\tinc\t%s\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tadd\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( leftdone ? rightreg : leftreg ) );
+      }
+      else if ( op == A_MINUS_TYPE )
+      {
+        if ( islit1 )
+          fprintf ( outputfile, "\tdec\t%s\n", getRegisterName ( resultreg ) );
+        else
+          fprintf ( outputfile, "\tsub\t%s, %s\n", getRegisterName ( resultreg ), getRegisterName ( rightreg ) );
+      }
+      else if ( op == A_MUL_TYPE )
+      {
+        if ( ! islit1 )
+        {
+          int regtomul = (leftdone ? rightreg : leftreg);
+
+          // If the regs do not belong to these, then push and restore data later
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\teax\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\tebx\n" );
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
+            fprintf ( outputfile, "\tpush\tedx\n" );
+
+          fprintf ( outputfile, "\n\t; Begin Multiply\n" );
+
+          if ( ( regtomul != EBX_REG || resultreg != EAX_REG ) && ( regtomul != EAX_REG || resultreg != EBX_REG ) )
+          {
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtomul ) );
+            fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+            fprintf ( outputfile, "\tpop\teax\n" );
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          }
+          fprintf ( outputfile, "\timul\tebx\n" );
+
+          if ( resultreg != EAX_REG )
+            fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+
+          fprintf ( outputfile, "\t; End Multiply\n\n" );
+
+          // Restore the registers if they belonged to some other code
+          if ( resultreg != EDX_REG && regtomul != EDX_REG && ! registers [ EDX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\tedx\n" );
+          if ( resultreg != EBX_REG && regtomul != EBX_REG && ! registers [ EBX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\tebx\n" );
+          if ( resultreg != EAX_REG && regtomul != EAX_REG && ! registers [ EAX_REG ] . flushed )
+            fprintf ( outputfile, "\tpop\teax\n" );
+        }
+      }
+      else if ( op == A_DIV_TYPE || op == A_MODULO_TYPE )
+      {
+        int regtodiv = (leftdone ? rightreg : leftreg);
+
+        // If the regs do not belong to these, then push and restore data later
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\teax\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\tebx\n" );
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
+          fprintf ( outputfile, "\tpush\tedx\n" );
+
+        fprintf ( outputfile, "\n\t; Begin division/modulo\n" );
+
+        if ( regtodiv != EBX_REG || resultreg != EAX_REG )
+        {
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( regtodiv ) );
+          fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+          fprintf ( outputfile, "\tpop\teax\n" );
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        }
+        fprintf ( outputfile, "\tmov\tedx, 0\n" );
+        fprintf ( outputfile, "\tidiv\tebx\n" );
+
+        if ( op == A_DIV_TYPE && resultreg != EAX_REG )
+          fprintf ( outputfile, "\tmov\t%s, eax\n", getRegisterName ( resultreg ) );
+        else if ( resultreg != EDX_REG )
+          fprintf ( outputfile, "\tmov\t%s, edx\n", getRegisterName ( resultreg ) );
+
+        fprintf ( outputfile, "\t; End division/modulo\n\n" );
+
+        // Restore the registers if they belonged to some other code
+        if ( resultreg != EDX_REG && regtodiv != EDX_REG && ! registers [ EDX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\tedx\n" );
+        if ( resultreg != EBX_REG && regtodiv != EBX_REG && ! registers [ EBX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\tebx\n" );
+        if ( resultreg != EAX_REG && regtodiv != EAX_REG && ! registers [ EAX_REG ] . flushed )
+          fprintf ( outputfile, "\tpop\teax\n" );
+      }
+
+      currnode -> offsetcount = DATA_IN_REG;
+      currnode -> offsetreg = resultreg;
+      registers [ resultreg ] . istemp = 1;
+
+      if ( leftreg != resultreg && registers [ leftreg ] . istemp )
+        registers [ leftreg ] . flushed = 1;
+      if ( rightreg != resultreg && registers [ rightreg ] . istemp )
+        registers [ rightreg ] . flushed = 1;
+
+      if ( getFirstChild ( getParent ( currnode ) ) == currnode
+           && ( getParent ( currnode ) -> node_type == AST_EXP_NODE || getParent ( currnode ) -> node_type == AST_AROP_NODE )
+           && getParent ( currnode ) -> num_of_children > 1 )
+      {
+        fprintf ( outputfile, "\tpush\t%s\n", getRegisterName ( resultreg ) );
+        registers [ resultreg ] . flushed = 1;
+      }
+    }
+  }
+  else if ( currnode -> node_type == AST_ASSIGNFUNC_NODE )
+  {
+    // TODO: Deal with the function call case
+    if ( currnode -> num_of_children == 1 )
+    {
+      currnode -> offsetcount = getFirstChild ( currnode ) -> offsetcount;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+    }
+    else if ( currnode -> num_of_children == 3 )
+    {
+      currnode -> global_or_local = getFirstChild ( currnode ) -> global_or_local;
+      currnode -> offset1 = getFirstChild ( currnode ) -> offset1;
+
+      currnode -> offsetcount = 1 + getThirdChild ( currnode ) -> offsetcount;
+
+      currnode -> offset2 = getThirdChild ( currnode ) -> offset1;
+      currnode -> offset3 = getThirdChild ( currnode ) -> offset2;
+    }
+
+    // TODO: Deal with function calls separately
+    int gotreg = getOffsetInReg ( currnode, outputfile, symboltable );
+
+    // Get the data from the offset if the result is an INT or FLOAT only
+    if ( registers [ gotreg ] . hasoffset && ( currnode -> result_type == D_INT_TYPE || currnode -> result_type == D_FLOAT_TYPE ) )
+    {
+      fprintf ( outputfile, "\tmov\t%s, [%s]\n", getRegisterName ( gotreg ), getRegisterName ( gotreg ) );
+      registers [ gotreg ] . hasoffset = 0;
+    }
+
+    currnode -> offsetcount = DATA_IN_REG;
+    currnode -> offsetreg = gotreg;
+  }
+  else if ( currnode -> node_type == AST_IF_NODE )
+  {
+    // Write a label to go to if if has only one child
+
+    if ( currnode -> num_of_children == 2 )
+      fprintf ( outputfile, "\niflabel%d_1:\n", currnode -> extra_data . iflabel );
+    else if ( currnode -> num_of_children > 2 )
+      fprintf ( outputfile, "\niflabel%d_2:\n", currnode -> extra_data . iflabel );
+  }
+  else if ( currnode -> node_type == AST_COMPARE_NODE )
+  {
+    // TODO: Handle boolean expressions
+    int reg1 = getFirstChild ( currnode ) -> offsetreg;
+    int reg2 = getSecondChild ( currnode ) -> offsetreg;
+    int label = getParent ( getParent ( currnode ) ) -> extra_data . iflabel;
+
+    fprintf ( codefile, "\tcmp\t%s, %s\n", getRegisterName ( reg1 ), getRegisterName ( reg2 ) );
+    if ( currnode -> extra_data . compop_type == C_EQ_TYPE )
+      fprintf ( codefile, "\tjne\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_GT_TYPE )
+      fprintf ( codefile, "\tjle\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_GTE_TYPE )
+      fprintf ( codefile, "\tjl\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_LTE_TYPE )
+      fprintf ( codefile, "\tjg\tiflabel%d_1\n\n", label );
+    else if ( currnode -> extra_data . compop_type == C_LT_TYPE )
+      fprintf ( codefile, "\tjge\tiflabel%d_1\n\n", label );
+
+    registers [ reg1 ] . flushed = 1;
+    registers [ reg2 ] . flushed = 1;
+  }
+  else if ( currnode -> node_type == AST_FOR_NODE )
+  {
+    fprintf ( outputfile, "\tdec\tecx\n" );
+    fprintf ( outputfile, "\tcmp\tecx, 0\n" );
+    fprintf ( outputfile, "\tjle\tlooplabel%d_2\n\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "\tjmp\tlooplabel%d_1\n\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "looplabel%d_2:\n", currnode -> extra_data . forlabel );
+    fprintf ( outputfile, "\tpop\tecx\n" );
+    registers [ ECX_REG ] . flushed = 0;
+    registers [ ECX_REG ] . istemp = 1;
+  }
+}
+
+void topDownCodeGeneration ( ANODE *currnode, FILE *codefile, SYMBOLTABLE *symboltable,
+                             TRIE *literaltrie, LITDATA *literals )
+{
+  // Function used primarily to reserve stack space
+  if ( currnode -> node_type == AST_PROGRAM_NODE )
+  {
+    int toReserve = getProgramSize ( currnode ) * 4;
+    fprintf ( codefile, "\tpush\tebp\n" );
+    fprintf ( codefile, "\tmov\tebp, esp\n" );
+    fprintf ( codefile, "\n\tsub\tesp, %d\t\t;Reserve %d stack space\n\n", toReserve, toReserve );
+  }
+  else if ( currnode -> node_type == AST_IF_NODE )
+  {
+    if ( currnode -> extra_data . compop_type > 1 )
+      fprintf ( codefile, "\niflabel%d_2:\n", getParent ( currnode ) -> extra_data . iflabel );
+    // TODO: Deal with cascaded if case
+    currnode -> extra_data . iflabel = iflabel++;
+    getSecondChild ( currnode ) -> extra_data . compop_type = 1;
+    if ( currnode -> num_of_children == 3 )
+      getThirdChild ( currnode ) -> extra_data . compop_type = 2;
+  }
+  else if ( currnode -> node_type == AST_BLOCK_NODE )
+  {
+    if ( currnode -> extra_data . compop_type > 1 )
+    {
+      int label = getParent ( currnode ) -> extra_data . iflabel;
+      fprintf ( codefile, "\tjmp\tiflabel%d_2\n\n", label );
+      fprintf ( codefile, "\niflabel%d_1:\n", label );
+    }
+    else if ( getParent ( currnode ) -> node_type == AST_FOR_NODE )
+    {
+      int i;
+      for ( i = 0; i < NUMREG; i++ )
+      {
+        registers [i] . flushed = 1;
+        registers [i] . istemp = 0;
+      }
+
+      registers [ ECX_REG ] . flushed = 1;
+      ANODE *idennode = getFirstChild ( getParent ( currnode ) );
+      STBENTRY *entry = getEntryByIndex ( symboltable, idennode -> extra_data . symboltable_index );
+      int reg = getRegister ( codefile, symboltable, entry -> index, idennode -> offset1, OFFSET_ANY, OFFSET_ANY,
+                              ECX_REG, 1, 0, 0 );
+
+      setRegisterProperties ( reg, 0, -1, 1, 0, -1, OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
+
+      fprintf ( codefile, "\tpush\tecx\n" );
+      if ( entry -> entry_type == ENTRY_LIT_TYPE )
+      {
+        TNODE *foundlit = findString ( literaltrie, entry -> data . lit_data . value );
+        fprintf ( codefile, "\tmov\tecx, [%s]\n", literals [ foundlit -> data . int_val ] . name );
+      }
+      else if ( idennode -> global_or_local == IS_GLOBAL )
+        fprintf ( codefile, "\tmov\tecx, [%s]\n", entry -> data . var_data . name );
+      else
+        fprintf ( codefile, "\tmov\tecx, [ebp-%d]\n", idennode -> offset1 );
+
+      fprintf ( codefile, "\nlooplabel%d_1:\n", getParent ( currnode ) -> extra_data . forlabel );
+    }
+  }
+  else if ( currnode -> node_type == AST_FOR_NODE )
+  {
+    currnode -> extra_data . forlabel = forlabel++;
+  }
 }
 
 void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfile,
@@ -1226,8 +2502,6 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
       temp . node = currnode;
       temp . upordown = UP;
 
-      printf ( "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
-
       stack = push ( stack, & temp );
 
       handleTypeSpecificActions ( currnode, symboltable, stbdumpfile );
@@ -1246,6 +2520,18 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
         temp . upordown = DOWN;
 
         stack = push ( stack, & temp );
+      }
+
+      topDownCodeGeneration ( currnode, codefile, symboltable, literaltrie, literals );
+
+      if ( DEBUG_AST_CONSTRUCTION )
+      {
+        fprintf ( stderr, "Analyzing node %s on the way down\n", getNodeTypeName ( currnode -> node_type ) );
+        if ( currnode -> node_type == AST_EXP_NODE || currnode -> node_type == AST_AROP_NODE )
+          fprintf ( stderr, "With operation %s\n", getAropName ( currnode -> extra_data . arop_type ) );
+        if ( currnode -> node_type == AST_LITERAL_NODE )
+          fprintf ( stderr, "With value %s\n", getEntryByIndex ( symboltable, currnode -> extra_data . symboltable_index )
+                                               -> data . lit_data . value );
       }
     }
     else
@@ -1267,15 +2553,18 @@ void checkAndGenerateCode ( AST *ast, SYMBOLTABLE *symboltable, FILE *stbdumpfil
       performSemanticChecks ( currnode, symboltable, & infunction, & loopcount, & bdftcount );
 
       generateCode ( currnode, symboltable, assemblyfile, codefile, functionfile,
-                     literaltrie, literals, datafile );
+                     literaltrie, literals, datafile, infunction );
 
-      printf ( "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
+      if ( DEBUG_AST_CONSTRUCTION )
+        fprintf ( stderr, "Analyzing node %s on the way up\n", getNodeTypeName ( currnode -> node_type ) );
     }
   }
 }
 
 void writeReturnZero ( FILE *codefile )
 {
+  fprintf ( codefile, "\n\tmov esp, ebp\n" );
+  fprintf ( codefile, "\tpop ebp\n" );
   fprintf ( codefile, "\n\tmov eax, 1\n" );
   fprintf ( codefile, "\tmov ebx, 0\n" );
   fprintf ( codefile, "\tint 80h\n\n" );
@@ -1289,6 +2578,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( codefile == NULL )
   {
     fprintf ( stderr, "Failed to open assembly code file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1298,6 +2588,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( functionfile == NULL )
   {
     fprintf ( stderr, "Failed to open assembly functions file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1307,6 +2598,7 @@ void joinCodeFiles ( FILE *assemblyfile )
   if ( varfile == NULL )
   {
     fprintf ( stderr, "Failed to open variables file\n" );
+    erroroccured = 1;
     return;
   }
 
@@ -1413,6 +2705,10 @@ int main ( )
     ********************************************************
    */
 
+  int i;
+  for ( i = 0; i < NUMREG; i++ )
+    registers [i] . flushed = 1;
+
   FILE *stbdumpfile = NULL;
   stbdumpfile = fopen ( STB_DUMP_FILE, "r" );
 
@@ -1467,7 +2763,6 @@ int main ( )
   symboltable = setNumEntries ( symboltable, num_entries );
 
   LITDATA literals [ num_entries ];
-  curlitindex = 0;
   TRIE *literaltrie = NULL;
   literaltrie = getNewTrie ( TRIE_INT_TYPE );
 
@@ -1478,9 +2773,6 @@ int main ( )
 
   if ( startwritten == 0 )
     fprintf ( assemblyfile, "\nsection .text\n\tglobal _start\n\n" );
-
-  if ( shouldintprint == 1 )
-    writeIntPrintFunction ( assemblyfile );
 
   writeReturnZero ( codefile );
 
@@ -1500,6 +2792,9 @@ int main ( )
 
   if ( fclose ( stbdumpfile ) != 0 )
     fprintf ( stderr, "Failed to close Symbol Table dump file\n" );
+
+  if ( erroroccured == 1 )
+    return -1;
 
   return 0;
 }

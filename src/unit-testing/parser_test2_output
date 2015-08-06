@@ -1,191 +1,191 @@
-<program> 
-<globaldefines> <fndefines> <statements> 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_GRAPH 
-<TK_IDEN,G,1> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,G2,1> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,v,2> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_EDGE 
-<TK_IDEN,e1,3> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,e2,3> 
-TK_COMMA <identifier> <moreidens> 
-<TK_IDEN,e3,3> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<iteration> 
-TK_FOR <loop> TK_COLON <block> 
-<identifier> <loop1> 
-<TK_IDEN,v,5> 
-TK_IN <iterable> 
-<identifier> <iterable1> 
-<TK_IDEN,G,5> 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,G2,7> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,G2,7> 
-e 
-e 
-e 
-TK_PLUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,v,7> 
-e 
-e 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<iteration> 
-TK_FOR <loop> TK_COLON <block> 
-<identifier> <loop1> 
-<TK_IDEN,e1,10> 
-TK_IN <iterable> 
-<identifier> <iterable1> 
-<TK_IDEN,G,10> 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<iteration> 
-TK_FOR <loop> TK_COLON <block> 
-<identifier> <loop1> 
-<TK_IDEN,e2,12> 
-TK_IN <iterable> 
-<identifier> <iterable1> 
-<TK_IDEN,G,12> 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,e1,14> 
-<assignable1> 
-TK_MEMBEROP <endassignable> 
-TK_DEST <primitiveval> 
-TK_MEMBEROP <primitivetype> 
-TK_INT 
-e 
-e 
-e 
-TK_EQ 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,e2,14> 
-<assignable1> 
-TK_MEMBEROP <endassignable> 
-TK_SOURCE <primitiveval> 
-TK_MEMBEROP <primitivetype> 
-TK_INT 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,e3,16> 
-e 
-TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
-<identifier> <assignable1> 
-<TK_IDEN,e1,16> 
-TK_MEMBEROP <endassignable> 
-TK_SOURCE <primitiveval> 
-e 
-<identifier> <assignable1> 
-<TK_IDEN,e2,16> 
-TK_MEMBEROP <endassignable> 
-TK_DEST <primitiveval> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,G2,17> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,G2,17> 
-e 
-e 
-e 
-TK_PLUS <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,e3,17> 
-e 
-e 
-e 
-e 
-e 
-e 
-e 
-e 
+<program> 1
+<globaldefines> <fndefines> <statements> 1
+e 1
+e 1
+<possiblestmts> <statements> 1
+<validstatement> TK_NEWLINE 1
+<definestmt> 1
+TK_DEFINE <defineargs> 1
+<datatype> <identifier> <moreidens> 1
+<complextype> 1
+TK_GRAPH 1
+<TK_IDEN,G,1> 1
+TK_COMMA <identifier> <moreidens> 1
+<TK_IDEN,G2,1> 1
+e 2
+<possiblestmts> <statements> 2
+<validstatement> TK_NEWLINE 2
+<definestmt> 2
+TK_DEFINE <defineargs> 2
+<datatype> <identifier> <moreidens> 2
+<complextype> 2
+TK_VERTEX 2
+<TK_IDEN,v,2> 2
+e 3
+<possiblestmts> <statements> 3
+<validstatement> TK_NEWLINE 3
+<definestmt> 3
+TK_DEFINE <defineargs> 3
+<datatype> <identifier> <moreidens> 3
+<complextype> 3
+TK_EDGE 3
+<TK_IDEN,e1,3> 3
+TK_COMMA <identifier> <moreidens> 3
+<TK_IDEN,e2,3> 3
+TK_COMMA <identifier> <moreidens> 3
+<TK_IDEN,e3,3> 3
+e 4
+<possiblestmts> <statements> 5
+<validstatement> TK_NEWLINE 5
+<iteration> 5
+TK_FOR <loop> TK_COLON <block> 5
+<identifier> <loop1> 5
+<TK_IDEN,v,5> 5
+TK_IN <iterable> 5
+<identifier> <iterable1> 5
+<TK_IDEN,G,5> 5
+e 5
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 6
+<possiblestmts> <statements> 7
+<validstatement> TK_NEWLINE 7
+<letstmt> 7
+TK_LET <assignable> TK_BE <equatable> 7
+<identifier> <assignable1> 7
+<TK_IDEN,G2,7> 7
+e 7
+<exp> 7
+<mulexp> <exp1> 7
+<modexp> <mulexp1> 7
+<baseexp> <modexp1> 7
+<assignorfunc> 7
+<identifier> <assignorfunc1> 7
+<TK_IDEN,G2,7> 7
+e 7
+e 7
+e 7
+TK_PLUS <exp> 7
+<mulexp> <exp1> 7
+<modexp> <mulexp1> 7
+<baseexp> <modexp1> 7
+<assignorfunc> 7
+<identifier> <assignorfunc1> 7
+<TK_IDEN,v,7> 7
+e 8
+e 8
+e 8
+e 8
+e 8
+<possiblestmts> <statements> 10
+<validstatement> TK_NEWLINE 10
+<iteration> 10
+TK_FOR <loop> TK_COLON <block> 10
+<identifier> <loop1> 10
+<TK_IDEN,e1,10> 10
+TK_IN <iterable> 10
+<identifier> <iterable1> 10
+<TK_IDEN,G,10> 10
+e 10
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 11
+<possiblestmts> <statements> 12
+<validstatement> TK_NEWLINE 12
+<iteration> 12
+TK_FOR <loop> TK_COLON <block> 12
+<identifier> <loop1> 12
+<TK_IDEN,e2,12> 12
+TK_IN <iterable> 12
+<identifier> <iterable1> 12
+<TK_IDEN,G,12> 12
+e 12
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 13
+<possiblestmts> <statements> 14
+<validconditional> 14
+<ifblock> TK_NEWLINE <elseifblock> 14
+<ifstmt> TK_COLON <block> 14
+TK_IF <boolexp> 14
+<expor> <boolexp1> 14
+<expand> <expor1> 14
+<expnot> 14
+<boolresult> 14
+<exp> <relop> <exp> 14
+<mulexp> <exp1> 14
+<modexp> <mulexp1> 14
+<baseexp> <modexp1> 14
+<assignorfunc> 14
+<identifier> <assignorfunc1> 14
+<TK_IDEN,e1,14> 14
+<assignable1> 14
+TK_MEMBEROP <endassignable> 14
+TK_DEST <primitiveval> 14
+TK_MEMBEROP <primitivetype> 14
+TK_INT 14
+e 14
+e 14
+e 14
+TK_EQ 14
+<mulexp> <exp1> 14
+<modexp> <mulexp1> 14
+<baseexp> <modexp1> 14
+<assignorfunc> 14
+<identifier> <assignorfunc1> 14
+<TK_IDEN,e2,14> 14
+<assignable1> 14
+TK_MEMBEROP <endassignable> 14
+TK_SOURCE <primitiveval> 14
+TK_MEMBEROP <primitivetype> 14
+TK_INT 14
+e 14
+e 14
+e 14
+e 14
+e 14
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 15
+<possiblestmts> <statements> 16
+<validstatement> TK_NEWLINE 16
+<letstmt> 16
+TK_LET <assignable> TK_BE <equatable> 16
+<identifier> <assignable1> 16
+<TK_IDEN,e3,16> 16
+e 16
+TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 16
+<identifier> <assignable1> 16
+<TK_IDEN,e1,16> 16
+TK_MEMBEROP <endassignable> 16
+TK_SOURCE <primitiveval> 16
+e 16
+<identifier> <assignable1> 16
+<TK_IDEN,e2,16> 16
+TK_MEMBEROP <endassignable> 16
+TK_DEST <primitiveval> 16
+e 16
+<possiblestmts> <statements> 17
+<validstatement> TK_NEWLINE 17
+<letstmt> 17
+TK_LET <assignable> TK_BE <equatable> 17
+<identifier> <assignable1> 17
+<TK_IDEN,G2,17> 17
+e 17
+<exp> 17
+<mulexp> <exp1> 17
+<modexp> <mulexp1> 17
+<baseexp> <modexp1> 17
+<assignorfunc> 17
+<identifier> <assignorfunc1> 17
+<TK_IDEN,G2,17> 17
+e 17
+e 17
+e 17
+TK_PLUS <exp> 17
+<mulexp> <exp1> 17
+<modexp> <mulexp1> 17
+<baseexp> <modexp1> 17
+<assignorfunc> 17
+<identifier> <assignorfunc1> 17
+<TK_IDEN,e3,17> 17
+e 18
+e 18
+e 18
+e 18
+e 18
+e 19
+e 19
+e 20

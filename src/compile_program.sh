@@ -3,10 +3,10 @@
 # file.
 # Argument 1 = <program_file>
 # Argument 2 = [Option]
-#              l  - Stop after lexer
-#              p  - Stop after parser
-#              ag - Stop after AST generator
-#              as - Stop after Assembly code generation
+#              -l   - Stop after lexer
+#              -p   - Stop after parser
+#              -ast - Stop after AST generator
+#              -asm - Stop after Assembly code generation
 #
 # If no argument 2 is provided, the input is compiled in full to
 # an executable
@@ -15,6 +15,8 @@ if [ "$1" == "" ]; then
   printf "Provide the input program as an argument\n"
   exit
 fi
+
+printf "\n"
 
 make >/dev/null
 
@@ -26,52 +28,73 @@ if [ "$ext" == "G" ]; then
   ./lexer $1 2>/dev/null
   e=$(cat ERRORS)
   if [ "$e" != "" ]; then
-    echo "Lexing failed!"
+    printf "Errors found while compiling:\n\n"
+    cat ERRORS
     exit
   fi
 
   # Stop at lexer
-  if [ "$2" == "l" ]; then
+  if [ "$2" == "-l" ]; then
     exit
   fi
 
   ./parser 2>/dev/null $1
   e=$(cat PARSEERRORS)
   if [ "$e" != "" ]; then
-    echo "Parsing failed!"
+    printf "Errors found while compiling:\n\n"
+    cat PARSEERRORS
     exit
   fi
 
   # Stop at parser
-  if [ "$2" == "p" ]; then
+  if [ "$2" == "-p" ]; then
     exit
   fi
 
   ./ast_generator >/dev/null
+  if [ "$?" != "0" ]; then
+    exit
+  fi
 
   # Stop at AST generator
-  if [ "$2" == "ag" ]; then
+  if [ "$2" == "-ast" ]; then
     exit
   fi
 
   ./code_generator >/dev/null
+  if [ "$?" != "0" ]; then
+    exit
+  fi
 
   # Stop at assembly code
-  if [ "$2" == "as" ]; then
+  if [ "$2" == "-asm" ]; then
+    mv ASMFILE.asm ${name}.asm
+    make clean >/dev/null
+    rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
     exit
   fi
 elif [ "$ext" == "asm" ]; then
   asmfile=$name
 else
   echo "Unrecognized file extension"
+  exit
 fi
 
 nasm -f elf ${asmfile}.asm
-ld -m elf_i386 ${asmfile}.o -o ${name}
-rm ${asmfile}.o
+if [ "$?" != "0" ]; then
+  exit
+fi
+
+gcc -m32 ${asmfile}.o -o ${name} -nostartfiles
+if [ "$?" != "0" ]; then
+  exit
+fi
+
+#ld -m elf_i386 ${asmfile}.o -o ${name} -lc
+rm ${asmfile}.o 2>/dev/null
 
 make clean >/dev/null
-rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ASMFILE.asm CODEFILE FUNCTIONFILE VARFILE
+rm ASTDUMP ASTOUTPUT ERRORS PARSEERRORS PARSEOUTPUT STBDUMP TOKENMAP TOKENS ${asmfile}.asm CODEFILE FUNCTIONFILE VARFILE 2>/dev/null
 
 echo "Compiled to $name"
 

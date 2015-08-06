@@ -1,137 +1,137 @@
-<program> 
-<globaldefines> <fndefines> <statements> 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_TREE 
-<TK_IDEN,T,1> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_VERTEX 
-<TK_IDEN,u,2> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<complextype> 
-TK_EDGE 
-<TK_IDEN,e1,3> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<definestmt> 
-TK_DEFINE <defineargs> 
-<datatype> <identifier> <moreidens> 
-<primitivetype> 
-TK_INT 
-<TK_IDEN,v,4> 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,v,6> 
-e 
-<exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<literal> 
-<TK_INTLIT,5,6> 
-e 
-e 
-e 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<iteration> 
-TK_FOR <loop> TK_COLON <block> 
-<identifier> <loop1> 
-<TK_IDEN,u,8> 
-TK_IN <iterable> 
-<identifier> <iterable1> 
-<TK_IDEN,T,8> 
-TK_ADJACENT TK_TO <assignable> 
-<identifier> <assignable1> 
-<TK_IDEN,T,8> 
-TK_MEMBEROP <endassignable> 
-TK_ROOT <primitiveval> 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<letstmt> 
-TK_LET <assignable> TK_BE <equatable> 
-<identifier> <assignable1> 
-<TK_IDEN,e1,10> 
-e 
-TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 
-<identifier> <assignable1> 
-<TK_IDEN,u,10> 
-e 
-<identifier> <assignable1> 
-<TK_IDEN,T,10> 
-TK_MEMBEROP <endassignable> 
-TK_ROOT <primitiveval> 
-e 
-<possiblestmts> <statements> 
-<validconditional> 
-<ifblock> TK_NEWLINE <elseifblock> 
-<ifstmt> TK_COLON <block> 
-TK_IF <boolexp> 
-<expor> <boolexp1> 
-<expand> <expor1> 
-<expnot> 
-<boolresult> 
-<exp> <relop> <exp> 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,v,12> 
-e 
-e 
-e 
-e 
-TK_EQ 
-<mulexp> <exp1> 
-<modexp> <mulexp1> 
-<baseexp> <modexp1> 
-<assignorfunc> 
-<identifier> <assignorfunc1> 
-<TK_IDEN,e1,12> 
-<assignable1> 
-TK_MEMBEROP <endassignable> 
-TK_WEIGHT 
-e 
-e 
-e 
-e 
-e 
-TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<output> 
-TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 
-<literal> 
-<TK_STRINGLIT," Found an edge ",14> 
-<possiblestmts> <statements> 
-<validstatement> TK_NEWLINE 
-<breakstmt> 
-TK_BREAK 
-e 
-e 
-e 
+<program> 1
+<globaldefines> <fndefines> <statements> 1
+e 1
+e 1
+<possiblestmts> <statements> 1
+<validstatement> TK_NEWLINE 1
+<definestmt> 1
+TK_DEFINE <defineargs> 1
+<datatype> <identifier> <moreidens> 1
+<complextype> 1
+TK_TREE 1
+<TK_IDEN,T,1> 1
+e 2
+<possiblestmts> <statements> 2
+<validstatement> TK_NEWLINE 2
+<definestmt> 2
+TK_DEFINE <defineargs> 2
+<datatype> <identifier> <moreidens> 2
+<complextype> 2
+TK_VERTEX 2
+<TK_IDEN,u,2> 2
+e 3
+<possiblestmts> <statements> 3
+<validstatement> TK_NEWLINE 3
+<definestmt> 3
+TK_DEFINE <defineargs> 3
+<datatype> <identifier> <moreidens> 3
+<complextype> 3
+TK_EDGE 3
+<TK_IDEN,e1,3> 3
+e 4
+<possiblestmts> <statements> 4
+<validstatement> TK_NEWLINE 4
+<definestmt> 4
+TK_DEFINE <defineargs> 4
+<datatype> <identifier> <moreidens> 4
+<primitivetype> 4
+TK_INT 4
+<TK_IDEN,v,4> 4
+e 5
+<possiblestmts> <statements> 6
+<validstatement> TK_NEWLINE 6
+<letstmt> 6
+TK_LET <assignable> TK_BE <equatable> 6
+<identifier> <assignable1> 6
+<TK_IDEN,v,6> 6
+e 6
+<exp> 6
+<mulexp> <exp1> 6
+<modexp> <mulexp1> 6
+<baseexp> <modexp1> 6
+<literal> 6
+<TK_INTLIT,5,6> 6
+e 7
+e 7
+e 7
+<possiblestmts> <statements> 8
+<validstatement> TK_NEWLINE 8
+<iteration> 8
+TK_FOR <loop> TK_COLON <block> 8
+<identifier> <loop1> 8
+<TK_IDEN,u,8> 8
+TK_IN <iterable> 8
+<identifier> <iterable1> 8
+<TK_IDEN,T,8> 8
+TK_ADJACENT TK_TO <assignable> 8
+<identifier> <assignable1> 8
+<TK_IDEN,T,8> 8
+TK_MEMBEROP <endassignable> 8
+TK_ROOT <primitiveval> 8
+e 8
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 9
+<possiblestmts> <statements> 10
+<validstatement> TK_NEWLINE 10
+<letstmt> 10
+TK_LET <assignable> TK_BE <equatable> 10
+<identifier> <assignable1> 10
+<TK_IDEN,e1,10> 10
+e 10
+TK_SQOPENPAREN <assignable> TK_COMMA <assignable> TK_SQCLOSEPAREN 10
+<identifier> <assignable1> 10
+<TK_IDEN,u,10> 10
+e 10
+<identifier> <assignable1> 10
+<TK_IDEN,T,10> 10
+TK_MEMBEROP <endassignable> 10
+TK_ROOT <primitiveval> 10
+e 10
+<possiblestmts> <statements> 12
+<validconditional> 12
+<ifblock> TK_NEWLINE <elseifblock> 12
+<ifstmt> TK_COLON <block> 12
+TK_IF <boolexp> 12
+<expor> <boolexp1> 12
+<expand> <expor1> 12
+<expnot> 12
+<boolresult> 12
+<exp> <relop> <exp> 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<assignorfunc> 12
+<identifier> <assignorfunc1> 12
+<TK_IDEN,v,12> 12
+e 12
+e 12
+e 12
+e 12
+TK_EQ 12
+<mulexp> <exp1> 12
+<modexp> <mulexp1> 12
+<baseexp> <modexp1> 12
+<assignorfunc> 12
+<identifier> <assignorfunc1> 12
+<TK_IDEN,e1,12> 12
+<assignable1> 12
+TK_MEMBEROP <endassignable> 12
+TK_WEIGHT 12
+e 12
+e 12
+e 12
+e 12
+e 12
+TK_NEWLINE TK_BEGIN TK_NEWLINE <statements> TK_END 13
+<possiblestmts> <statements> 14
+<validstatement> TK_NEWLINE 14
+<output> 14
+TK_PRINT TK_OPENPAREN <printable> TK_CLOSEPAREN 14
+<literal> 14
+<TK_STRINGLIT," Found an edge ",14> 14
+<possiblestmts> <statements> 15
+<validstatement> TK_NEWLINE 15
+<breakstmt> 15
+TK_BREAK 15
+e 16
+e 18
+e 18
