@@ -9,7 +9,7 @@
 
 #include "linkedlist.h"
 
-#define STACK_DEFINED 1
+#define STACK_DEFINED
 
 #define TRUE 1
 #define FALSE 0

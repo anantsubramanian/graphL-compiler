@@ -7,7 +7,7 @@
 // Project Team Num: 1
 // Project Group No. 1
 
-#define TRIE_DEFINED 1
+#define TRIE_DEFINED
 
 #define TRUE 1
 #define FALSE 0

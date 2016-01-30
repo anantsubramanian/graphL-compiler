@@ -19,7 +19,7 @@
 
 #ifndef DATATYPE_DEFINED
 
-#define DATATYPE_DEFINED 1
+#define DATATYPE_DEFINED
 
 typedef enum data_types
 {
