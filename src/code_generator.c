@@ -27,19 +27,10 @@
 #define NUMREG 6
 #define BUFFERLEN 400
 #define NEWLINE '\n'
-#define STB_DUMP_FILE "STBDUMP"
-#define AST_DUMP_FILE "ASTDUMP"
 #define ASSEMBLY_FILE "VARFILE"
 #define ASSEMBLY_CODE_FILE "CODEFILE"
 #define ASSEMBLY_FUNCTIONS_FILE "FUNCTIONFILE"
 #define ASSEMBLY_DATA_FILE "ASMFILE.asm"
-#define T_INDEX_FILE "config/terminals_index"
-#define NT_INDEX_FILE "config/nonterminals_index"
-#define ROOTNODENAME "AST_ROOT_NODE"
-#define LOWER16MASK 0b00000000000000001111111111111111
-#define UPPER16MASK 0b11111111111111110000000000000000
-
-// End AST node types #defines
 
 #define DOWN 0
 #define UP 1
@@ -2522,7 +2513,7 @@ int main ( )
     ********************************************************
    */
 
-  setAstNodeName ( ast -> root, ROOTNODENAME );
+  setAstNodeName ( ast -> root, ROOTNODE_NAME );
 
   FILE *astdumpfile = NULL;
   astdumpfile = fopen ( AST_DUMP_FILE, "r" );

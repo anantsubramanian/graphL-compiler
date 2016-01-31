@@ -13,16 +13,11 @@
 #include <sys/stat.h>
 #include "headers/trie.h"
 #include "headers/linkedlist.h"
+#include "headers/constants.h"
 
 #define BUFFERLEN 200
 #define NEWLINE '\n'
 #define MAXRULE 160
-#define FIRST_SETS_FILE "config/first_sets"
-#define GRAMMAR_FILE "config/grammar_rules"
-#define PARSE_TABLE_FILE "config/parse_table"
-#define NT_INDEX_FILE "config/nonterminals_index"
-#define T_INDEX_FILE "config/terminals_index"
-#define RULES_FILE "config/rules_file"
 #define RULE_TRIE_NAME "Grammar Rules"
 #define NT_TRIE_NAME "Non Terminals"
 #define T_TRIE_NAME "Terminals"

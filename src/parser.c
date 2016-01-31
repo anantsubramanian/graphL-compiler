@@ -13,22 +13,8 @@
 #include <sys/stat.h>
 #include "headers/trie.h"
 #include "headers/stack.h"
+#include "headers/constants.h"
 
-#define TOKENS_FILE "TOKENS"
-#define DICT_FILE "TOKENMAP"
-#define T_INDEX_FILE "config/terminals_index"
-#define NT_INDEX_FILE "config/nonterminals_index"
-#define PTABLE_FILE "config/parse_table"
-#define RULES_FILE "config/rules_file"
-#define T_NAMEMAP_FILE "config/terminals_namemap"
-#define PARSE_OUTPUT "PARSEOUTPUT"
-#define PARSE_ERRORS "PARSEERRORS"
-#define START_SYMBOL "<program>"
-#define NEWLINE_SYMBOL "TK_NEWLINE"
-#define IDENTIFIER_SYMBOL "TK_IDEN"
-#define STRINGLIT_SYMBOL "TK_STRINGLIT"
-#define INTLIT_SYMBOL "TK_INTLIT"
-#define FLOATLIT_SYMBOL "TK_FLOATLIT"
 #define PARSER_STACK_NAME "Parser Stack"
 #define MAXLINE 500
 #define MAXRULE 200

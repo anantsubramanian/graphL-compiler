@@ -169,3 +169,41 @@ char aropTypes[][10] = {
   ""
 };
 
+// Global pipeline file names
+#define PARSE_OUTPUT_FILE "PARSEOUTPUT"
+#define ATTRIBUTES_FILE "TOKENMAP"
+#define AST_OUTPUT_FILE "ASTOUTPUT"
+#define STB_DUMP_FILE "STBDUMP"
+#define AST_DUMP_FILE "ASTDUMP"
+#define TOKENS_FILE "TOKENS"
+#define ERRORS_FILE "ERRORS"
+#define DICT_FILE "TOKENMAP"
+#define PARSE_OUTPUT "PARSEOUTPUT"
+#define PARSE_ERRORS "PARSEERRORS"
+// End global file names
+
+// Important symbol names
+#define ROOTNODE_NAME "AST_ROOT_NODE"
+#define START_SYMBOL "<program>"
+#define NEWLINE_SYMBOL "TK_NEWLINE"
+#define IDENTIFIER_SYMBOL "TK_IDEN"
+#define STRINGLIT_SYMBOL "TK_STRINGLIT"
+#define INTLIT_SYMBOL "TK_INTLIT"
+#define FLOATLIT_SYMBOL "TK_FLOATLIT"
+// End important symbols
+
+#define LOWER16MASK 0b00000000000000001111111111111111
+#define UPPER16MASK 0b11111111111111110000000000000000
+
+#define AST_NODETYPES_FILE "config/ast_nodetypes"
+#define AST_INSTRUCTIONS_FILE "config/ast_instructions"
+#define T_INDEX_FILE "config/terminals_index"
+#define NT_INDEX_FILE "config/nonterminals_index"
+#define DFA_PATH "config/dfa_lexer_description"
+#define PTABLE_FILE "config/parse_table"
+#define RULES_FILE "config/rules_file"
+#define T_NAMEMAP_FILE "config/terminals_namemap"
+#define FIRST_SETS_FILE "config/first_sets"
+#define GRAMMAR_FILE "config/grammar_rules"
+#define PARSE_TABLE_FILE "config/parse_table"
+

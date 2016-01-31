@@ -13,12 +13,10 @@
 #include <sys/stat.h>
 #include "headers/parsetree.h"
 #include "headers/trie.h"
+#include "headers/constants.h"
 
 #define BUFFERLEN 400
 #define NEWLINE '\n'
-#define PARSE_OUTPUT_FILE "PARSEOUTPUT"
-#define T_INDEX_FILE "config/terminals_index"
-#define NT_INDEX_FILE "config/nonterminals_index"
 
 #define DEBUG_ONCREATE 0
 

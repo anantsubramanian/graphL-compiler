@@ -26,16 +26,6 @@
 #define NEWLINE '\n'
 #define COMMENT_START '#'
 #define PROPERTIES_START '@'
-#define PARSE_OUTPUT_FILE "PARSEOUTPUT"
-#define ATTRIBUTES_FILE "TOKENMAP"
-#define AST_OUTPUT_FILE "ASTOUTPUT"
-#define STB_DUMP_FILE "STBDUMP"
-#define AST_DUMP_FILE "ASTDUMP"
-#define AST_NODETYPES_FILE "config/ast_nodetypes"
-#define AST_INSTRUCTIONS_FILE "config/ast_instructions"
-#define T_INDEX_FILE "config/terminals_index"
-#define NT_INDEX_FILE "config/nonterminals_index"
-#define ROOTNODE_NAME "AST_ROOT_NODE"
 #define AST_STACK_NAME "AST Generation Stack"
 
 #define DEBUG_ALL 0

@@ -13,11 +13,8 @@
 #include <sys/stat.h>
 #include "headers/dfa.h"
 #include "headers/trie.h"
+#include "headers/constants.h"
 
-#define DFA_PATH "config/dfa_lexer_description"
-#define TOKENS_FILE "TOKENS"
-#define ERRORS_FILE "ERRORS"
-#define DICT_FILE "TOKENMAP"
 #define DICTNAME "Token Dictionary"
 #define BUFFERLEN 200
 #define ERRORS 15
