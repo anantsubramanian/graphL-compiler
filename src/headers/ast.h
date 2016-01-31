@@ -101,3 +101,5 @@ extern DATATYPE getDataType ( ANODE * );
 
 extern const char* getNodeTypeName ( int type );
 
+extern void preOrderDumpAst ( ANODE *subtree_root, FILE * );
+

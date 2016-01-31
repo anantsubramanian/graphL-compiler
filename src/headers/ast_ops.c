@@ -683,3 +683,26 @@ const char* getNodeTypeName ( int type )
   return nodeTypes [type];
 }
 
+/**
+ * Dump the AST details in a pre-order traversal
+ * format to the given file
+ *
+ * @param node ANODE* The AST root for the subtree to dump
+ * @param astdumpfile FILE* The file to dump to
+ */
+
+void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
+{
+  dumpNode ( node, astdumpfile );
+
+  LNODE iterator;
+  getIterator ( node -> children, &iterator );
+
+  while ( hasNext ( &iterator ) )
+  {
+    getNext ( node -> children, &iterator );
+
+    preOrderDumpAst ( * ( ANODE ** ) ( iterator . data . generic_val ), astdumpfile );
+  }
+}
+

@@ -1,0 +1,6 @@
+#define DEBUG_FLAGS_DEFINED
+
+#define DEBUG_ALL 0
+#define DEBUG_ONCREATE 0
+#define DEBUG_AUXOPS 0
+
