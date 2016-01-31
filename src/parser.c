@@ -11,72 +11,30 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "headers/trie.h"
-#include "headers/stack.h"
-#include "headers/constants.h"
+
+#ifndef TRIE_DEFINED
+  #include "headers/trie.h"
+#endif
+
+#ifndef STACK_DEFINED
+  #include "headers/stack.h"
+#endif
+
+#ifndef CONSTANTS_DEFINED
+  #include "headers/constants.h"
+#endif
+
+#ifndef PARSE_UTILS_DEFINED
+  #include "headers/parse_utils.h"
+#endif
 
 #define PARSER_STACK_NAME "Parser Stack"
-#define MAXLINE 500
 #define MAXRULE 200
 #define BUFFERLEN 200
 #define MAX_ERRORS 15
 #define NO_TRANSITION -1
 #define NEWLINE '\n'
 #define COMMA ','
-
-void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
-{
-  char buffers [2] [ blocksize ];
-  int curbuff = -1;
-  int charindx = -1;
-  int charsread = 0;
-  int tokenindex = 0;
-  int torval = 0;
-
-  char c;
-  char token [ BUFFERLEN ];
-  int value = 0;
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
-                                blocksize, mapfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
-      break;
-    }
-
-    if ( c == ' ' )
-    {
-      torval = 1;
-      tokenindex = 0;
-    }
-    else if ( c == NEWLINE )
-    {
-      token [ tokenindex ] = '\0';
-      TNODE *temp = NULL;
-      temp = insertString ( trie, token );
-      temp -> data.int_val = value;
-      *count = value;
-      value = 0;
-      torval = 0;
-    }
-    else if ( torval == 1 )
-      token [ tokenindex++ ] = c;
-    else
-      value = value * 10 + c - 48;
-  }
-}
 
 void populateTerminalNames ( FILE *tnamemapfile, int blocksize, char **terminalnames, int maxvalue )
 {
@@ -135,94 +93,6 @@ void populateTerminalNames ( FILE *tnamemapfile, int blocksize, char **terminaln
     else
       value = value * 10 + c - 48;
   }
-}
-
-int getLineCount ( FILE *inputfile, int blocksize )
-{
-  char c;
-
-  int curbuff = -1;
-  int charindx = -1;
-  int lines = 0;
-  int charsread = 0;
-  char buffers [2] [blocksize];
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
-      break;
-    }
-
-    if ( c == NEWLINE )
-      lines++;
-  }
-
-  return lines;
-}
-
-char* getLine ( FILE *inputfile, int blocksize, int linenumber )
-{
-  char c;
-
-  int curbuff = -1;
-  int charindx = -1;
-  int lines = 1;
-  int charsread = 0;
-  char buffers [2] [blocksize];
-
-  char token [ MAXLINE ];
-  int tokenindx = 0;
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
-      break;
-    }
-
-    if ( c == NEWLINE )
-    {
-      if ( lines == linenumber )
-      {
-        token [ tokenindx ] = '\0';
-        return strdup ( token );
-      }
-
-      lines++;
-      tokenindx = 0;
-    }
-    else
-      token [ tokenindx++ ] = c;
-
-  }
-
-  fprintf ( stderr, "Unable to retrieve requested line\n" );
-  exit (-1);
-
-  return NULL;
 }
 
 void populateGrammarRules ( FILE *rulesfile, int blocksize, LINKEDLIST* ruleLists [] )

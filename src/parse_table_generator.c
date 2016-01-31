@@ -11,9 +11,22 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "headers/trie.h"
-#include "headers/linkedlist.h"
-#include "headers/constants.h"
+
+#ifndef TRIE_DEFINED
+  #include "headers/trie.h"
+#endif
+
+#ifndef LINKEDLIST_DEFINED
+  #include "headers/linkedlist.h"
+#endif
+
+#ifndef CONSTANTS_DEFINED
+  #include "headers/constants.h"
+#endif
+
+#ifndef PARSE_UTILS_DEFINED
+  #include "headers/parse_utils.h"
+#endif
 
 #define BUFFERLEN 200
 #define NEWLINE '\n'
@@ -22,41 +35,6 @@
 #define NT_TRIE_NAME "Non Terminals"
 #define T_TRIE_NAME "Terminals"
 #define TNT_TRIE_NAME "Terminals and Non Terminals"
-
-int getLineCount ( FILE *inputfile, int blocksize )
-{
-  char c;
-
-  int curbuff = -1;
-  int charindx = -1;
-  int lines = 0;
-  int charsread = 0;
-  char buffers [2] [blocksize];
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
-      break;
-    }
-
-    if ( c == NEWLINE )
-      lines++;
-  }
-
-  return lines;
-}
 
 void populateTries ( FILE *grammarfile, int blocksize, LINKEDLIST* ruleLists [], TRIE* gramrules,
                      TRIE* nonterm, TRIE* terminals, TRIE* mixedbag, int *tokencounts )

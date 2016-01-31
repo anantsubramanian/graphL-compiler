@@ -291,7 +291,7 @@ PTNODE* allocateChildren ( PTNODE * node )
  *
  */
 
-PTNODE* insertSpaceSeparatedWords ( PTNODE * node, char * wordlist )
+PTNODE* insertSpaceSeparatedWordsInPTree ( PTNODE * node, char * wordlist )
 {
   if ( node == NULL )
   {

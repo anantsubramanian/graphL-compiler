@@ -17,6 +17,8 @@
   #include "constants.h"
 #endif
 
+#define AST_DEFINED
+
 #define CREATE 16   // 10000b
 #define GOTOCH 8    // 01000b
 #define PARENT 4    // 00100b

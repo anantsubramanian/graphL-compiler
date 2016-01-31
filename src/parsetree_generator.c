@@ -12,67 +12,22 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "headers/parsetree.h"
-#include "headers/trie.h"
-#include "headers/constants.h"
 
-#define BUFFERLEN 400
+#ifndef TRIE_DEFINED
+  #include "headers/trie.h"
+#endif
+
+#ifndef CONSTANTS_DEFINED
+  #include "headers/constants.h"
+#endif
+
+#ifndef PARSE_UTILS_DEFINED
+  #include "headers/parse_utils.h"
+#endif
+
 #define NEWLINE '\n'
 
 #define DEBUG_ONCREATE 0
-
-void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
-{
-  char buffers [2] [ blocksize ];
-  int curbuff = -1;
-  int charindx = -1;
-  int charsread = 0;
-  int tokenindex = 0;
-  int torval = 0;
-
-  char c;
-  char token [ BUFFERLEN ];
-  int value = 0;
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
-                                blocksize, mapfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-    {
-      fprintf ( stderr, "EOF Found\n" );
-      break;
-    }
-
-    if ( c == ' ' )
-    {
-      torval = 1;
-      tokenindex = 0;
-    }
-    else if ( c == NEWLINE )
-    {
-      token [ tokenindex ] = '\0';
-      TNODE *temp = NULL;
-      temp = insertString ( trie, token );
-      temp -> data.int_val = value;
-      *count = value;
-      value = 0;
-      torval = 0;
-    }
-    else if ( torval == 1 )
-      token [ tokenindex++ ] = c;
-    else
-      value = value * 10 + c - 48;
-  }
-}
 
 int extractLineNum ( char *input )
 {
@@ -131,7 +86,7 @@ PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
       currnode = getLeftMostDesc ( currnode );
 
       if ( currnode == pst -> root )
-        currnode = insertSpaceSeparatedWords ( currnode, token );
+        currnode = insertSpaceSeparatedWordsInPTree ( currnode, token );
       else
       {
         while ( findString ( terminals, currnode -> name ) != NULL )
@@ -145,7 +100,7 @@ PARSETREE* createParseTree ( FILE * parseroutput, int blocksize, PARSETREE *pst,
 
         // Found the required non-terminal node
         // expand it using the words in token
-        currnode = insertSpaceSeparatedWords ( currnode, token );
+        currnode = insertSpaceSeparatedWordsInPTree ( currnode, token );
 
         if ( DEBUG_ONCREATE )
         {

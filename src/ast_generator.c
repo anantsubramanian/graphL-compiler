@@ -6,6 +6,8 @@
 //
 // Project Team Num: 1
 // Project Group No. 1
+// TODO: The amount of clutter in this file is ridiculous.
+// Have to clean this shit up.
 
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +27,10 @@
   #include "headers/constants.h"
 #endif
 
-#define BUFFERLEN 400
+#ifndef PARSE_UTILS_DEFINED
+  #include "headers/parse_utils.h"
+#endif
+
 #define INSTRLEN 5
 #define DIGSTART 48
 #define DIGEND 57
@@ -166,89 +171,6 @@ void extractTokenData ( char *inputtoken, char **token, char **name, int *linenu
     *linenumber = ( (*linenumber) * 10 ) + ( inputtoken [i++] - DIGSTART );
   }
 
-}
-
-int getLineCount ( FILE *inputfile, int blocksize )
-{
-  char c;
-
-  int curbuff = -1;
-  int charindx = -1;
-  int lines = 0;
-  int charsread = 0;
-  char buffers [2] [blocksize];
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( ( charsread = fread ( buffers [ curbuff ], sizeof ( char ), blocksize, inputfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-      break;
-
-    if ( c == NEWLINE )
-      lines++;
-  }
-
-  return lines;
-}
-
-void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
-{
-  char buffers [2] [ blocksize ];
-  int curbuff = -1;
-  int charindx = -1;
-  int charsread = 0;
-  int tokenindex = 0;
-  int torval = 0;
-
-  char c;
-  char token [ BUFFERLEN ];
-  int value = 0;
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
-                                blocksize, mapfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-      break;
-
-    if ( c == ' ' )
-    {
-      torval = 1;
-      tokenindex = 0;
-    }
-    else if ( c == NEWLINE )
-    {
-      token [ tokenindex ] = '\0';
-      TNODE *temp = NULL;
-      temp = insertString ( trie, token );
-      temp -> data.int_val = value;
-      *count = value;
-      value = 0;
-      torval = 0;
-    }
-    else if ( torval == 1 )
-      token [ tokenindex++ ] = c;
-    else
-      value = value * 10 + c - 48;
-  }
 }
 
 void getNodeInstructions ( FILE *instructionsfile, int blocksize, TRIE *instructions,

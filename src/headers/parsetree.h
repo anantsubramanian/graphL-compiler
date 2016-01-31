@@ -36,7 +36,7 @@ extern void deleteParseTreeNode ( PTNODE * );
 
 extern PTNODE* allocateChildren ( PTNODE * );
 
-extern PTNODE* insertSpaceSeparatedWords ( PTNODE * , char * );
+extern PTNODE* insertSpaceSeparatedWordsInPTree ( PTNODE * , char * );
 
 extern PTNODE* getLeftMostDesc ( PTNODE * );
 

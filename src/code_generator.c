@@ -6,6 +6,8 @@
 //
 // Project Team Num: 1
 // Project Group No. 1
+// TODO: This file is wayyyyy too big. Break it up into manageable chunks.
+// Perhaps move register functions to a separate file? Semantic analysis?
 
 #include <stdio.h>
 #include <string.h>
@@ -26,12 +28,15 @@
   #include "headers/constants.h"
 #endif
 
+#ifndef PARSE_UTILS_DEFINED
+  #include "headers/parse_utils.h"
+#endif
+
 #define DEBUG_AST_CONSTRUCTION 0
 #define DEBUG_STB_AUXOPS 0
 #define DEBUG_REGISTER_ALLOC 0
 
 #define NUMREG 6
-#define BUFFERLEN 400
 #define NEWLINE '\n'
 #define ASSEMBLY_FILE "VARFILE"
 #define ASSEMBLY_CODE_FILE "CODEFILE"
@@ -236,57 +241,6 @@ typedef struct literal_data
   char *name;
 } LITDATA;
 
-
-void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
-{
-  char buffers [2] [ blocksize ];
-  int curbuff = -1;
-  int charindx = -1;
-  int charsread = 0;
-  int tokenindex = 0;
-  int torval = 0;
-
-  char c;
-  char token [ BUFFERLEN ];
-  int value = 0;
-
-  while ( TRUE )
-  {
-    // Get char from appropriate buffer
-    charindx = ( charindx + 1 ) % blocksize;
-    if ( charindx == 0 )
-    {
-      curbuff = ( curbuff + 1 ) & 1;
-      if ( (charsread = fread ( buffers [ curbuff ], sizeof ( char ),
-                                blocksize, mapfile ) ) == 0 )
-        break;
-    }
-    c = buffers [ curbuff ] [ charindx ];
-
-    if ( charsread < blocksize && charindx >= charsread )
-      break;
-
-    if ( c == ' ' )
-    {
-      torval = 1;
-      tokenindex = 0;
-    }
-    else if ( c == NEWLINE )
-    {
-      token [ tokenindex ] = '\0';
-      TNODE *temp = NULL;
-      temp = insertString ( trie, token );
-      temp -> data.int_val = value;
-      *count = value;
-      value = 0;
-      torval = 0;
-    }
-    else if ( torval == 1 )
-      token [ tokenindex++ ] = c;
-    else
-      value = value * 10 + c - 48;
-  }
-}
 
 void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
 {
