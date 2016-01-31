@@ -640,3 +640,46 @@ ANODE* rotateLeft ( ANODE *node )
   return c;
 }
 
+/**
+ * Function that gets the data type associated
+ * with a node
+ *
+ * @param currnode ANODE The node whose data type is to be retrieved
+ *
+ * @return DATATYPE The data type of the node
+ */
+
+DATATYPE getDataType ( ANODE *currnode )
+{
+  if ( currnode == NULL )
+  {
+    fprintf ( stderr, "Cannot get data type of child of non-existent node\n" );
+    exit (-1);
+    return -1;
+  }
+
+  if ( currnode -> num_of_children <= 0 )
+  {
+    fprintf ( stderr, "Trying to get data type of child of node with no children\n" );
+    exit (-1);
+    return -1;
+  }
+
+  ANODE *firstchild = *( ( ANODE ** ) ( currnode -> children -> head -> data . generic_val ) );
+
+  return firstchild -> extra_data . data_type;
+}
+
+/**
+ * Get the name of a node given its type
+ *
+ * @param type DATATYPE the type of the node
+ *
+ * @return const char* The name of the node
+ */
+
+const char* getNodeTypeName ( int type )
+{
+  return nodeTypes [type];
+}
+

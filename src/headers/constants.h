@@ -100,74 +100,60 @@
 #define ROOTOFFSET 8
 // End offsets
 
-char nodeTypes[][30] = {
+// Begin globally used enums
+typedef enum data_types
+{
+  D_TYPE_FIRST = 0,
+  D_INT_TYPE,
+  D_FLOAT_TYPE,
+  D_STRING_TYPE,
+  D_VERTEX_TYPE,
+  D_EDGE_TYPE,
+  D_TREE_TYPE,
+  D_GRAPH_TYPE,
+  D_NOTHING_TYPE,
+  D_TYPE_LAST
+} DATATYPE;
 
-  "AST_PROGRAM_NODE",
-  "AST_GLOBALDEFINES_NODE",
-  "AST_GLOBALDEFINE_NODE",
-  "AST_DEFINE_NODE",
-  "AST_LET_NODE",
-  "AST_ASSIGNABLE_NODE",
-  "AST_DATATYPE_NODE",
-  "AST_IDENTIFIER_NODE",
-  "AST_FUNCTION_NODE",
-  "AST_FUNCBODY_NODE",
-  "AST_QUALIFIEDPARAMETERS_NODE",
-  "AST_QUALIFIEDPARAMETER_NODE",
-  "AST_RETURNTYPE_NODE",
-  "AST_READ_NODE",
-  "AST_PRINT_NODE",
-  "AST_COMPARE_NODE",
-  "AST_BOOLEXP_NODE",
-  "AST_EXP_NODE",
-  "AST_PASSEDPARAMS_NODE",
-  "AST_RETURNSTMT_NODE",
-  "AST_FUNCTIONCALL_NODE",
-  "AST_IF_NODE",
-  "AST_BLOCK_NODE",
-  "AST_FOR_NODE",
-  "AST_BDFT_NODE",
-  "AST_EDGECREATE_NODE",
-  "AST_BOOLOP_NODE",
-  "AST_AROP_NODE",
-  "AST_FORIN_NODE",
-  "AST_ADJTO_NODE",
-  "AST_LITERAL_NODE",
-  "AST_DEPTH_NODE",
-  "AST_DEST_NODE",
-  "AST_SOURCE_NODE",
-  "AST_WEIGHT_NODE",
-  "AST_ASSIGNFUNC_NODE",
-  "AST_MEMBEROP_NODE",
-  "AST_ROOT_NODE",
-  "AST_ENDASSIGN_NODE",
-  "AST_BREAK_NODE",
-  ""
-};
+typedef enum arop_types
+{
+  A_TYPE_FIRST = 0,
+  A_PLUS_TYPE,
+  A_MINUS_TYPE,
+  A_MUL_TYPE,
+  A_DIV_TYPE,
+  A_MODULO_TYPE,
+  A_TYPE_LAST
+} AROPTYPE;
 
-char dataTypes[][10] = {
+typedef enum compareop_type
+{
+  C_TYPE_FIRST = 0,
+  C_LT_TYPE,
+  C_GT_TYPE,
+  C_LTE_TYPE,
+  C_GTE_TYPE,
+  C_EQ_TYPE,
+  C_TYPE_LAST
+} COMPOPTYPE;
 
-  "",
-  "INT",
-  "FLOAT",
-  "STRING",
-  "VERTEX",
-  "EDGE",
-  "TREE",
-  "GRAPH",
-  "NOTHING",
-  ""
-};
+typedef enum boolop_type
+{
+  B_TYPE_FIRST = 0,
+  B_AND_TYPE,
+  B_OR_TYPE,
+  B_NOT_TYPE,
+  B_TYPE_LAST
+} BOOLOPTYPE;
 
-char aropTypes[][10] = {
-  "",
-  "Plus",
-  "Minus",
-  "Multiply",
-  "Divide",
-  "Modulo",
-  ""
-};
+typedef enum bdft_type
+{
+  BDFT_TYPE_FIRST = 0,
+  BDFT_BFT_TYPE,
+  BDFT_DFT_TYPE,
+  BDFT_TYPE_LAST
+} BDFTTYPE;
+// End globally defined enums
 
 // Global pipeline file names
 #define PARSE_OUTPUT_FILE "PARSEOUTPUT"
@@ -206,4 +192,9 @@ char aropTypes[][10] = {
 #define FIRST_SETS_FILE "config/first_sets"
 #define GRAMMAR_FILE "config/grammar_rules"
 #define PARSE_TABLE_FILE "config/parse_table"
+
+// Constants use to print descriptive names
+extern const char nodeTypes[][30];
+extern const char dataTypes[][10];
+extern const char aropTypes[][10];
 

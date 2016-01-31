@@ -13,29 +13,14 @@
 #ifndef STACK_DEFINED
   #include "stack.h"
 #endif
+#ifndef CONSTANTS_DEFINED
+  #include "constants.h"
+#endif
+
+#define SYMBOLTABLE_DEFINED
 
 #define TRUE 1
 #define FALSE 0
-
-#ifndef DATATYPE_DEFINED
-
-#define DATATYPE_DEFINED
-
-typedef enum data_types
-{
-  D_TYPE_FIRST = 0,
-  D_INT_TYPE,
-  D_FLOAT_TYPE,
-  D_STRING_TYPE,
-  D_VERTEX_TYPE,
-  D_EDGE_TYPE,
-  D_TREE_TYPE,
-  D_GRAPH_TYPE,
-  D_NOTHING_TYPE,
-  D_TYPE_LAST
-} DATATYPE;
-
-#endif
 
 typedef enum variable_types
 {
@@ -175,4 +160,8 @@ extern int checkIndexExistence ( SYMBOLTABLE * , unsigned int );
 extern STBENTRY* getEntryByName ( SYMBOLTABLE * , char * );
 
 extern STBENTRY* getEntryByIndex ( SYMBOLTABLE * , unsigned int );
+
+extern const char* getDataTypeName ( DATATYPE );
+
+extern const char* getAropName ( AROPTYPE );
 

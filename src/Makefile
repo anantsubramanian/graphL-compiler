@@ -22,27 +22,30 @@ ALLFILES=lexer parse_table_generator dfa_ops.o trie_ops.o \
 				 parser parser.o stack_ops.o parsetree_generator.o \
 				 parsetree_generator parsetree_ops.o ast_ops.o \
 				 ast_generator ast_generator.o symboltable_ops.o \
-				 code_generator.o code_generator
+				 code_generator.o code_generator constants.o
 
 all: lexer parse_table_generator parser parsetree_generator ast_generator code_generator
 
-lexer: lexer.o dfa_ops.o trie_ops.o
-	$(CC) lexer.o dfa_ops.o trie_ops.o $(CFLAGS) $(LEXOUTPUT)
+lexer: lexer.o dfa_ops.o trie_ops.o constants.o
+	$(CC) lexer.o dfa_ops.o trie_ops.o constants.o $(CFLAGS) $(LEXOUTPUT)
 
-parse_table_generator: parse_table_generator.o trie_ops.o linkedlist_ops.o
-	$(CC) parse_table_generator.o trie_ops.o linkedlist_ops.o $(CFLAGS) $(PTOUTPUT)
+parse_table_generator: parse_table_generator.o trie_ops.o linkedlist_ops.o constants.o
+	$(CC) parse_table_generator.o trie_ops.o linkedlist_ops.o constants.o $(CFLAGS) $(PTOUTPUT)
 
-parser: parser.o trie_ops.o stack_ops.o linkedlist_ops.o
-	$(CC) parser.o trie_ops.o stack_ops.o linkedlist_ops.o $(CFLAGS) $(PRSOUTPUT)
+parser: parser.o trie_ops.o stack_ops.o linkedlist_ops.o constants.o
+	$(CC) parser.o trie_ops.o stack_ops.o linkedlist_ops.o constants.o $(CFLAGS) $(PRSOUTPUT)
 
-parsetree_generator: parsetree_generator.o trie_ops.o parsetree_ops.o
-	$(CC) parsetree_generator.o trie_ops.o parsetree_ops.o $(CFLAGS) $(PSTOUTPUT)
+parsetree_generator: parsetree_generator.o trie_ops.o parsetree_ops.o constants.o
+	$(CC) parsetree_generator.o trie_ops.o parsetree_ops.o constants.o $(CFLAGS) $(PSTOUTPUT)
 
-ast_generator: ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o
-	$(CC) ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o $(CFLAGS) $(ASTOUTPUT)
+ast_generator: ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o constants.o
+	$(CC) ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o symboltable_ops.o ast_ops.o constants.o $(CFLAGS) $(ASTOUTPUT)
 
-code_generator: code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o
-	$(CC) code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o $(CFLAGS) $(CGROUTPUT)
+code_generator: code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o constants.o
+	$(CC) code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o linkedlist_ops.o constants.o $(CFLAGS) $(CGROUTPUT)
+
+constants.o:
+	$(CC) $(OBJFLAG) headers/constants.c
 
 lexer.o: lexer.c
 	$(CC) $(OBJFLAG) lexer.c

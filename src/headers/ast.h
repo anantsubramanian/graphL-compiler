@@ -13,25 +13,8 @@
 #ifndef TRIE_DEFINED
   #include "trie.h"
 #endif
-
-#ifndef DATATYPE_DEFINED
-
-#define DATATYPE_DEFINED
-
-typedef enum data_types
-{
-  D_TYPE_FIRST = 0,
-  D_INT_TYPE,
-  D_FLOAT_TYPE,
-  D_STRING_TYPE,
-  D_VERTEX_TYPE,
-  D_EDGE_TYPE,
-  D_TREE_TYPE,
-  D_GRAPH_TYPE,
-  D_NOTHING_TYPE,
-  D_TYPE_LAST
-} DATATYPE;
-
+#ifndef CONSTANTS_DEFINED
+  #include "constants.h"
 #endif
 
 #define CREATE 16   // 10000b
@@ -39,45 +22,6 @@ typedef enum data_types
 #define PARENT 4    // 00100b
 #define CONDRD 2    // 00010b
 #define READ 1      // 00001b
-
-typedef enum arop_types
-{
-  A_TYPE_FIRST = 0,
-  A_PLUS_TYPE,
-  A_MINUS_TYPE,
-  A_MUL_TYPE,
-  A_DIV_TYPE,
-  A_MODULO_TYPE,
-  A_TYPE_LAST
-} AROPTYPE;
-
-typedef enum compareop_type
-{
-  C_TYPE_FIRST = 0,
-  C_LT_TYPE,
-  C_GT_TYPE,
-  C_LTE_TYPE,
-  C_GTE_TYPE,
-  C_EQ_TYPE,
-  C_TYPE_LAST
-} COMPOPTYPE;
-
-typedef enum boolop_type
-{
-  B_TYPE_FIRST = 0,
-  B_AND_TYPE,
-  B_OR_TYPE,
-  B_NOT_TYPE,
-  B_TYPE_LAST
-} BOOLOPTYPE;
-
-typedef enum bdft_type
-{
-  BDFT_TYPE_FIRST = 0,
-  BDFT_BFT_TYPE,
-  BDFT_DFT_TYPE,
-  BDFT_TYPE_LAST
-} BDFTTYPE;
 
 typedef struct ast_node
 {
@@ -150,4 +94,8 @@ extern ANODE* getFourthChild ( ANODE * );
 extern ANODE* getFifthChild ( ANODE * );
 
 extern ANODE* rotateLeft ( ANODE * );
+
+extern DATATYPE getDataType ( ANODE * );
+
+extern const char* getNodeTypeName ( int type );
 

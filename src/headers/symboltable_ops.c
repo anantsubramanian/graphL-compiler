@@ -791,3 +791,58 @@ STBENTRY* getEntryByIndex ( SYMBOLTABLE *symboltable, unsigned int index )
   return ( STBENTRY * ) top ( symboltable -> entries [ index ] );
 }
 
+/**
+ * Get the name of a data type given its enum value
+ *
+ * @param type DATATYPE the enum value of the data type
+ *
+ * @return const char* The name of the data type
+ */
+
+const char* getDataTypeName ( DATATYPE type )
+{
+  if ( type == D_INT_TYPE )
+    return dataTypes [1];
+  if ( type == D_FLOAT_TYPE )
+    return dataTypes [2];
+  if ( type == D_STRING_TYPE )
+    return dataTypes [3];
+  if ( type == D_VERTEX_TYPE )
+    return dataTypes [4];
+  if ( type == D_EDGE_TYPE )
+    return dataTypes [5];
+  if ( type == D_TREE_TYPE )
+    return dataTypes [6];
+  if ( type == D_GRAPH_TYPE )
+    return dataTypes [7];
+  if ( type == D_NOTHING_TYPE )
+    return dataTypes [8];
+
+  return dataTypes [0];
+}
+
+/**
+ * Returns the printable AROP name associated
+ * with the given AROPTYPE enum value
+ *
+ * @param type AROPTYPE the enum type value
+ *
+ * @return const char* the printable name
+ */
+
+const char* getAropName ( AROPTYPE type )
+{
+  if ( type == A_PLUS_TYPE )
+    return aropTypes [1];
+  if ( type == A_MINUS_TYPE )
+    return aropTypes [2];
+  if ( type == A_MUL_TYPE )
+    return aropTypes [3];
+  if ( type == A_DIV_TYPE )
+    return aropTypes [4];
+  if ( type == A_MODULO_TYPE )
+    return aropTypes [5];
+
+  return aropTypes [0];
+}
+

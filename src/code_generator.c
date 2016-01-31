@@ -13,11 +13,17 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
-#include "headers/symboltable.h"
-#include "headers/constants.h"
+
+#ifndef SYMBOLTABLE_DEFINED
+  #include "headers/symboltable.h"
+#endif
 
 #ifndef TRIE_DEFINED
   #include "headers/trie.h"
+#endif
+
+#ifndef CONSTANTS_DEFINED
+  #include "headers/constants.h"
 #endif
 
 #define DEBUG_AST_CONSTRUCTION 0
@@ -230,49 +236,6 @@ typedef struct literal_data
   char *name;
 } LITDATA;
 
-
-char* getAropName ( AROPTYPE type )
-{
-  if ( type == A_PLUS_TYPE )
-    return aropTypes [1];
-  if ( type == A_MINUS_TYPE )
-    return aropTypes [2];
-  if ( type == A_MUL_TYPE )
-    return aropTypes [3];
-  if ( type == A_DIV_TYPE )
-    return aropTypes [4];
-  if ( type == A_MODULO_TYPE )
-    return aropTypes [5];
-
-  return aropTypes [0];
-}
-
-char* getNodeTypeName ( int type )
-{
-  return nodeTypes [type];
-}
-
-char* getDataTypeName ( DATATYPE type )
-{
-  if ( type == D_INT_TYPE )
-    return dataTypes [1];
-  if ( type == D_FLOAT_TYPE )
-    return dataTypes [2];
-  if ( type == D_STRING_TYPE )
-    return dataTypes [3];
-  if ( type == D_VERTEX_TYPE )
-    return dataTypes [4];
-  if ( type == D_EDGE_TYPE )
-    return dataTypes [5];
-  if ( type == D_TREE_TYPE )
-    return dataTypes [6];
-  if ( type == D_GRAPH_TYPE )
-    return dataTypes [7];
-  if ( type == D_NOTHING_TYPE )
-    return dataTypes [8];
-
-  return dataTypes [0];
-}
 
 void populateTrie ( FILE *mapfile, int blocksize, TRIE* trie, int *count )
 {

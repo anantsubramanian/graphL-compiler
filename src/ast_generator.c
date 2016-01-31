@@ -12,11 +12,17 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
-#include "headers/symboltable.h"
-#include "headers/constants.h"
+
+#ifndef SYMBOLTABLE_DEFINED
+  #include "headers/symboltable.h"
+#endif
 
 #ifndef TRIE_DEFINED
   #include "headers/trie.h"
+#endif
+
+#ifndef CONSTANTS_DEFINED
+  #include "headers/constants.h"
 #endif
 
 #define BUFFERLEN 400
@@ -89,54 +95,6 @@ int makeTrieProperty ( char *instr )
     result |= PROPERTY_ADD;
 
   return result;
-}
-
-DATATYPE getDataType ( ANODE *currnode )
-{
-  if ( currnode == NULL )
-  {
-    fprintf ( stderr, "Cannot get data type of child of non-existent node\n" );
-    erroroccured = 1;
-    return -1;
-  }
-
-  if ( currnode -> num_of_children <= 0 )
-  {
-    fprintf ( stderr, "Trying to get data type of child of node with no children\n" );
-    erroroccured = 1;
-    return -1;
-  }
-
-  ANODE *firstchild = *( ( ANODE ** ) ( currnode -> children -> head -> data . generic_val ) );
-
-  return firstchild -> extra_data . data_type;
-}
-
-char* getNodeTypeName ( int type )
-{
-  return nodeTypes [type];
-}
-
-char* getDataTypeName ( DATATYPE type )
-{
-  if ( type == D_INT_TYPE )
-    return dataTypes [1];
-  if ( type == D_FLOAT_TYPE )
-    return dataTypes [2];
-  if ( type == D_STRING_TYPE )
-    return dataTypes [3];
-  if ( type == D_VERTEX_TYPE )
-    return dataTypes [4];
-  if ( type == D_EDGE_TYPE )
-    return dataTypes [5];
-  if ( type == D_TREE_TYPE )
-    return dataTypes [6];
-  if ( type == D_GRAPH_TYPE )
-    return dataTypes [7];
-  if ( type == D_NOTHING_TYPE )
-    return dataTypes [8];
-
-  return dataTypes [0];
 }
 
 int extractLineNum ( char *input )
@@ -1094,7 +1052,10 @@ int handleNodeInstruction ( FILE *astoutput, ANODE **currnode, TNODE *currentval
 
     if ( DEBUG_ALL || DEBUG_ONCREATE ) printf ( "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
 
-    fprintf ( astoutput, "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
+    if ( (*currnode) -> node_type < 0 )
+      fprintf ( astoutput, "At node ROOT_NODE\n" );
+    else
+      fprintf ( astoutput, "At node %s\n", getNodeTypeName ( (*currnode) -> node_type ) );
 
     *currnode = addChild ( *currnode, type_to_create, instruction );
 

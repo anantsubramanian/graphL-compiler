@@ -1,0 +1,72 @@
+#include "constants.h"
+
+const char nodeTypes[][30] = {
+
+  "AST_PROGRAM_NODE",
+  "AST_GLOBALDEFINES_NODE",
+  "AST_GLOBALDEFINE_NODE",
+  "AST_DEFINE_NODE",
+  "AST_LET_NODE",
+  "AST_ASSIGNABLE_NODE",
+  "AST_DATATYPE_NODE",
+  "AST_IDENTIFIER_NODE",
+  "AST_FUNCTION_NODE",
+  "AST_FUNCBODY_NODE",
+  "AST_QUALIFIEDPARAMETERS_NODE",
+  "AST_QUALIFIEDPARAMETER_NODE",
+  "AST_RETURNTYPE_NODE",
+  "AST_READ_NODE",
+  "AST_PRINT_NODE",
+  "AST_COMPARE_NODE",
+  "AST_BOOLEXP_NODE",
+  "AST_EXP_NODE",
+  "AST_PASSEDPARAMS_NODE",
+  "AST_RETURNSTMT_NODE",
+  "AST_FUNCTIONCALL_NODE",
+  "AST_IF_NODE",
+  "AST_BLOCK_NODE",
+  "AST_FOR_NODE",
+  "AST_BDFT_NODE",
+  "AST_EDGECREATE_NODE",
+  "AST_BOOLOP_NODE",
+  "AST_AROP_NODE",
+  "AST_FORIN_NODE",
+  "AST_ADJTO_NODE",
+  "AST_LITERAL_NODE",
+  "AST_DEPTH_NODE",
+  "AST_DEST_NODE",
+  "AST_SOURCE_NODE",
+  "AST_WEIGHT_NODE",
+  "AST_ASSIGNFUNC_NODE",
+  "AST_MEMBEROP_NODE",
+  "AST_ROOT_NODE",
+  "AST_ENDASSIGN_NODE",
+  "AST_BREAK_NODE",
+  ""
+};
+
+const char dataTypes[][10] = {
+
+  "",
+  "INT",
+  "FLOAT",
+  "STRING",
+  "VERTEX",
+  "EDGE",
+  "TREE",
+  "GRAPH",
+  "NOTHING",
+  ""
+};
+
+const char aropTypes[][10] = {
+
+  "",
+  "Plus",
+  "Minus",
+  "Multiply",
+  "Divide",
+  "Modulo",
+  ""
+};
+
