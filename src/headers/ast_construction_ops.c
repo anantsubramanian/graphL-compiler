@@ -7,7 +7,7 @@ static int construction_error_occurred = 0;
  * format), construct and return the corresponding integer encoding
  *
  * @param instr char* the character instruction
- * 
+ *
  * @return the encoded instruction
  */
 
@@ -45,7 +45,7 @@ int makeTrieProperty ( char *instr )
  * Extract the line number from the parser output of a given line
  *
  * @param input char* A line of parser output
- * 
+ *
  * @return int the line number extracted from it
  */
 

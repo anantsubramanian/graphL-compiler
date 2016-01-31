@@ -22,19 +22,29 @@ int checkInvalidKeywordLocation ( ANODE *currnode, int *infunction,
 {
   if ( currnode -> node_type == AST_BREAK_NODE && *loopcount <= 0 )
   {
-    fprintf ( stderr, "Error at line %d:\n\tBreak statements can only occur inside loops.\n\n", currnode -> line_no );
+    fprintf ( stderr,
+              "Error at line %d:\n\tBreak statements can only occur inside loops.\n\n",
+              currnode -> line_no );
 
     // Continue processing after ignoring the node
     return 1;
   }
   else if ( currnode -> node_type == AST_RETURNSTMT_NODE && *infunction == 0 )
   {
-    fprintf ( stderr, "Error at line %d:\n\tReturn statements can only occur inside function definitions.\n\n", currnode -> line_no );
+    fprintf (
+      stderr,
+      "Error at line %d:\n\tReturn statements can only occur inside function definitions.\n\n",
+      currnode -> line_no
+    );
     return 1;
   }
   else if ( currnode -> node_type == AST_DEPTH_NODE && *loopcount <= 0 && *bdftcount <= 0 )
   {
-    fprintf ( stderr, "Error at line %d:\n\tDepth can only be used inside a BFT / DFT based loop.\n\n", currnode -> line_no );
+    fprintf (
+      stderr,
+      "Error at line %d:\n\tDepth can only be used inside a BFT / DFT based loop.\n\n",
+      currnode -> line_no
+    );
     return 1;
   }
 
@@ -53,21 +63,37 @@ int checkInvalidAssignment ( ANODE *currnode, SYMBOLTABLE *symboltable )
     // The left and right children of Let node should have the same type
     if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
     {
-      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( getFirstChild ( currnode ) ) -> extra_data . symboltable_index );
+      STBENTRY *entry =
+        getEntryByIndex ( symboltable, getFirstChild ( getFirstChild ( currnode ) )
+          -> extra_data . symboltable_index
+        );
       char *name = entry -> data . var_data . name;
       if ( getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE
            && getSecondChild ( currnode ) -> result_type == D_INT_TYPE )
       {
-        fprintf ( stderr, "Warning at line %d:\n\tImplicit conversion from Int to Float in Let statement\n", currnode -> line_no );
+        fprintf (
+          stderr,
+          "Warning at line %d:\n\tImplicit conversion from Int to Float in Let statement\n",
+          currnode -> line_no
+        );
         fprintf ( stderr, "\tNote: %s has type Float\n\n", name );
       }
       else
       {
-        fprintf ( stderr, "Error at line %d:\n\tAssigning incompatible types in let statement\n", currnode -> line_no );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tAssigning incompatible types in let statement\n",
+                  currnode -> line_no );
         if ( getFirstChild ( currnode ) -> num_of_children == 1 )
-          fprintf ( stderr, "\tNote: %s has type %s, but RHS has type %s\n\n", name, getDataTypeName ( getFirstChild ( currnode ) -> result_type ), getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+          fprintf ( stderr,
+                    "\tNote: %s has type %s, but RHS has type %s\n\n",
+                    name,
+                    getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                    getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
         else
-          fprintf ( stderr, "\tNote: LHS has type %s, but RHS has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ), getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+          fprintf ( stderr,
+                    "\tNote: LHS has type %s, but RHS has type %s\n\n",
+                    getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                    getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
 
         return 1;
       }
@@ -79,13 +105,17 @@ int checkInvalidAssignment ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
     if ( entry -> entry_type == ENTRY_FUNC_TYPE )
     {
-      fprintf ( stderr, "Error at line %d:\n\tAttempting to assign to a function identifier\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: %s declared as function on line %d\n\n", entry -> data . func_data . name,
-                                                                          entry -> data . func_data . decl_line );
+      fprintf ( stderr,
+                "Error at line %d:\n\tAttempting to assign to a function identifier\n",
+                currnode -> line_no );
+      fprintf ( stderr,
+                "\tNote: %s declared as function on line %d\n\n",
+                entry -> data . func_data . name,
+                entry -> data . func_data . decl_line );
       return 1;
     }
   }
-  
+
   return 0;
 }
 
@@ -112,23 +142,38 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
     {
       // If Assignable has three children, then its first child should be a complex type
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
-      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
+      STBENTRY *entry =
+        getEntryByIndex ( symboltable, getFirstChild ( currnode )
+          -> extra_data . symboltable_index
+        );
 
       if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
            || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tCannot get members of primitive type\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s was declared as a/an %s on line %d\n\n", entry -> data . var_data . name,
-                  getDataTypeName ( getFirstChild ( currnode ) -> result_type ), entry -> data . var_data . decl_line );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tCannot get members of primitive type\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s was declared as a/an %s on line %d\n\n",
+                  entry -> data . var_data . name,
+                  getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                  entry -> data . var_data . decl_line );
         return 1;
       }
 
-      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
+      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE
+           && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
-        fprintf ( stderr, "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s was declared as a VERTEX on line %d\n\n", entry -> data . var_data . name,
-                                                                                entry -> data . var_data . decl_line );
+        fprintf (
+          stderr,
+          "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n",
+          currnode -> line_no
+        );
+        fprintf ( stderr,
+                  "\tNote: %s was declared as a VERTEX on line %d\n\n",
+                  entry -> data . var_data . name,
+                  entry -> data . var_data . decl_line );
         return 1;
       }
 
@@ -138,17 +183,23 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
           fprintf ( stderr, "Error at line %d:\n\tEdge object has no root member\n", currnode -> line_no );
-          fprintf ( stderr, "\tNote: %s was declared as an EDGE on line %d\n\n", entry -> data . var_data . name,
-                                                                                 entry -> data . var_data . decl_line );
+          fprintf ( stderr,
+                    "\tNote: %s was declared as an EDGE on line %d\n\n",
+                    entry -> data . var_data . name,
+                    entry -> data . var_data . decl_line );
           return 1;
         }
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tGraph object has no members that can be referenced\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s was declared as an GRAPH on line %d\n\n", entry -> data . var_data . name,
-                                                                                entry -> data . var_data . decl_line );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tGraph object has no members that can be referenced\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s was declared as an GRAPH on line %d\n\n",
+                  entry -> data . var_data . name,
+                  entry -> data . var_data . decl_line );
         return 1;
       }
 
@@ -156,9 +207,15 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
            && getThirdChild ( currnode ) -> num_of_children > 0
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tOnly root member of a Tree object may be referenced\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s was declared as an TREE on line %d\n\n", entry -> data . var_data . name,
-                                                                               entry -> data . var_data . decl_line );
+        fprintf (
+          stderr,
+          "Error at line %d:\n\tOnly root member of a Tree object may be referenced\n",
+          currnode -> line_no
+        );
+        fprintf ( stderr,
+                  "\tNote: %s was declared as an TREE on line %d\n\n",
+                  entry -> data . var_data . name,
+                  entry -> data . var_data . decl_line );
         return 1;
       }
     }
@@ -179,34 +236,58 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
     else if ( currnode -> num_of_children == 2 )
     {
       currnode -> result_type = getFirstChild ( currnode ) -> result_type;
-      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
+      STBENTRY *entry =
+        getEntryByIndex ( symboltable, getFirstChild ( currnode )
+          -> extra_data . symboltable_index
+        );
       if ( entry -> entry_type != ENTRY_FUNC_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tAttempting to call a variable like a function\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s declared as a/an %s at line number %d\n\n", entry -> data . var_data . name,
-                  getDataTypeName ( entry -> data . var_data . data_type ), entry -> data . var_data . decl_line );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tAttempting to call a variable like a function\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s declared as a/an %s at line number %d\n\n",
+                  entry -> data . var_data . name,
+                  getDataTypeName ( entry -> data . var_data . data_type ),
+                  entry -> data . var_data . decl_line );
         return 1;
       }
     }
     else if ( currnode -> num_of_children == 3 )
     {
       currnode -> result_type = getThirdChild ( currnode ) -> result_type;
-      STBENTRY *entry = getEntryByIndex ( symboltable, getFirstChild ( currnode ) -> extra_data . symboltable_index );
+      STBENTRY *entry =
+        getEntryByIndex ( symboltable, getFirstChild ( currnode )
+          -> extra_data . symboltable_index
+        );
       VARIABLE *vardata = & ( entry -> data . var_data );
 
       if ( getFirstChild ( currnode ) -> result_type == D_STRING_TYPE
            || getFirstChild ( currnode ) -> result_type == D_INT_TYPE
            || getFirstChild ( currnode ) -> result_type == D_FLOAT_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tCannot get members of primitive type\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s has type %s\n\n", vardata -> name, getDataTypeName ( vardata -> data_type ) );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tCannot get members of primitive type\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s has type %s\n\n",
+                  vardata -> name,
+                  getDataTypeName ( vardata -> data_type ) );
         return 1;
       }
 
-      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE && getThirdChild ( currnode ) -> num_of_children > 0 )
+      if ( getFirstChild ( currnode ) -> result_type == D_VERTEX_TYPE
+           && getThirdChild ( currnode ) -> num_of_children > 0 )
       {
-        fprintf ( stderr, "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s declared as a VERTEX on line %d\n\n", vardata -> name, vardata -> decl_line );
+        fprintf (
+          stderr,
+          "Error at line %d:\n\tCannot get non-primitive type member of a Vertex object\n",
+          currnode -> line_no
+        );
+        fprintf ( stderr,
+                  "\tNote: %s declared as a VERTEX on line %d\n\n",
+                  vardata -> name,
+                  vardata -> decl_line );
         return 1;
       }
 
@@ -215,16 +296,26 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
         if ( getThirdChild ( currnode ) -> num_of_children > 0
              && getFirstChild ( getThirdChild ( currnode ) ) -> node_type == AST_ROOT_NODE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tEdge object has no root member\n", currnode -> line_no );
-          fprintf ( stderr, "\tNote: %s declared as an EDGE on line %d\n\n", vardata -> name, vardata -> decl_line );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tEdge object has no root member\n",
+                    currnode -> line_no );
+          fprintf ( stderr,
+                    "\tNote: %s declared as an EDGE on line %d\n\n",
+                    vardata -> name,
+                    vardata -> decl_line );
           return 1;
         }
       }
 
       if ( getFirstChild ( currnode ) -> result_type == D_GRAPH_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tGraph object has no members that can be referenced\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s declared as a GRAPH on line %d\n\n", vardata -> name, vardata -> decl_line );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tGraph object has no members that can be referenced\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s declared as a GRAPH on line %d\n\n",
+                  vardata -> name,
+                  vardata -> decl_line );
         return 1;
       }
 
@@ -232,8 +323,13 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
            && getThirdChild ( currnode ) -> num_of_children > 0
            && getFirstChild ( getThirdChild ( currnode ) ) -> node_type != AST_ROOT_NODE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tOnly the root member of a Tree object may be referenced\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: %s declared as a TREE on line %d\n\n", vardata -> name, vardata -> decl_line );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tOnly the root member of a Tree object may be referenced\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: %s declared as a TREE on line %d\n\n",
+                  vardata -> name,
+                  vardata -> decl_line );
         return 1;
       }
     }
@@ -254,7 +350,9 @@ int checkInvalidDereference ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
       if ( getFirstChild ( currnode ) -> node_type == AST_WEIGHT_NODE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tPrimitive type objects have no members\n\n", currnode -> line_no );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tPrimitive type objects have no members\n\n",
+                  currnode -> line_no );
         return 1;
       }
     }
@@ -286,7 +384,7 @@ int processIdentifier ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -304,7 +402,9 @@ int checkIOErrors ( ANODE *currnode )
 
     if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE )
     {
-      fprintf ( stderr, "Error at line %d:\n\tCannot read non-primitive value using the read statement\n\n", currnode -> line_no );
+      fprintf ( stderr,
+                "Error at line %d:\n\tCannot read non-primitive value using the read statement\n\n",
+                currnode -> line_no );
       return 1;
     }
   }
@@ -318,11 +418,13 @@ int checkIOErrors ( ANODE *currnode )
     if ( child -> result_type != D_INT_TYPE && child -> result_type != D_FLOAT_TYPE
          && child -> result_type != D_STRING_TYPE )
     {
-      fprintf ( stderr, "Error at line %d:\n\tCannot print a value that is not a string, an int or a float\n", currnode -> line_no );
+      fprintf ( stderr,
+                "Error at line %d:\n\tCannot print a value that is not a string, an int or a float\n",
+                currnode -> line_no );
       return 1;
     }
   }
-  
+
   return 0;
 }
 
@@ -340,9 +442,15 @@ int checkExpressionErrors ( ANODE *currnode )
 
     if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
     {
-      fprintf ( stderr, "Error at line %d:\n\tValues on the two sides of the compare expression are not the same\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: LHS has type %s and RHS has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
-                                                                           getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+      fprintf (
+        stderr,
+        "Error at line %d:\n\tValues on the two sides of the compare expression are not the same\n",
+        currnode -> line_no
+      );
+      fprintf ( stderr,
+                "\tNote: LHS has type %s and RHS has type %s\n\n",
+                getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
       return 1;
     }
   }
@@ -361,14 +469,20 @@ int checkExpressionErrors ( ANODE *currnode )
       {
         if ( getFirstChild ( currnode ) -> result_type != getSecondChild ( currnode ) -> result_type )
         {
-          fprintf ( stderr, "Error at line %d:\n\tFloats and Ints can only be added to other Floats and Ints respectively\n\n", currnode -> line_no );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tFloats and Ints can only be added to other Floats and Ints respectively\n\n",
+            currnode -> line_no
+          );
           return 1;
         }
 
         if ( firsttype == D_FLOAT_TYPE && currnode -> extra_data . arop_type == A_MODULO_TYPE )
         {
           // The right child gives us the operation type
-          fprintf ( stderr, "Error at line %d:\n\tModulo operator cannot be applied to Floats\n\n", currnode -> line_no );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tModulo operator cannot be applied to Floats\n\n",
+                    currnode -> line_no );
           return 1;
         }
 
@@ -376,7 +490,9 @@ int checkExpressionErrors ( ANODE *currnode )
       }
       else if ( firsttype == D_STRING_TYPE || secondtype == D_STRING_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tOperations on String are not allowed\n\n", currnode -> line_no );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tOperations on String are not allowed\n\n",
+                  currnode -> line_no );
         return 1;
       }
       else if ( firsttype == D_GRAPH_TYPE || firsttype == D_TREE_TYPE )
@@ -384,12 +500,18 @@ int checkExpressionErrors ( ANODE *currnode )
         if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
              && currnode -> extra_data . arop_type != A_MINUS_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n", currnode -> line_no );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n",
+                    currnode -> line_no );
           semantic_error = 1;
         }
         else if ( secondtype != D_VERTEX_TYPE && secondtype != D_EDGE_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n", currnode -> line_no );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n",
+            currnode -> line_no
+          );
           semantic_error = 1;
         }
 
@@ -400,12 +522,20 @@ int checkExpressionErrors ( ANODE *currnode )
         if ( currnode -> extra_data . arop_type != A_PLUS_TYPE
              && currnode -> extra_data . arop_type != A_MINUS_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n", currnode -> line_no );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tOnly addition or removal operations allowed on Graphs and Trees\n\n",
+            currnode -> line_no
+          );
           semantic_error = 1;
         }
         else if ( firsttype != D_VERTEX_TYPE && firsttype != D_EDGE_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n", currnode -> line_no );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tOnly Vertices and Edges may be added and removed from Graphs/Trees\n\n",
+            currnode -> line_no
+          );
           semantic_error = 1;
         }
 
@@ -413,7 +543,9 @@ int checkExpressionErrors ( ANODE *currnode )
       }
       else
       {
-        fprintf ( stderr, "Error at line %d:\n\tInvalid operands provided in expression\n\n", currnode -> line_no );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tInvalid operands provided in expression\n\n",
+                  currnode -> line_no );
         semantic_error = 1;
       }
 
@@ -425,7 +557,7 @@ int checkExpressionErrors ( ANODE *currnode )
       semantic_error = 1;
     }
   }
-  
+
   return 0;
 }
 
@@ -448,9 +580,16 @@ int checkFunctionRelatedErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
     // Firstly, the number of parameters must match with the number of children of currnode
     if ( funcentry -> num_params != currnode -> num_of_children )
     {
-      fprintf ( stderr, "Error at line %d:\n\tNumber of passed parameters don't match with the function definition\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: %s accepts %d parameters, but %d parameters are being passed\n\n", funcentry -> name, funcentry -> num_params,
-                                                                                                    currnode -> num_of_children );
+      fprintf (
+        stderr,
+        "Error at line %d:\n\tNumber of passed parameters don't match with the function definition\n",
+        currnode -> line_no
+      );
+      fprintf ( stderr,
+                "\tNote: %s accepts %d parameters, but %d parameters are being passed\n\n",
+                funcentry -> name,
+                funcentry -> num_params,
+                currnode -> num_of_children );
       return 1;
     }
 
@@ -472,10 +611,16 @@ int checkFunctionRelatedErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
       if ( paramtype != passedtype )
       {
-        fprintf ( stderr, "Error at line %d:\n\tThe type of the passed parameter to the function doesn't match the definition\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: Parameter %d of %s should be of type %s, given type is %s\n\n", paramnumber, funcentry -> name,
-                                                                                                   getDataTypeName ( paramtype ),
-                                                                                                   getDataTypeName ( passedtype ) );
+        fprintf (
+          stderr,
+          "Error at line %d:\n\tThe type of the passed parameter to the function doesn't match the definition\n",
+          currnode -> line_no
+        );
+        fprintf ( stderr,
+                  "\tNote: Parameter %d of %s should be of type %s, given type is %s\n\n",
+                  paramnumber, funcentry -> name,
+                  getDataTypeName ( paramtype ),
+                  getDataTypeName ( passedtype ) );
         return 1;
       }
     }
@@ -497,8 +642,15 @@ int checkFunctionRelatedErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
       if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tType of value being returned does not match the return type in the function definition\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: Expected return type of %s is %s, but code returns Nothing\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+        fprintf (
+          stderr,
+          "Error at line %d:\n\tType of value being returned does not match the return type \
+          in the function definition\n",
+          currnode -> line_no
+        );
+        fprintf ( stderr,
+                  "\tNote: Expected return type of %s is %s, but code returns Nothing\n\n",
+                  getEntryByIndex ( symboltable, index ) -> data . func_data . name,
                   getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ) );
         return 1;
       }
@@ -509,9 +661,17 @@ int checkFunctionRelatedErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
     if ( getFirstChild ( currnode ) -> result_type
          != getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type )
     {
-      fprintf ( stderr, "Error at line %d:\n\tType of value being returned does not match the return type in the function definition\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: Expected return type of %s is %s, but code returns a/an %s\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
-                getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ), getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+      fprintf (
+        stderr,
+        "Error at line %d:\n\tType of value being returned does not match the return type \
+        in the function definition\n",
+        currnode -> line_no
+      );
+      fprintf ( stderr,
+                "\tNote: Expected return type of %s is %s, but code returns a/an %s\n\n",
+                getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+                getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ),
+                getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
       return 1;
     }
   }
@@ -521,14 +681,18 @@ int checkFunctionRelatedErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
     if ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type != D_NOTHING_TYPE )
     {
-      fprintf ( stderr, "Warning at line %d:\n\tReturn value of function is not being used\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: %s returns a/an %s\n\n", getEntryByIndex ( symboltable, index ) -> data . func_data . name,
+      fprintf ( stderr,
+                "Warning at line %d:\n\tReturn value of function is not being used\n",
+                currnode -> line_no );
+      fprintf ( stderr,
+                "\tNote: %s returns a/an %s\n\n",
+                getEntryByIndex ( symboltable, index ) -> data . func_data . name,
                 getDataTypeName ( getEntryByIndex ( symboltable, index ) -> data . func_data . ret_type ) );
 
       return 0;
     }
   }
-  
+
   return 0;
 }
 
@@ -549,7 +713,9 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
       if ( child -> node_type == AST_LITERAL_NODE && child -> result_type != D_INT_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tThe number of iterations of a for loop must be an Integer\n", currnode -> line_no );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tThe number of iterations of a for loop must be an Integer\n",
+                  currnode -> line_no );
         fprintf ( stderr, "\tNote: Provided type is a %s\n\n", getDataTypeName ( child -> result_type ) );
         semantic_error = 1;
       }
@@ -566,7 +732,11 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
 
         if ( entry -> entry_type == ENTRY_FUNC_TYPE || entry -> data . var_data .data_type != D_INT_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tThe identifier in a for loop must be an integer variable\n", currnode -> line_no );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tThe identifier in a for loop must be an integer variable\n",
+            currnode -> line_no
+          );
           fprintf ( stderr, "\tNote: %s is not an integer\n\n", name );
           return 1;
         }
@@ -584,16 +754,24 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
       if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: Provided variable has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: Provided variable has type %s\n\n",
+                  getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
         return 1;
       }
 
       if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
            && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: Provided type is %s\n\n",
+                  getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
         return 1;
       }
     }
@@ -613,8 +791,12 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
       if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
            && getFirstChild ( currnode ) -> result_type != D_EDGE_TYPE )
       {
-        fprintf ( stderr, "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n", currnode -> line_no );
-        fprintf ( stderr, "\tNote: Provided variable has type %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
+        fprintf ( stderr,
+                  "Error at line %d:\n\tThe iteration variable must be a vertex or an edge\n",
+                  currnode -> line_no );
+        fprintf ( stderr,
+                  "\tNote: Provided variable has type %s\n\n",
+                  getDataTypeName ( getFirstChild ( currnode ) -> result_type ) );
         return 1;
       }
 
@@ -623,14 +805,22 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
         if ( getFourthChild ( currnode ) -> result_type != D_GRAPH_TYPE
              && getFourthChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tThe first parameter to BFT or DFT must be a Graph or Tree\n", currnode -> line_no );
-          fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getFourthChild ( currnode ) -> result_type ) );
+          fprintf (
+            stderr,
+            "Error at line %d:\n\tThe first parameter to BFT or DFT must be a Graph or Tree\n",
+            currnode -> line_no
+          );
+          fprintf ( stderr,
+                    "\tNote: Provided type is %s\n\n",
+                    getDataTypeName ( getFourthChild ( currnode ) -> result_type ) );
           return 1;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tThe second parameter to BFT/DFT must be a Vertex\n\n", currnode -> line_no );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tThe second parameter to BFT/DFT must be a Vertex\n\n",
+                    currnode -> line_no );
           return 1;
         }
       }
@@ -641,21 +831,29 @@ int checkLoopErrors ( ANODE *currnode, SYMBOLTABLE *symboltable )
         if ( getThirdChild ( currnode ) -> result_type != D_GRAPH_TYPE
              && getThirdChild ( currnode ) -> result_type != D_TREE_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n", currnode -> line_no );
-          fprintf ( stderr, "\tNote: Type provided is %s\n\n", getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tThe object to iterate over must be a Graph or Tree\n",
+                    currnode -> line_no );
+          fprintf ( stderr,
+                    "\tNote: Type provided is %s\n\n",
+                    getDataTypeName ( getThirdChild ( currnode ) -> result_type ) );
           return 1;
         }
 
         if ( getFifthChild ( currnode ) -> result_type != D_VERTEX_TYPE )
         {
-          fprintf ( stderr, "Error at line %d:\n\tThe adjacent to parameter must be a Vertex\n", currnode -> line_no );
-          fprintf ( stderr, "\tNote: Provided type is %s\n\n", getDataTypeName ( getFifthChild ( currnode ) -> result_type ) );
+          fprintf ( stderr,
+                    "Error at line %d:\n\tThe adjacent to parameter must be a Vertex\n",
+                    currnode -> line_no );
+          fprintf ( stderr,
+                    "\tNote: Provided type is %s\n\n",
+                    getDataTypeName ( getFifthChild ( currnode ) -> result_type ) );
           return 1;
         }
       }
     }
   }
-  
+
   return 0;
 }
 
@@ -670,9 +868,13 @@ int checkEdgeCreation ( ANODE *currnode )
     if ( getFirstChild ( currnode ) -> result_type != D_VERTEX_TYPE
          || getSecondChild ( currnode ) -> result_type != D_VERTEX_TYPE )
     {
-      fprintf ( stderr, "Error at line %d:\n\tThe components of an edge must be vertices\n", currnode -> line_no );
-      fprintf ( stderr, "\tNote: Provided types are %s and %s\n\n", getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
-                                                                    getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
+      fprintf ( stderr,
+                "Error at line %d:\n\tThe components of an edge must be vertices\n",
+                currnode -> line_no );
+      fprintf ( stderr,
+                "\tNote: Provided types are %s and %s\n\n",
+                getDataTypeName ( getFirstChild ( currnode ) -> result_type ),
+                getDataTypeName ( getSecondChild ( currnode ) -> result_type ) );
       return 1;
     }
 

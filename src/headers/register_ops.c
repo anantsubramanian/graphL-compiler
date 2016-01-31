@@ -107,7 +107,7 @@ void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
 /**
  * Function that gets a register given the necessary parameters
  * The parameters names are self explanatory.
- * 
+ *
  * It tries to pick unused registers in a round robin manner
  *
  * @return int The ID of the allocated register
