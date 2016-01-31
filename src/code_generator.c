@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "headers/ast.h"
+#include "headers/register.h"
 
 #ifndef SYMBOLTABLE_DEFINED
   #include "headers/symboltable.h"
@@ -24,11 +25,10 @@
   #include "headers/parse_utils.h"
 #endif
 
-#define DEBUG_AST_CONSTRUCTION 0
-#define DEBUG_STB_AUXOPS 0
-#define DEBUG_REGISTER_ALLOC 0
+#ifndef DEBUG_FLAGS_DEFINED
+  #include "headers/debug.h"
+#endif
 
-#define NUMREG 6
 #define NEWLINE '\n'
 #define ASSEMBLY_FILE "VARFILE"
 #define ASSEMBLY_CODE_FILE "CODEFILE"
@@ -38,22 +38,6 @@
 #define DOWN 0
 #define UP 1
 
-#define ONE_OFFSET 1
-#define TWO_OFFSETS 2
-#define THREE_OFFSETS 3
-#define DATA_IN_REG 4
-#define OFFSET_IN_REG 5
-#define IS_GLOBAL 0
-#define IS_LOCAL 1
-#define IS_LITERAL 2
-#define NO_SPECIFIC_REG -1
-#define OFFSET_ANY -1
-#define NO_REGISTER -2
-#define EAX_REG 0
-#define EBX_REG 1
-#define ECX_REG 2
-#define EDX_REG 3
-
 // The structure that is pushed on the stack to check whether this node is being
 // poppsed on the way down or the way up, i.e. top-down traversal or bottom-up traversal
 typedef struct stack_entry
@@ -61,163 +45,6 @@ typedef struct stack_entry
   ANODE *node;
   int upordown;
 } STACKENTRY;
-
-typedef struct register_data
-{
-  int flushed;
-  int hasoffset;
-  int stbindex;
-  int offset1;
-  int offset2;
-  int offset3;
-  int istemp;
-  int isglobal;
-} REGISTER;
-
-REGISTER registers [ NUMREG ];
-int roundrobinreg = 0;
-
-char registerNames[][4] = {
-
-  "eax",
-  "ebx",
-  "ecx",
-  "edx",
-  "esi",
-  "edi"
-};
-
-char* getRegisterName ( int regid )
-{
-  return registerNames [ regid ];
-}
-
-void setRegisterProperties ( int regid, int flushed, int isglobal, int istemp, int hasoffset,
-                             int stbindex, int offset1, int offset2, int offset3 )
-{
-  registers [ regid ] . flushed = flushed;
-  registers [ regid ] . isglobal = isglobal;
-  registers [ regid ] . istemp = istemp;
-  registers [ regid ] . hasoffset = hasoffset;
-  registers [ regid ] . stbindex = stbindex;
-  registers [ regid ] . offset1 = offset1;
-  registers [ regid ] . offset2 = offset2;
-  registers [ regid ] . offset3 = offset3;
-}
-
-void flushRegister ( int topick, FILE *codefile, SYMBOLTABLE *symboltable )
-{
-  // Registers with offsets don't have write data, so they don't need to be flushed
-  if ( registers [ topick ] . hasoffset )
-    return;
-
-  if ( registers [ topick ] . isglobal == IS_GLOBAL )
-  {
-    char *varname = getEntryByIndex ( symboltable, registers [ topick ] . stbindex ) -> data . var_data . name;
-    char midc = ((topick == EAX_REG) ? 'b' : 'a');
-
-    if ( registers [ topick ] . offset2 == OFFSET_ANY )
-      fprintf ( codefile, "\tmov\t[%s], %s\n", varname, getRegisterName ( topick ) );
-    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
-      fprintf ( codefile, "\tmov\t[%s+%d], %s\n", varname, registers [ topick ] . offset2, getRegisterName ( topick ) );
-    else
-    {
-      fprintf ( codefile, "\tpush\te%cx\n", midc );
-      fprintf ( codefile, "\tmov\te%cx, [%s+%d]\n", midc, varname, registers [ topick ] . offset2 );
-      fprintf ( codefile, "\tadd\te%cx, %d\n", midc, registers [ topick] . offset3 );
-      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
-      fprintf ( codefile, "\tpop\te%cx\n", midc );
-    }
-  }
-  else
-  {
-    char midc = ((topick == EAX_REG) ? 'b' : 'a');
-
-    if ( registers [ topick ] . offset2 == OFFSET_ANY )
-      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", registers [ topick ] . offset1, getRegisterName ( topick ) );
-    else if ( registers [ topick ] . offset3 == OFFSET_ANY )
-    {
-      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
-      fprintf ( codefile, "\tmov\t[ebp-%d], %s\n", resultant, getRegisterName ( topick ) );
-    }
-    else
-    {
-      fprintf ( codefile, "\tpush\te%cx\n", midc );
-      int resultant = registers [ topick ] . offset1 + registers [ topick ] . offset2;
-      fprintf ( codefile, "\tmov\te%cx, [ebp-%d]\n", midc, resultant );
-      fprintf ( codefile, "\tsub\te%cx, %d\n", midc, registers [ topick ] . offset3 );
-      fprintf ( codefile, "\tmov\t[e%cx], %s\n", midc, getRegisterName ( topick ) );
-      fprintf ( codefile, "\tpop\te%cx\n", midc );
-    }
-  }
-
-  registers [ topick ] . flushed = 1;
-}
-
-int getRegister ( FILE *codefile, SYMBOLTABLE *symboltable, int symboltable_index, int offset1,
-                  int offset2, int offset3, int topick, int istemp, int donttouch1, int donttouch2 )
-{
-  int i;
-  if ( ! istemp )
-  {
-    for ( i = 0; i < NUMREG; i++ )
-      if ( registers [i] . stbindex == symboltable_index
-           && ( registers [i] . offset1 == offset1 || offset1 == OFFSET_ANY )
-           && ( registers [i] . offset2 == offset2 || offset2 == OFFSET_ANY )
-           && ( registers [i] . offset3 == offset3 || offset3 == OFFSET_ANY )
-           && registers [i] . flushed == 0
-           && registers [i] . istemp != 1 )
-      {
-        if ( DEBUG_REGISTER_ALLOC )
-          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
-        return i;
-      }
-
-    if ( DEBUG_REGISTER_ALLOC )
-      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
-  }
-  else if ( istemp == IS_LITERAL )
-  {
-    for ( i = 0; i < NUMREG; i++ )
-      if ( registers [i] . stbindex == symboltable_index
-           && registers [i] . flushed == 0
-           && registers [i] . istemp == IS_LITERAL )
-      {
-        if ( DEBUG_REGISTER_ALLOC )
-          fprintf ( stderr, "Found register %d for %d\n", i, symboltable_index );
-        return i;
-      }
-
-    if ( DEBUG_REGISTER_ALLOC )
-      fprintf ( stderr, "Data of %d doesn't exists in any register\n", symboltable_index );
-  }
-
-  // All registers need to be flushed, so pick one and flush
-  if ( topick == NO_SPECIFIC_REG )
-  {
-    for ( i = 0; i < NUMREG; i++ )
-      if ( registers [i] . flushed )
-        return i;
-
-    int roundrobinstart = roundrobinreg;    // To detect infinite loops
-    topick = (roundrobinreg + 1) % NUMREG;
-    while ( registers [ topick ] . istemp || topick == donttouch1 || topick == donttouch2 )
-    {
-      topick = (topick + 1) % NUMREG;
-      if ( topick == roundrobinstart )
-        return -1;
-    }
-    roundrobinreg = topick;
-  }
-
-  if ( registers [ topick ] . istemp != IS_LITERAL && ! registers [ topick ] . flushed )
-    flushRegister ( topick, codefile, symboltable );
-
-  registers [topick] . flushed = 1;
-  registers [topick] . hasoffset = 1;
-
-  return topick;
-}
 
 int forlabel = 0;
 int iflabel = 0;
@@ -227,45 +54,6 @@ int hasglobalvars = 0;
 int hasfunctions = 0;
 int startwritten = 0;
 int curlitindex = 0;
-
-typedef struct literal_data
-{
-  char *name;
-} LITDATA;
-
-
-void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
-{
-  if ( DEBUG_AST_CONSTRUCTION )
-    printf ( "At node: %s\n", getNodeTypeName ( node -> node_type ) );
-
-  ANODE *createdNode = readDumpNode ( node, astdumpfile );
-
-  createdNode -> parent = node;
-
-  if ( DEBUG_AST_CONSTRUCTION )
-    printf ( "Created node: %s with %d children\n\n",
-             getNodeTypeName ( createdNode -> node_type ), createdNode -> num_of_children );
-
-  int i;
-  int childcount = createdNode -> num_of_children;
-
-  // addChild will modify this too, so we must reset it after getting the info for the loop below
-  createdNode -> num_of_children = 0;
-
-  for ( i = 0; i < childcount; i++ )
-  {
-    if ( DEBUG_AST_CONSTRUCTION )
-      printf ( "Child %d / %d for %s:\n\n", i, childcount,
-               getNodeTypeName ( createdNode -> node_type ) );
-
-    readAstDumpFile ( createdNode, astdumpfile );
-  }
-
-  if ( DEBUG_AST_CONSTRUCTION )
-    printf ( "Done with: %s\n\n", getNodeTypeName ( createdNode -> node_type ) );
-}
-
 
 void handleTypeSpecificActions ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *stbdumpfile )
 {
@@ -1135,107 +923,6 @@ int getProgramSize ( ANODE *programNode )
   }
 
   return value;
-}
-
-int getOffsetInReg ( ANODE *assignable, FILE *codefile, SYMBOLTABLE *symboltable )
-{
-  int o1 = assignable -> offset1;
-  int o2 = (assignable -> offsetcount > 1) ? assignable -> offset2 : OFFSET_ANY;
-  int o3 = (assignable -> offsetcount > 2) ? assignable -> offset3 : OFFSET_ANY;
-
-  int target = getRegister ( codefile, symboltable, getFirstChild ( assignable ) -> extra_data . symboltable_index,
-                             o1, o2, o3, NO_SPECIFIC_REG, 0, NO_REGISTER, NO_REGISTER );
-
-  if ( target == -1 )
-  {
-    fprintf ( stderr, "Error: Out of registers, cannot get offset in temp register\n" );
-    exit ( -1 );
-  }
-
-  if ( registers [ target ] . flushed == 0 )
-    return target;
-
-  if ( assignable -> global_or_local == IS_LOCAL )
-  {
-    if ( assignable -> offsetcount == ONE_OFFSET )
-    {
-      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
-      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset1 );
-    }
-    else
-    {
-      int resultant = assignable -> offset2 + assignable -> offset1;
-      fprintf ( codefile, "\tmov\t%s, ebp\n", getRegisterName ( target ) );
-      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), resultant );
-    }
-
-    if ( assignable -> offsetcount == THREE_OFFSETS )
-    {
-      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
-      fprintf ( codefile, "\tsub\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
-    }
-  }
-  else
-  {
-    // Is a global variable
-    char *varname = getEntryByIndex ( symboltable, assignable -> offset1 ) -> data . var_data . name;
-    fprintf ( codefile, "\t; Getting offset for %s\n", varname );
-
-    if ( assignable -> offsetcount == ONE_OFFSET )
-      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
-    else
-    {
-      fprintf ( codefile, "\tmov\t%s, %s\n", getRegisterName ( target ), varname );
-      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset2 );
-    }
-
-    if ( assignable -> offsetcount == THREE_OFFSETS )
-    {
-      fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( target ), getRegisterName ( target ) );
-      fprintf ( codefile, "\tadd\t%s, %d\n", getRegisterName ( target ), assignable -> offset3 );
-    }
-  }
-
-  setRegisterProperties ( target, 0, assignable -> global_or_local, 0, 1,
-    getFirstChild ( assignable ) -> extra_data . symboltable_index, assignable -> offset1, 0,
-    assignable -> offset3 );
-
-  if ( assignable -> offsetcount > 1 )
-    registers [ target ] . offset2 = assignable -> offset2;
-  else
-    registers [ target ] . offset2 = OFFSET_ANY;
-
-  if ( assignable -> offsetcount > 2 )
-    registers [ target ] . offset3 = assignable -> offset3;
-  else
-    registers [ target ] . offset3 = OFFSET_ANY;
-
-  return target;
-}
-
-int getLiteralInRegister ( ANODE *literalnode, FILE *codefile, SYMBOLTABLE *symboltable,
-                           TRIE *literaltrie, LITDATA *literals )
-{
-  LITERAL *litdata = & ( getEntryByIndex ( symboltable, literalnode -> extra_data . symboltable_index ) -> data . lit_data );
-
-  TNODE *foundlit = findString ( literaltrie, litdata -> value );
-
-  int targetreg = getRegister ( codefile, symboltable, literalnode -> extra_data . symboltable_index,
-                  OFFSET_ANY, OFFSET_ANY, OFFSET_ANY, NO_SPECIFIC_REG, IS_LITERAL, NO_REGISTER,
-                  NO_REGISTER );
-
-  if ( targetreg == -1 )
-  {
-    fprintf ( stderr, "Error: Out of temporary registers to get literal\n" );
-    exit ( -1 );
-  }
-
-  fprintf ( codefile, "\tmov\t%s, [%s]\n", getRegisterName ( targetreg ), literals [ foundlit -> data . int_val ] . name );
-
-  setRegisterProperties ( targetreg, 0, -1, IS_LITERAL, 0, literalnode -> extra_data . symboltable_index,
-                          OFFSET_ANY, OFFSET_ANY, OFFSET_ANY );
-
-  return targetreg;
 }
 
 void generateCode ( ANODE *currnode, SYMBOLTABLE *symboltable, FILE *assemblyfile, FILE *codefile,

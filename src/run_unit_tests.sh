@@ -1,3 +1,5 @@
+# TODO: Add unit tests for Code Generator
+
 # If insufficient command line arguments are provided
 # display arguments information
 if [[ "$5" == "" ]]; then

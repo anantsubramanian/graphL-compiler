@@ -14,7 +14,7 @@ ALLFILES=lexer parse_table_generator dfa_ops.o trie_ops.o \
          parsetree_generator parsetree_ops.o ast_ops.o \
          ast_generator ast_generator.o symboltable_ops.o \
          code_generator.o code_generator constants.o \
-         parse_utils.o ast_construction_ops.o
+         parse_utils.o ast_construction_ops.o register_ops.o
 
 all: lexer parse_table_generator parser parsetree_generator \
      ast_generator code_generator
@@ -45,9 +45,11 @@ ast_generator: ast_generator.o trie_ops.o stack_ops.o linkedlist_ops.o \
         $(CFLAGS) $(ASTOUTPUT)
 
 code_generator: code_generator.o ast_ops.o stack_ops.o symboltable_ops.o \
-                trie_ops.o linkedlist_ops.o constants.o parse_utils.o
+                trie_ops.o linkedlist_ops.o constants.o parse_utils.o \
+                register_ops.o
 	$(CC) code_generator.o ast_ops.o stack_ops.o symboltable_ops.o trie_ops.o \
-        linkedlist_ops.o constants.o parse_utils.o $(CFLAGS) $(CGROUTPUT)
+        linkedlist_ops.o constants.o parse_utils.o register_ops.o \
+        $(CFLAGS) $(CGROUTPUT)
 
 constants.o: headers/constants.h
 	$(CC) $(OBJFLAG) headers/constants.c
@@ -96,6 +98,9 @@ ast_ops.o: headers/ast_ops.c headers/ast.h
 
 ast_construction_ops.o: headers/ast_construction.h
 	$(CC) $(OBJFLAG) headers/ast_construction_ops.c
+
+register_ops.o: headers/register.h
+	$(CC) $(OBJFLAG) headers/register_ops.c
 
 clean:
 	$(RM) $(ALLFILES)

@@ -94,3 +94,5 @@ extern const char* getNodeTypeName ( int type );
 
 extern void preOrderDumpAst ( ANODE *subtree_root, FILE * );
 
+extern void readAstDumpFile ( ANODE *rootnode, FILE * );
+

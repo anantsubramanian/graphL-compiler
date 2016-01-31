@@ -3,6 +3,10 @@
 #include <string.h>
 #include "ast.h"
 
+#ifndef DEBUG_FLAGS_DEFINED
+  #include "debug.h"
+#endif
+
 #define TRUE 1
 #define MAXNAMELEN 50
 
@@ -695,5 +699,46 @@ void preOrderDumpAst ( ANODE *node, FILE *astdumpfile )
 
     preOrderDumpAst ( * ( ANODE ** ) ( iterator . data . generic_val ), astdumpfile );
   }
+}
+
+/**
+ * Function that reads and creates the AST structure from
+ * a pre order dump file generated using the preOrderDumpAst
+ * method
+ *
+ * @param node ANODE* The root node of the AST to be populated
+ * @param astdumpfile FILE* The dump file to read from
+ */
+
+void readAstDumpFile ( ANODE *node, FILE *astdumpfile )
+{
+  if ( DEBUG_AST_CONSTRUCTION )
+    printf ( "At node: %s\n", getNodeTypeName ( node -> node_type ) );
+
+  ANODE *createdNode = readDumpNode ( node, astdumpfile );
+
+  createdNode -> parent = node;
+
+  if ( DEBUG_AST_CONSTRUCTION )
+    printf ( "Created node: %s with %d children\n\n",
+             getNodeTypeName ( createdNode -> node_type ), createdNode -> num_of_children );
+
+  int i;
+  int childcount = createdNode -> num_of_children;
+
+  // addChild will modify this too, so we must reset it after getting the info for the loop below
+  createdNode -> num_of_children = 0;
+
+  for ( i = 0; i < childcount; i++ )
+  {
+    if ( DEBUG_AST_CONSTRUCTION )
+      printf ( "Child %d / %d for %s:\n\n", i, childcount,
+               getNodeTypeName ( createdNode -> node_type ) );
+
+    readAstDumpFile ( createdNode, astdumpfile );
+  }
+
+  if ( DEBUG_AST_CONSTRUCTION )
+    printf ( "Done with: %s\n\n", getNodeTypeName ( createdNode -> node_type ) );
 }
 
