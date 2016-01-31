@@ -10,6 +10,10 @@
 
 #define AST_DEFINED
 
+#ifndef SYMBOLTABLE_DEFINED
+  #include "symboltable.h"
+#endif
+
 #define CREATE 16   // 10000b
 #define GOTOCH 8    // 01000b
 #define PARENT 4    // 00100b
@@ -95,4 +99,6 @@ extern const char* getNodeTypeName ( int type );
 extern void preOrderDumpAst ( ANODE *subtree_root, FILE * );
 
 extern void readAstDumpFile ( ANODE *rootnode, FILE * );
+
+extern void handleTypeSpecificActions ( ANODE* , SYMBOLTABLE* , FILE* );
 
